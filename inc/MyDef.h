@@ -1,7 +1,7 @@
 #ifndef __MY_DEF
 #define __MY_DEF
 //версия прошивки, если первый ноль - то убираем
-#define Insertion 0x0741
+#define Insertion 0x07
 //выбор значения делителя для УСП
 #define USPtime 2
 

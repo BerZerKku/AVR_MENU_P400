@@ -223,7 +223,8 @@ __flash unsigned char Menu1post07[]="?0x07?  ";
 __flash unsigned char Menu1post08[]="Уд.пуск ";
 __flash unsigned char Menu1post09[]="Нет РЗ  ";
 __flash unsigned char Menu1post0A[]="Речь    ";
-__flash unsigned __flash char* Menu1condPOST[]={Menu1post00,Menu1post01,Menu1post02,Menu1post03,Menu1post04,Menu1post05,Menu1post06,Menu1post07,Menu1post08,Menu1post09,Menu1post0A};
+__flash unsigned char Menu1post0B[]="Тест    ";
+__flash unsigned __flash char* Menu1condPOST[]={Menu1post00,Menu1post01,Menu1post02,Menu1post03,Menu1post04,Menu1post05,Menu1post06,Menu1post07,Menu1post08,Menu1post09,Menu1post0A,Menu1post0B};
 //состояния ПРМ
 __flash unsigned char Menu1prm00[]="Исходн. ";
 __flash unsigned char Menu1prm01[]="ПРМ КЧ  ";
@@ -236,7 +237,8 @@ __flash unsigned char Menu1prm07[]="БЛК КМ  ";
 __flash unsigned char Menu1prm08[]="?0x08?  ";
 __flash unsigned char Menu1prm09[]="?0x09?  ";
 __flash unsigned char Menu1prm0A[]="?0x0A?  ";
-__flash unsigned __flash char* Menu1condPRM[]={Menu1prm00,Menu1prm01,Menu1prm02,Menu1prm03,Menu1prm04,Menu1prm05,Menu1prm06,Menu1prm07,Menu1prm08,Menu1prm09,Menu1prm0A};
+__flash unsigned char Menu1prm0B[]="Тест    ";
+__flash unsigned __flash char* Menu1condPRM[]={Menu1prm00,Menu1prm01,Menu1prm02,Menu1prm03,Menu1prm04,Menu1prm05,Menu1prm06,Menu1prm07,Menu1prm08,Menu1prm09,Menu1prm0A,Menu1prm0B};
 //состояния ПРД
 __flash unsigned char Menu1prd00[]="Исходн. ";
 __flash unsigned char Menu1prd01[]="ПРД КЧ  ";
@@ -249,7 +251,8 @@ __flash unsigned char Menu1prd07[]="?0x07?  ";
 __flash unsigned char Menu1prd08[]="?0x08?  ";
 __flash unsigned char Menu1prd09[]="Систем. ";
 __flash unsigned char Menu1prd0A[]="?0x0A?  ";
-__flash unsigned __flash char* Menu1condPRD[]={Menu1prd00,Menu1prd01,Menu1prd02,Menu1prd03,Menu1prd04,Menu1prd05,Menu1prd06,Menu1prd07,Menu1prd08,Menu1prd09,Menu1prd0A};
+__flash unsigned char Menu1prd0B[]="Тест    ";
+__flash unsigned __flash char* Menu1condPRD[]={Menu1prd00,Menu1prd01,Menu1prd02,Menu1prd03,Menu1prd04,Menu1prd05,Menu1prd06,Menu1prd07,Menu1prd08,Menu1prd09,Menu1prd0A,Menu1prd0B};
 
 __flash unsigned char GlobalAvar[]="g-";
 __flash unsigned char LocalAvar[]="l-";

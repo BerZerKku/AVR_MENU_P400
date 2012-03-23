@@ -1364,20 +1364,22 @@ void VersDevice(void)
 	if (cNumComR != 0) sArchive.Dev[++sArchive.NumDev]=2; //приемник
 	if (cNumComT != 0) sArchive.Dev[++sArchive.NumDev]=1; //передатчик
 	
-	if ((Rec_buf_data_uart[9]<4)/*&&(Rec_buf_data_uart[9]!=0)*/)
-	{ 	//1 - ВЧ, 2 - опитка, 3 - Е1
-		cTypeLine = 1;
-		//cTypeLine = Rec_buf_data_uart[9];
-	}
-	else 
+	// Тип линии
+	// 1 - ВЧ
+	// 2 - Оптика
+	if (Rec_buf_data_uart[9] == 1)
+		cTypeLine = 1;	
+	else if (Rec_buf_data_uart[9] == 2)
+		cTypeLine = 2;
+	else
 		CorrectVers = false;
 		
 	if (cTypeLine==1)
 	{
-    	maxLCDtimer=4;  //если =4, то это время/дата/частота/ак		
+    	maxLCDtimer = 4;  //если =4, то это время/дата/частота/ак		
   	}
 	else
-		maxLCDtimer=3;
+		maxLCDtimer = 3;
 	
 	MyInsertion[1] = (Rec_buf_data_uart[10]<<8)+Rec_buf_data_uart[11];  //версия АТмега БСП
 	MyInsertion[2] = (Rec_buf_data_uart[12]<<8)+Rec_buf_data_uart[13];  //версия DSP
