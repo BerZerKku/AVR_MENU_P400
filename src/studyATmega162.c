@@ -2251,11 +2251,11 @@ void LCDMenu1(unsigned char NumString,unsigned char Device){
 						// 	если это ошибочный код
 						// 	или предупреждений несколько
 						// 	выведем на экран код предупреждения
-						LCDprintf(NumString,5,2,Menu1warning,1);
-						FuncClearCharLCD(NumString,13,8);
-						LCDprintf(NumString,13,2,LocalAvar,0);
-						LCDprintHEX(NumString,15,GlobalCurrentState[(Device-1)*4+2]);
-						LCDprintHEX(NumString,17,GlobalCurrentState[(Device-1)*4+3]);
+						LCDprintf(NumString, 5, 2, Menu1warning, 1);
+						FuncClearCharLCD(NumString, 13, 8);
+						LCDprintf(NumString, 13, 2, LocalAvar, 0);
+						LCDprintHEX(NumString, 15, GlobalCurrentState[(Device - 1) * 4 + 2]);
+						LCDprintHEX(NumString, 17, GlobalCurrentState[(Device - 1) * 4 + 3]);
 					}
 				}
 			}
