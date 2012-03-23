@@ -2218,13 +2218,13 @@ void LCDMenu1(unsigned char NumString,unsigned char Device){
 							switch(temp)
 							{
 								case 1:
-								LCDprintf(NumString, 5, 2, Menu1PostWarning1,1);
+								LCDprintf(NumString, 5, 2, Menu1PostWarning1, 1);
 								break;
 								case 2:
-								LCDprintf(NumString, 5, 2, Menu1PostWarning2,1);			
+								LCDprintf(NumString, 5, 2, Menu1PostWarning2, 1);			
 								break;
 								case 4:
-								LCDprintf(NumString, 5, 2, Menu1PostWarning4,1);
+								LCDprintf(NumString, 5, 2, Menu1PostWarning4, 1);
 								break;
 								default:
 								temp = 0;
@@ -2237,7 +2237,7 @@ void LCDMenu1(unsigned char NumString,unsigned char Device){
 							//  в приемниках 1-о предупреждение
 							//	если код не 1, выводим код на экран
 							if (temp == 1)
-								LCDprintf(NumString, 5, 2,  Menu1PrmWarning1,1);
+								LCDprintf(NumString, 5, 2,  Menu1PrmWarning1, 1);
 							else 
 								temp = 0;
 						}
