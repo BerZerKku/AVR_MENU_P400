@@ -2269,7 +2269,7 @@ void LCDMenu1(unsigned char NumString,unsigned char Device){
 				
 				// если нам известен код режима, выводим сообщение на экран
 				// если же нам не извесен принятый код, выводим "????"
-				if (CurrentState[(Device - 1) * 2]! = 0x4E) 
+				if (CurrentState[(Device - 1) * 2] != 0x4E) 
 					LCDprintf(NumString, 5, 2, Menu1regime[CurrentState[(Device - 1) * 2]], 1); 
 				else 
 					LCDprintf(NumString, 5, 2, Menu1Err, 0);  

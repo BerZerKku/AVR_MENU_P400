@@ -390,24 +390,30 @@ __flash unsigned __flash char* Menu19Param[]={Menu19Shift0, Menu19Shift1, Menu19
   __flash unsigned __flash char*fDopParamValue[]={fDopParamValueFalse, fDopParamValueTrue};
 
 //сброс
-__flash unsigned char Menu22Shift0[]= ".Сброс своего.     ";
-__flash unsigned char Menu22Shift1[]= ".Сброс удаленного. ";
-__flash unsigned char Menu22Shift2[]= ".Сброс удаленного 1";
-__flash unsigned char Menu22Shift3[]= ".Сброс удаленного 2";
-__flash unsigned char Menu22Shift4[]= ".Пуск удаленного.  ";
-__flash unsigned char Menu22Shift5[]= ".Пуск удаленного 1 ";
-__flash unsigned char Menu22Shift6[]= ".Пуск удаленного 2 ";
-__flash unsigned char Menu22Shift7[]= ".Пуск удаленных 1,2";
-__flash unsigned char Menu22Shift8[]= ".АК автоматический ";
-__flash unsigned char Menu22Shift9[]= ".АК ускоренный     ";
-__flash unsigned char Menu22Shift10[]=".АК выключен       ";
-__flash unsigned char Menu22Shift11[]=".АК контр.проверка ";
-__flash unsigned char Menu22Shift12[]=".АК испытания      ";
-__flash unsigned char Menu22Shift13[]=".АК пуск           ";
-__flash unsigned char Menu22Shift14[]=".Вызов             ";
-__flash unsigned char Menu22Shift8_1[]=".АК нормальный     ";
-__flash unsigned char Menu22Shift11_1[]=".АК беглый         ";
-__flash unsigned char Menu22Shift6_1[]=".Пуск удален. МАН ";
+__flash unsigned char Menu22Shift0[]= 	".Сброс своего.     ";
+__flash unsigned char Menu22Shift1[]= 	".Сброс удаленного. ";
+__flash unsigned char Menu22Shift2[]= 	".Сброс удаленного 1";
+__flash unsigned char Menu22Shift3[]= 	".Сброс удаленного 2";
+__flash unsigned char Menu22Shift4[]= 	".Пуск удаленного.  ";
+__flash unsigned char Menu22Shift5[]= 	".Пуск удаленного 1 ";
+__flash unsigned char Menu22Shift6[]= 	".Пуск удаленного 2 ";
+__flash unsigned char Menu22Shift7[]= 	".Пуск удаленных 1,2";
+__flash unsigned char Menu22Shift8[]= 	".АК автоматический ";
+__flash unsigned char Menu22Shift9[]= 	".АК ускоренный     ";
+__flash unsigned char Menu22Shift10[]=	".АК выключен       ";
+__flash unsigned char Menu22Shift11[]=	".АК контр.проверка ";
+__flash unsigned char Menu22Shift12[]=	".АК испытания      ";
+__flash unsigned char Menu22Shift13[]=	".АК пуск           ";
+__flash unsigned char Menu22Shift14[]=	".Вызов             ";
+__flash unsigned char Menu22Shift8_1[]=	".АК нормальный     ";	// +0
+__flash unsigned char Menu22Shift11_1[]=".АК беглый         ";	// +1
+__flash unsigned char Menu22Shift6_1[]=	".Пуск удален. МАН  ";	// +2
+__flash unsigned char Menu22Shift11_2[]=".АК односторонний  ";	// +3
+__flash unsigned char Menu22Shift12_1[]=".Сброс АК          ";	// +4
+__flash unsigned char Menu22Shift4_1[]= ".Пуск АК свой      ";	// +5
+__flash unsigned char Menu22Shift5_1[]= ".Пуск АК удаленный ";	// +6
+__flash unsigned char Menu22Shift6_2[]= ".Пуск ПРД          ";	// +7
+
 #define dNumUprLine 15
 __flash unsigned __flash char* Menu22upr[]={Menu22Shift0,Menu22Shift1,Menu22Shift2,Menu22Shift3,Menu22Shift4,Menu22Shift5,Menu22Shift6,Menu22Shift7,Menu22Shift8,Menu22Shift9,Menu22Shift10,Menu22Shift11,Menu22Shift12,Menu22Shift13,Menu22Shift14,Menu22Shift8_1,Menu22Shift11_1, Menu22Shift6_1};
 

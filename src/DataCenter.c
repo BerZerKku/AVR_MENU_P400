@@ -1303,64 +1303,100 @@ void VersDevice(void)
 	CorrectVers=true;
 	
 #if DEB
-#if !AUT
-    Rec_buf_data_uart[4]=DEF;
-    Rec_buf_data_uart[5]=PRM1;
-    Rec_buf_data_uart[6]=PRM2;
-    Rec_buf_data_uart[7]=PRD;
-    Rec_buf_data_uart[8]=LIN;
-    Rec_buf_data_uart[9]=TYP;
+	#if !AUT
+		Rec_buf_data_uart[4]=DEF;
+		Rec_buf_data_uart[5]=PRM1;
+		Rec_buf_data_uart[6]=PRM2;
+		Rec_buf_data_uart[7]=PRD;
+		Rec_buf_data_uart[8]=LIN;
+		Rec_buf_data_uart[9]=TYP;
+	#endif
 #endif
-#endif
 	
-	if (Rec_buf_data_uart[4]==0){ //поста нет
-		bDef=false; bViewParam[3]=false;
-	}else
-		if (Rec_buf_data_uart[4]==1){//пост есть
-			bDef=true;
-			bViewParam[5]=true; 
-			sArchive.Dev[++sArchive.NumDev]=3;
-		}else CorrectVers=false;
+	// наличие ПОСТа
+	if (Rec_buf_data_uart[4]==0)
+	{ 
+		bDef = false; 
+		bViewParam[3] = false;
+	}
+	else if (Rec_buf_data_uart[4]==1)
+	{
+		bDef = true;
+		bViewParam[5] = true; 
+		sArchive.Dev[++sArchive.NumDev] = 3;
+	}
+	else 
+		CorrectVers = false;
 	
-	if ((Rec_buf_data_uart[5]<9)&&(Rec_buf_data_uart[5]!=3)){
-		cNumComR1=Rec_buf_data_uart[5]*4;  //кол-во команд на ПРМ1
-		bViewParam[5]=true;
-	}else CorrectVers=false;
+	 //кол-во команд на ПРМ1
+	// кратно 4-ем
+	// 0, 4, 8, 16, 20, 24, 28, 32
+	if ( (Rec_buf_data_uart[5] < 9) && (Rec_buf_data_uart[5] != 3) )
+	{
+		cNumComR1 = Rec_buf_data_uart[5] * 4; 
+		bViewParam[5] = true;
+	}
+	else 
+		CorrectVers = false;
 	
-	if ((Rec_buf_data_uart[6]<9)&&(Rec_buf_data_uart[6]!=3)){
-		cNumComR2=Rec_buf_data_uart[6]*4;  //кол-во команд на ПРМ2
-	}else CorrectVers=false;
+	// кол-во команд на ПРМ2
+	// кратно 4-ем
+	// 0, 4, 8, 16, 20, 24, 28, 32
+	if ( (Rec_buf_data_uart[6] < 9) && (Rec_buf_data_uart[6] != 3) )
+	{
+		cNumComR2 = Rec_buf_data_uart[6] * 4;  
+	}
+	else 
+		CorrectVers = false;
 	
-	if ((Rec_buf_data_uart[7]<9)&&(Rec_buf_data_uart[7]!=3)){
-		cNumComT=Rec_buf_data_uart[7]*4;  //кол-во кмнанд на ПРД
-	}else CorrectVers=false;
+	// кол-во кмнанд на ПРД
+	// кратно 4-ем 
+	// 0, 4, 8, 16, 20, 24, 28, 32
+	if ( (Rec_buf_data_uart[7] < 9) && (Rec_buf_data_uart[7] != 3))
+	{
+		cNumComT = Rec_buf_data_uart[7] * 4;  
+	}
+	else 
+		CorrectVers=false;
 	
-	if (Rec_buf_data_uart[8]==2){
-		cNumLine=2; //2-х концевая версия
-		cNumComR2=0;
-		cNumComR=cNumComR1;
-	}else
-		if (Rec_buf_data_uart[8]==3)
+	// Кол-во аппаратов в линии
+	// 2 или 3
+	// в звисимости от этого, корректируются некоторые параметры
+	if (Rec_buf_data_uart[8] == 2)
+	{
+		cNumLine = 2; 
+		cNumComR2 = 0;
+		cNumComR = cNumComR1;
+	}
+	else if (Rec_buf_data_uart[8] == 3)
+	{
+		cNumLine=3; 
+		if ( (cNumComR2) || (bDef) )
+			bViewParam[6] = true;  //если есть приемник по второй линии или защита
+		if ((bDef)		&&
+			(cNumComR1)	&&
+			(cNumComR2)	&&
+			(cNumComT)	)
 		{
-			cNumLine=3; //3-х концевая версия
-			//if (bDef) bViewParam[4]=true;
-			if ((cNumComR2) || (bDef))
-				bViewParam[6]=true;  //если есть приемник по второй линии или защита
-			if ((bDef) &&
-				(cNumComR1)&&
-					(cNumComR2)&&
-						(cNumComT))
-			{
-				bAllDevice=true;
-			}
-			cNumComR = cNumComR1 + cNumComR2;
-			if (cNumComR2 != 0)
-				sArchive.Dev[++sArchive.NumDev]=4;  //приемник 2, если это не 2-х концевая версия
-		}else CorrectVers=false;
+			bAllDevice=true;
+		}
+		
+		cNumComR = cNumComR1 + cNumComR2;
+		
+		// архив для второго приемника. при необходимости
+		if (cNumComR2 != 0)
+			sArchive.Dev[++sArchive.NumDev] = 4;  
+	}
+	else 
+		CorrectVers = false;
 	
+	// Архив приемника
+	if (cNumComR != 0) 
+		sArchive.Dev[++sArchive.NumDev] = 2; //приемник
 	
-	if (cNumComR != 0) sArchive.Dev[++sArchive.NumDev]=2; //приемник
-	if (cNumComT != 0) sArchive.Dev[++sArchive.NumDev]=1; //передатчик
+	// Архив передатчика
+	if (cNumComT != 0) 
+		sArchive.Dev[++sArchive.NumDev] = 1; //передатчик
 	
 	// Тип линии
 	// 1 - ВЧ
@@ -1371,13 +1407,14 @@ void VersDevice(void)
 		cTypeLine = 2;
 	else
 		CorrectVers = false;
-		
-	if (cTypeLine==1)
-	{
-    	maxLCDtimer = 4;  //если =4, то это время/дата/частота/ак		
-  	}
+	
+	// Кол-во отображаемых параметров, в заивимости от типа линии	
+	// если = 4, то это время/дата/частота/ак
+	if (cTypeLine == 1)
+    	maxLCDtimer = 4;  		
 	else
 		maxLCDtimer = 3;
+	
 	
 	MyInsertion[1] = (Rec_buf_data_uart[10]<<8)+Rec_buf_data_uart[11];  //версия АТмега БСП
 	MyInsertion[2] = (Rec_buf_data_uart[12]<<8)+Rec_buf_data_uart[13];  //версия DSP
@@ -1389,7 +1426,7 @@ void VersDevice(void)
 			1 - пвз90
 			2 - авзк
 			3 - пвзуе
-		
+			4 - пвзл
 	*/
 	
 	//подсичтаем кол-во параметров в меню тест, группа 1
@@ -1397,20 +1434,18 @@ void VersDevice(void)
 	{
 		cNumKF = 1;
 	}
+	else if (cNumLine == 2)
+	{
+		cNumKF = 2;
+	}
+	else if (cNumLine == 3)
+	{
+		cNumKF = 4;
+	}
 	else
-		if (cNumLine == 2)
-		{
-			cNumKF = 2;
-		}
-		else
-			if (cNumLine == 3)
-			{
-				cNumKF = 4;
-			}
-			else
-			{
-				cNumKF=0;
-			}
+	{
+		cNumKF=0;
+	}
 	
 	//сформируем меню просмотр параметров/установимть параметры
 	LineInMenu6 = 0;
@@ -1447,121 +1482,131 @@ void VersDevice(void)
 //обработка принятого сообщения
 void DataModBus(unsigned char NumberByte)
 {
-	CRCSum=GetCRCSum(Rec_buf_data_uart,NumberByte-1);
-	if (CRCSum!=Rec_buf_data_uart[NumberByte-1]) {EnableReceive;} //прверка принятого CRC
-	else{
+	//прверка принятого CRC
+	CRCSum = GetCRCSum(Rec_buf_data_uart,NumberByte - 1);
+	if (CRCSum != Rec_buf_data_uart[NumberByte - 1]) 
+	{
+		EnableReceive; 
+	}
+	else
+	{
 		//for (i_dc=0; i_dc<NumberByte; i_dc++) Tr_buf_data_uart1[i_dc]=Rec_buf_data_uart[i_dc];
 		//TransDataInf1(Tr_buf_data_uart1[2], Tr_buf_data_uart1[3]);
 		
 #if ((DEB)&&(PK))
-		if ((ALR)||(Rec_buf_data_uart[2]==CR1)||(Rec_buf_data_uart[2]==CR2)||(Rec_buf_data_uart[2]==CR3)||(Rec_buf_data_uart[2]==CR4)||((Rec_buf_data_uart[2]&0xF0)==MSR)){
-			for (i_dc=0; i_dc<NumberByte; i_dc++) Tr_buf_data_uart1[i_dc]=Rec_buf_data_uart[i_dc];
+		if ( (ALR)	||
+			 (Rec_buf_data_uart[2] == CR1)	||
+			 (Rec_buf_data_uart[2] == CR2)	||
+			 (Rec_buf_data_uart[2] == CR3)	||
+			 (Rec_buf_data_uart[2] == CR4)	||
+			 ((Rec_buf_data_uart[2] & 0xF0) == MSR)
+			)
+		{
+			for (i_dc = 0; i_dc < NumberByte; i_dc++) 
+				Tr_buf_data_uart1[i_dc] = Rec_buf_data_uart[i_dc];
 			TransDataInf1(Tr_buf_data_uart1[2], Tr_buf_data_uart1[3]);
 		}
 #endif
 		
-		if (PCready==2){ // идет работа с ПК
+		
+		if (PCready==2)
+		{ 
+			// идет работа с ПК
 			for (i_dc=0; i_dc<NumberByte; i_dc++) Tr_buf_data_uart1[i_dc]=Rec_buf_data_uart[i_dc];
 			PCready=3;
 			PCbyte=NumberByte;
 		}
-		
-		if (PCready==0){
-			ModBusBaza->writeinf(Rec_buf_data_uart[2],Rec_buf_data_uart);
+		else if (PCready==0)
+		{
+			// идет работа с БСП
+			ModBusBaza->writeinf(Rec_buf_data_uart[2], Rec_buf_data_uart);
 			
-			switch(Rec_buf_data_uart[2]&0xF0)
+			switch(Rec_buf_data_uart[2] & 0xF0)
 			{
-				case 0x00:	//защита
-				{ 
-					//case 0x01:  //принято значение типа защиты (пост)
-					//case 0x02:  //принято значение типа линии (пост)
-					//case 0x03:  //принято значение допустимого времени без манипуляции (пост)
-					//case 0x04:  //принято значение допустимых провалов в сигнале приема (пост)
-					//case 0x05:  //принято значение перекрытия импульсов (пост)
-					//case 0x06:  //принято значение напряжения порога
-					//case 0x0A:  // принято знчаение автоконтроля
-					FParamDef(Rec_buf_data_uart[2]);
-				}
+				case 0x00:	// параметры защиты
+				FParamDef(Rec_buf_data_uart[2]);
 				break;
-				case 0x10:	//прм
-				{ 
-					//case 0x11:  //Время включения (приемник)
-					//case 0x12:  //длительность команды (приемник)
-					//case 0x13:  //задержка на выключение (приемник)
-					//case 0x14:  //блокировка команд на приеме (приемник)
-					//case 0x15:  //длительные команды (приемник)
-					//case 0x18:  //0x11, для второго Применика
-					//case 0x19:  //0x12, для второго Применика
-					//case 0x1A:  //0x13, для второго Применика
-					//case 0x1B:  //0x14, для второго Применика
-					//case 0x1C:  {}break; //0x15, для второго Применика
-					FParamPrm(Rec_buf_data_uart[2]);
-				}
+				
+				case 0x10:	// параметры приемника
+				FParamPrm(Rec_buf_data_uart[2]);
 				break;
-				case 0x20:	//прд
+				
+				case 0x20:	// параметры передатчика
+				FParamPrd(Rec_buf_data_uart[2]);
+				break;
+				
+				case 0x30:	// общ
 				{ 
-					//case 0x21:  //время включения (передатчик)
-					//case 0x22:  //длительность команды (передатчик)
-					//case 0x23:  //время на повторное формирование команды (передатчик)
-					//case 0x24:  //блокировка команд (передатчик)
-					//case 0x25:  {}break;  //длительные команды  (передатчик)
-					FParamPrd(Rec_buf_data_uart[2]);
-				}break;
-				case 0x30:	//общ
-				{ 
-					switch(Rec_buf_data_uart[2]){
-						case 0x30:  {FCurrentState();} break; //принято текущее состояние
-						case 0x31:  {FGlobalCurrentState();} break;  //принято общее текущее состояние
-						case 0x32:  {FDataTime();} break;  //пришли данные дата/время
-						case 0x33:  
+					switch(Rec_buf_data_uart[2])
+					{
+						case 0x30:  // принято текущее состояние
+						FCurrentState();
+						break; 
+						
+						case 0x31:	//принято общее текущее состояние
+						FGlobalCurrentState(); 
+						break;  
+						
+						case 0x32:	// пришли данные дата/время
+						FDataTime(); 
+						break;  
+						
+						case 0x33:	// коррекция тока/напряжения  
 						{
 							if (cTypeLine == 1)
-							{
 								FCorrParam();
-							}
 							else
-							{
 								vfOptParam();
-							}
 						} 
-						break; //коррекция тока/напряжения
-						case 0x34:  {if (cTypeLine==1) FMeasureParam();} break; //пришли измеряемые параметры
-						case 0x3E:  {FTest1(Rec_buf_data_uart[4]);}break; //принято значение Теста1
-						case 0x3F:  VersDevice(); break; //информация об аппарате
-						default:{
-							//case 0x35:  //синхронизация часов (общие)
-							//case 0x36:  //увеличение выходной мощности
-							//case 0x37:  //тип удаленного аппарата(общие)
-							//case 0x38:  //адрес аппарата в локальной сети (общие)
-							//case 0x39:  //время перезапуска (общие)
-							//case 0x3A:  //частота (общие)
-							//case 0x3B:
-							//case 0x3C:  //пороги КЧ (общие)
-							//case 0x3D:  {}break;//номер аппарата (общие)
-							FParamGlobal(Rec_buf_data_uart[2]);
+						break; 
+						
+						case 0x34:  // пришли измеряемые параметры
+						{
+							
+							if (cTypeLine == 1) 
+								FMeasureParam();
 						}
+						break; 
+						
+						case 0x3E:  // принято значение Теста1
+						FTest1(Rec_buf_data_uart[4]);
+						break; 
+						
+						case 0x3F:  // информация об аппарате
+						VersDevice(); 
+						break; 
+						
+						default:	// общие параметры
+						FParamGlobal(Rec_buf_data_uart[2]);
 					}
 				}
 				break;
 				default:
 				{
-					switch(Rec_buf_data_uart[2]){
-						case 0xC1:
+					switch(Rec_buf_data_uart[2])
+					{
+						case 0xC1:	// кол-во записей в архиве
 						case 0xD1:
 						case 0xE1:
-						case 0xF1: {FArchive();} break;
-						case 0xC2:
+						case 0xF1: 
+						FArchive();
+						break;
+						
+						case 0xC2:	// запись архива
 						case 0xD2:
 						case 0xE2:
-						case 0xF2:  {FArchive();} break; //архив событий
+						case 0xF2:  
+						FArchive(); 
+						break; 
 					}
 				}
 			}
 			EnableReceive;
 		}
 	}
-	ClearPortError();   //после начала отправки сообщения очистим регистр приема
-	bUartRcReady1=false;  //обработка сообщения закончена
+	
+	ClearPortError();   	// после начала отправки сообщения очистим регистр приема
+	bUartRcReady1 = false;  // обработка сообщения закончена
 } //end DataModBus
 
 

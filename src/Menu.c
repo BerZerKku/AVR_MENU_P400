@@ -376,76 +376,99 @@ void MenuParamDefCreate(void)
 
 void MenuUprCreate(void)
 {
-	sMenuUpr.num = 0;
+	char num = 0;
+	
 	switch(TypeUdDev)
 	{
-	  case 1:	//пвз-90
-	
+		case 1:	//пвз-90
+		
 		{
-			sMenuUpr.punkt[sMenuUpr.num] = 0; sMenuUpr.name[sMenuUpr.num++] = 0;
-			sMenuUpr.punkt[sMenuUpr.num] = 1; sMenuUpr.name[sMenuUpr.num++] = 1;
-			sMenuUpr.punkt[sMenuUpr.num] = 8; sMenuUpr.name[sMenuUpr.num++] = dNumUprLine;
-			sMenuUpr.punkt[sMenuUpr.num] = 9; sMenuUpr.name[sMenuUpr.num++] = 9;
-			sMenuUpr.punkt[sMenuUpr.num] = 10; sMenuUpr.name[sMenuUpr.num++] = 10;
-			sMenuUpr.punkt[sMenuUpr.num] = 12; sMenuUpr.name[sMenuUpr.num++] = 12;
-			sMenuUpr.punkt[sMenuUpr.num] = 13; sMenuUpr.name[sMenuUpr.num++] = 13;
-			sMenuUpr.punkt[sMenuUpr.num] = 14; sMenuUpr.name[sMenuUpr.num++] = 14;
+			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
+			sMenuUpr.punkt[num] = 1;	sMenuUpr.name[num++] = 1;				// Сброс удаленного
+			sMenuUpr.punkt[num] = 8;	sMenuUpr.name[num++] = dNumUprLine;		// АК нормальный
+			sMenuUpr.punkt[num] = 9;	sMenuUpr.name[num++] = 9;				// АК ускоренный
+			sMenuUpr.punkt[num] = 10;	sMenuUpr.name[num++] = 10;				// АК выключен
+			sMenuUpr.punkt[num] = 12;	sMenuUpr.name[num++] = 12;				// АК испытания
+			sMenuUpr.punkt[num] = 13;	sMenuUpr.name[num++] = 13;				// АК пуск
+			sMenuUpr.punkt[num] = 14;	sMenuUpr.name[num++] = 14;				// Вызов
 		}
 		break;
 		
-	  case 2:	//авзк-80		
+		case 2:	//авзк-80		
 		{		
-			sMenuUpr.punkt[sMenuUpr.num] = 0; sMenuUpr.name[sMenuUpr.num++] = 0;
-			sMenuUpr.punkt[sMenuUpr.num] = 8; sMenuUpr.name[sMenuUpr.num++] = dNumUprLine;
-			sMenuUpr.punkt[sMenuUpr.num] = 9; sMenuUpr.name[sMenuUpr.num++] = 9;
-			sMenuUpr.punkt[sMenuUpr.num] = 10; sMenuUpr.name[sMenuUpr.num++] = 10;
-			sMenuUpr.punkt[sMenuUpr.num] = 12; sMenuUpr.name[sMenuUpr.num++] = 12;
-			sMenuUpr.punkt[sMenuUpr.num] = 13; sMenuUpr.name[sMenuUpr.num++] = 13;
-			sMenuUpr.punkt[sMenuUpr.num] = 14; sMenuUpr.name[sMenuUpr.num++] = 14;
+			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
+			sMenuUpr.punkt[num] = 8; 	sMenuUpr.name[num++] = dNumUprLine;		// АК нормальный
+			sMenuUpr.punkt[num] = 9; 	sMenuUpr.name[num++] = 9;				// АК ускоренный
+			sMenuUpr.punkt[num] = 10; 	sMenuUpr.name[num++] = 10;				// АК выключен
+			sMenuUpr.punkt[num] = 12; 	sMenuUpr.name[num++] = 12;				// АК испытания
+			sMenuUpr.punkt[num] = 13; 	sMenuUpr.name[num++] = 13;				// АК пуск
+			sMenuUpr.punkt[num] = 14; 	sMenuUpr.name[num++] = 14;				// Вызов
 		}
 		break;
-	  case 3:	// ПВЗУ-Е
+		
+		case 3:	// ПВЗУ-Е
 		{
-			sMenuUpr.punkt[sMenuUpr.num] = 0; sMenuUpr.name[sMenuUpr.num++] = 0;
-			sMenuUpr.punkt[sMenuUpr.num] = 4; sMenuUpr.name[sMenuUpr.num++] = 4;
-			sMenuUpr.punkt[sMenuUpr.num] = 7; sMenuUpr.name[sMenuUpr.num++] = dNumUprLine + 2;
-			sMenuUpr.punkt[sMenuUpr.num] = 8; sMenuUpr.name[sMenuUpr.num++] = dNumUprLine;
-			sMenuUpr.punkt[sMenuUpr.num] = 9; sMenuUpr.name[sMenuUpr.num++] = 9;
-			sMenuUpr.punkt[sMenuUpr.num] = 11; sMenuUpr.name[sMenuUpr.num++] = dNumUprLine + 1;
-			sMenuUpr.punkt[sMenuUpr.num] = 12; sMenuUpr.name[sMenuUpr.num++] = 11;
-			sMenuUpr.punkt[sMenuUpr.num] = 10; sMenuUpr.name[sMenuUpr.num++] = 10;
-			sMenuUpr.punkt[sMenuUpr.num] = 14; sMenuUpr.name[sMenuUpr.num++] = 14;
+			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
+			sMenuUpr.punkt[num] = 4; 	sMenuUpr.name[num++] = 4;				// Пуск удаленного
+			sMenuUpr.punkt[num] = 7; 	sMenuUpr.name[num++] = dNumUprLine + 2;	// Пуск удален. МАН
+			sMenuUpr.punkt[num] = 8; 	sMenuUpr.name[num++] = dNumUprLine;		// АК нормальный
+			sMenuUpr.punkt[num] = 9; 	sMenuUpr.name[num++] = 9;				// АК ускоренный
+			sMenuUpr.punkt[num] = 11; 	sMenuUpr.name[num++] = dNumUprLine + 1;	// АК беглый
+			sMenuUpr.punkt[num] = 12; 	sMenuUpr.name[num++] = 11;				// АК контр. проверка
+			sMenuUpr.punkt[num] = 10; 	sMenuUpr.name[num++] = 10;				// АК выключен
+			sMenuUpr.punkt[num] = 14; 	sMenuUpr.name[num++] = 14;				// Вызов
 		}
 		break;
-	  default:	//в остальных случаях будет Авант
-		sMenuUpr.punkt[sMenuUpr.num] = 0; sMenuUpr.name[sMenuUpr.num++] = 0;
+		
+		case 4: // ПВЗЛ
+		{
+			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
+			sMenuUpr.punkt[num] = 8;	sMenuUpr.name[num++] = dNumUprLine;		// АК-нормальный
+			sMenuUpr.punkt[num] = 11;	sMenuUpr.name[num++] = dNumUprLine + 3;	// АК-односторонний
+			sMenuUpr.punkt[num] = 10;	sMenuUpr.name[num++] = 10;				// АК-выключен
+			sMenuUpr.punkt[num] = 12;	sMenuUpr.name[num++] = dNumUprLine + 4;	// Сброс АК
+			sMenuUpr.punkt[num] = 4;	sMenuUpr.name[num++] = dNumUprLine + 5;	// Пуск АК свой
+			sMenuUpr.punkt[num] = 5;	sMenuUpr.name[num++] = dNumUprLine + 6;	// Пуск АК удаленный
+			sMenuUpr.punkt[num] = 6;	sMenuUpr.name[num++] = dNumUprLine + 7;	// Пуск ПРД
+			sMenuUpr.punkt[num] = 14;	sMenuUpr.name[num++] = 14;				// Вызов
+			
+		}
+		break;
+		
+		default:	//в остальных случаях будет Авант
+		sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;					// Сброс своего
 		if (cNumLine == 3)
 		{
-			sMenuUpr.punkt[sMenuUpr.num] = 2; sMenuUpr.name[sMenuUpr.num++] = 2;
-			sMenuUpr.punkt[sMenuUpr.num] = 3; sMenuUpr.name[sMenuUpr.num++] = 3;
-			sMenuUpr.punkt[sMenuUpr.num] = 5; sMenuUpr.name[sMenuUpr.num++] = 5;
-			sMenuUpr.punkt[sMenuUpr.num] = 6; sMenuUpr.name[sMenuUpr.num++] = 6;
-			sMenuUpr.punkt[sMenuUpr.num] = 7; sMenuUpr.name[sMenuUpr.num++] = 7;
-			if (cTypeLine == 1)													// в ВЛ есть смена АК
+			sMenuUpr.punkt[num] = 2;	sMenuUpr.name[num++] = 2;				// Сброс удаленного 1
+			sMenuUpr.punkt[num] = 3; 	sMenuUpr.name[num++] = 3;				// Сброс удаленного 2
+			sMenuUpr.punkt[num] = 5; 	sMenuUpr.name[num++] = 5;				// Пуск удаленного 1
+			sMenuUpr.punkt[num] = 6; 	sMenuUpr.name[num++] = 6;				// Пуск удаленного 2
+			sMenuUpr.punkt[num] = 7; 	sMenuUpr.name[num++] = 7;				// Пуск удаленных 1,2
+			
+			if (cTypeLine == 1)													
 			{
-				sMenuUpr.punkt[sMenuUpr.num] = 8; sMenuUpr.name[sMenuUpr.num++] = 8;
-				sMenuUpr.punkt[sMenuUpr.num] = 9; sMenuUpr.name[sMenuUpr.num++] = 9;
-				sMenuUpr.punkt[sMenuUpr.num] = 10; sMenuUpr.name[sMenuUpr.num++] = 10;
+				// в ВЛ есть смена АК
+				sMenuUpr.punkt[num] = 8;	sMenuUpr.name[num++] = 8;			// АК автоматический
+				sMenuUpr.punkt[num] = 9;	sMenuUpr.name[num++] = 9;			// АК ускоренный
+				sMenuUpr.punkt[num] = 10;	sMenuUpr.name[num++] = 10;			// АК выключен
 			}
 		}
 		else
 		{
-			sMenuUpr.punkt[sMenuUpr.num] = 1; sMenuUpr.name[sMenuUpr.num++] = 1;
-			sMenuUpr.punkt[sMenuUpr.num] = 4; sMenuUpr.name[sMenuUpr.num++] = 4;
-			if (cTypeLine == 1)													// в ВЛ есть смена АК и вызов
+			sMenuUpr.punkt[num] = 1; 	sMenuUpr.name[num++] = 1;				// Сброс удаленного
+			sMenuUpr.punkt[num] = 4; 	sMenuUpr.name[num++] = 4;				// Пуск удаленного
+			if (cTypeLine == 1)													
 			{
-				sMenuUpr.punkt[sMenuUpr.num] = 8; sMenuUpr.name[sMenuUpr.num++] = 8;			
-				sMenuUpr.punkt[sMenuUpr.num] = 9; sMenuUpr.name[sMenuUpr.num++] = 9;
-				sMenuUpr.punkt[sMenuUpr.num] = 10; sMenuUpr.name[sMenuUpr.num++] = 10;
-				sMenuUpr.punkt[sMenuUpr.num] = 14; sMenuUpr.name[sMenuUpr.num++] = 14;
+				// в ВЛ есть смена АК и вызов
+				sMenuUpr.punkt[num] = 8; 	sMenuUpr.name[num++] = 8;			// АК автоматический
+				sMenuUpr.punkt[num] = 9; 	sMenuUpr.name[num++] = 9;			// АК ускоренный
+				sMenuUpr.punkt[num] = 10; 	sMenuUpr.name[num++] = 10;			// АК выключен 
+				sMenuUpr.punkt[num] = 14; 	sMenuUpr.name[num++] = 14;			// Вызов
 			}
 		}
-	}	
+	}
+
+	sMenuUpr.num = num;	
 }
 
 void MenuAKCreate(void)
