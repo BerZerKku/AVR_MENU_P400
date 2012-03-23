@@ -4,8 +4,6 @@
 #include "driverLCD.h"
 #include "modbus.h"
 #include "DataCenter1.h"
-#define __MY_FLASH
-#include "flash.h"
 
 extern BazaModBus* ModBusBaza;
 extern strMenuGlbParam sMenuGlbParam, sMenuDefParam, sMenuUpr;
@@ -565,7 +563,7 @@ void FCurrentState(void)
     	else
 			CurrentState[l*2] = Rec_buf_data_uart[l*3 + 4];
 		
-    	if (Rec_buf_data_uart[l*3 + 1 + 4] > 0x0A)
+    	if (Rec_buf_data_uart[l*3 + 1 + 4] > 0x0B)
 			CurrentState[l*2 + 1] = 0x4E;
     	else
 			CurrentState[l*2 + 1] = Rec_buf_data_uart[l*3 + 4 + 1];

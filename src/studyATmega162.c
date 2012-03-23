@@ -2258,19 +2258,45 @@ void LCDMenu1(unsigned char NumString,unsigned char Device){
 						LCDprintHEX(NumString,17,GlobalCurrentState[(Device-1)*4+3]);
 					}
 				}
-			}else{  //если надо вывести статус
-				if (Device==5) Device=4;  //в статусе отсутствует общие данные, потому для извлечения из массива уменьшим на 1
-				if (CurrentState[(Device-1)*2]!=0x4E) LCDprintf(NumString,5,2,Menu1regime[CurrentState[(Device-1)*2]],1); //если нам известен код режима, выводим сообщение на экран
-				else LCDprintf(NumString,5,2,Menu1Err,0);  //если же нам не извесен принятый код, выводим "????"
-				if (CurrentState[(Device-1)*2+1]!=0x4E) LCDprintf(NumString,13,2,MassStat[CurrentState[(Device-1)*2+1]],1);//выводим состояние устройства
-				else LCDprintf(NumString,13,2,Menu1Err,0);  //если же нам не извесен принятый код, выводим "????"
+			}
+			else
+			{  
+				//вывод режим/статус
+				
+				//в статусе отсутствует общие данные, потому для извлечения из массива уменьшим на 1
+				if (Device == 5) 
+					Device = 4;  
+				
+				// если нам известен код режима, выводим сообщение на экран
+				// если же нам не извесен принятый код, выводим "????"
+				if (CurrentState[(Device - 1) * 2]! = 0x4E) 
+					LCDprintf(NumString, 5, 2, Menu1regime[CurrentState[(Device - 1) * 2]], 1); 
+				else 
+					LCDprintf(NumString, 5, 2, Menu1Err, 0);  
+				
+				// выводим состояние устройства
+				// если же нам не извесен принятый код, выводим "????"
+				if (CurrentState[(Device - 1) * 2 + 1] != 0x4E) 
+					LCDprintf(NumString, 13, 2, MassStat[CurrentState[(Device - 1) * 2 + 1]], 1);
+				else 
+					LCDprintf(NumString,13,2,Menu1Err,0);  
+				
 				//вывод на экран дополнительного байта
-				if((Device==2)||(Device==4)){
-					if ((CurrentState[(Device-1)*2+1]==1)||(CurrentState[(Device-1)*2+1]==2)||(CurrentState[(Device-1)*2+1]==7))  //прием КЧ, команды или блок.команды
+				if( (Device == 2) || (Device == 4) )
+				{
+					//прием КЧ, команды или блок.команды
+					if ( (CurrentState[(Device - 1) * 2 + 1] == 1)	||
+						 (CurrentState[(Device - 1) * 2 + 1] == 2)	||
+						 (CurrentState[(Device - 1) * 2 + 1] == 7)	)  
+					{
 						LCDprintDEC(NumString,19,Dop_byte[Device-1]);
+					}
 				}
-				if(Device==3){
-					if ((CurrentState[(Device-1)*2+1]==1)||(CurrentState[(Device-1)*2+1]==2)) //передача КЧ или Команды
+				if(Device == 3)
+				{
+					//передача КЧ или Команды
+					if ( (CurrentState[(Device - 1) * 2 + 1] == 1) 	||
+						 (CurrentState[(Device - 1) * 2 + 1] == 2)	) 
 						LCDprintDEC(NumString,19,Dop_byte[Device-1]);
 				}
 			}
