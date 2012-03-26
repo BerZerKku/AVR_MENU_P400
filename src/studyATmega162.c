@@ -2230,12 +2230,12 @@ void LCDMenu1(unsigned char NumString,unsigned char Device){
 				}
 				else
 				{//предупреждение устройства
-					temp=(int) (GlobalCurrentState[2+(Device-1)*4]<<8) + GlobalCurrentState[3+(Device-1)*4];  //предупреждение
+					temp = (int) (GlobalCurrentState[2+(Device-1)*4]<<8) + GlobalCurrentState[3+(Device-1)*4];  //предупреждение
 					switch(Device)
 					{
 						case 1:
 						{
-							// в защите 3 предупреждения
+							// предупреждения защиты
 							switch(temp)
 							{
 								case 1:
@@ -2246,6 +2246,9 @@ void LCDMenu1(unsigned char NumString,unsigned char Device){
 								break;
 								case 4:
 								LCDprintf(NumString, 5, 2, Menu1PostWarning4, 1);
+								break;
+								case 8:
+								LCDprintf(NumString, 5, 2, Menu1PostWarning8, 1);
 								break;
 								default:
 								temp = 0;

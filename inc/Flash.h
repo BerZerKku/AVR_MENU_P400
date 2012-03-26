@@ -662,9 +662,11 @@ __flash unsigned char Menu1GlobalError40[]  = "АК-Снижен.запаса";
 __flash unsigned char Menu1GlobalError80[] 	= "Помеха в линии  ";
 __flash unsigned char Menu1GlobalError100[] = "Неиспр.DSP 2RAM ";
 __flash unsigned char Menu1GlobalError200[] = "Неиспр.чт. 2RAM ";
+__flash unsigned char Menu1GlobalError400[] = "Ток покоя       ";
 __flash unsigned char Menu1GlobalError800[] = "Низкое напр.вых.";
 __flash unsigned char Menu1GlobalError1000[]= "Высокое напр.вых";
 __flash unsigned char Menu1GlobalError2000[]= "Неиспр. МК УМ   ";
+__flash unsigned char Menu1GlobalError4000[]= "ВЧ тракт восст. ";
 __flash unsigned __flash char *Menu1GlobalErrorT[] =
 {
 	Menu1GlobalError1, 
@@ -677,11 +679,11 @@ __flash unsigned __flash char *Menu1GlobalErrorT[] =
 	Menu1GlobalError80,
     Menu1GlobalError100, 
 	Menu1GlobalError200,
-	UnknownErrorT,
+	Menu1GlobalError400,
 	Menu1GlobalError800,
 	Menu1GlobalError1000,
 	Menu1GlobalError2000,
-	UnknownErrorT,
+	Menu1GlobalError4000,
 	UnknownErrorT
 };
 //в чистой защите вместо "Нет сигнала ПРМ", выведем другое сообщение
@@ -730,6 +732,7 @@ __flash unsigned __flash char *Menu1PostErrorT[] =
 __flash unsigned char Menu1PostWarning1[]	= "АК-Снижен.запаса";
 __flash unsigned char Menu1PostWarning2[] 	= "Нет сигнала МАН ";
 __flash unsigned char Menu1PostWarning4[] 	= "Порог по помехе ";
+__flash unsigned char Menu1PostWarning8[]	= "Автоконтроль    ";
 
 //ошибки Приемника
 __flash unsigned char Menu1PrmError1[]		= "Нет блока БСК   ";

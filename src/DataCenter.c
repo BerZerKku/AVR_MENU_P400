@@ -553,47 +553,56 @@ void FParamPrd(unsigned char command){
 };
 
 
-
+/**	Команда текущего состояния
+ *	@param Нет
+ *	@return Нет
+ */
 void FCurrentState(void)
 {
-	for (l = 0; l < 4; l++)
+	for (char i = 0; i < 4; i++)
 	{ //сделаем проверку принятого состояния и перепишем значение в массив
-    	if (Rec_buf_data_uart[l*3 + 4] > 0x05)
-			CurrentState[l*2] = 0x4E;
+    	if (Rec_buf_data_uart[(i * 3) + 4] > 0x05)
+			CurrentState[i * 2] = 0x4E;
     	else
-			CurrentState[l*2] = Rec_buf_data_uart[l*3 + 4];
+			CurrentState[i * 2] = Rec_buf_data_uart[(i * 3) + 4];
 		
-    	if (Rec_buf_data_uart[l*3 + 1 + 4] > 0x0B)
-			CurrentState[l*2 + 1] = 0x4E;
+    	if (Rec_buf_data_uart[(i * 3) + 5] > 0x0B)
+			CurrentState[(i * 2) + 1] = 0x4E;
     	else
-			CurrentState[l*2 + 1] = Rec_buf_data_uart[l*3 + 4 + 1];
+			CurrentState[(i * 2) + 1] = Rec_buf_data_uart[(i * 3) + 5];
 		
-    	Dop_byte[l] = Rec_buf_data_uart[l*3 + 2 + 4];
+    	Dop_byte[i] = Rec_buf_data_uart[(i * 3) + 6];
   	}
 	
   	RecivVar=1;
-};
+}
 
-void FGlobalCurrentState(void){
-	for (l=0;l<20;l++) GlobalCurrentState[l]=Rec_buf_data_uart[l+4];
+/**	Команда общих неисправностей/предупреждений
+ *	@param Нет
+ *	@return Нет
+ */
+void FGlobalCurrentState(void)
+{
+	for (char i = 0; i < 20; i++) 
+		GlobalCurrentState[i] = Rec_buf_data_uart[i + 4];
 	
-	if ((GlobalCurrentState[12]!=0)||(GlobalCurrentState[13]!=0)) bGlobalAvar=true; else bGlobalAvar=false;
-	if ((GlobalCurrentState[14]!=0)||(GlobalCurrentState[15]!=0)) bGlobalWarn=true; else bGlobalWarn=false;
+	bGlobalAvar = (GlobalCurrentState[12] != 0) || (GlobalCurrentState[13] != 0) ? true : false;
+	bGlobalWarn = (GlobalCurrentState[14] != 0) || (GlobalCurrentState[15] != 0) ? true : false;
 	
-	if ((GlobalCurrentState[0]!=0)||(GlobalCurrentState[1]!=0)) bDefAvar=true; else bDefAvar=false;
-	if ((GlobalCurrentState[2]!=0)||(GlobalCurrentState[3]!=0)) bDefWarn=true; else bDefWarn=false;
+	bDefAvar = (GlobalCurrentState[0] != 0) || (GlobalCurrentState[1] != 0) ? true : false;
+	bDefWarn = (GlobalCurrentState[2] != 0) || (GlobalCurrentState[3] != 0) ? true : false;
 	
-	if ((GlobalCurrentState[4]!=0)||(GlobalCurrentState[5]!=0)) bRec1Avar=true; else bRec1Avar=false;
-	if ((GlobalCurrentState[6]!=0)||(GlobalCurrentState[7]!=0)) bRec1Warn=true; else bRec1Warn=false;
+	bRec1Avar = (GlobalCurrentState[4] != 0) || (GlobalCurrentState[5] != 0) ? true : false;
+	bRec1Warn = (GlobalCurrentState[6] != 0) || (GlobalCurrentState[7] != 0) ? true : false;
 	
-	if ((GlobalCurrentState[8]!=0)||(GlobalCurrentState[9]!=0)) bTrAvar=true; else bTrAvar=false;
-	if ((GlobalCurrentState[10]!=0)||(GlobalCurrentState[11]!=0)) bTrWarn=true; else bTrWarn=false;
+	bTrAvar = (GlobalCurrentState[8] != 0) || (GlobalCurrentState[9] != 0) ? true : false;
+	bTrWarn = (GlobalCurrentState[10] != 0) || (GlobalCurrentState[11] != 0) ? true :false;
 	
-	if ((GlobalCurrentState[16]!=0)||(GlobalCurrentState[17]!=0)) bRec2Avar=true; else bRec2Avar=false;
-	if ((GlobalCurrentState[18]!=0)||(GlobalCurrentState[19]!=0)) bRec2Warn=true; else bRec2Warn=false;
+	bRec2Avar = (GlobalCurrentState[16] != 0) || (GlobalCurrentState[17]!=0) ? true : false;
+	bRec2Warn = (GlobalCurrentState[18] != 0) || (GlobalCurrentState[19]!=0) ? true : false;
 	
 	RecivVar=1;
-};
+}
 
 void FDataTime(void){
 	DataLCD[7]=(Rec_buf_data_uart[4]&0x0F)+0x30; //1-цы лет
