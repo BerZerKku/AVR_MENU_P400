@@ -77,8 +77,8 @@ extern unsigned char MenuAllFreq[];
 extern unsigned char MenuAllNumDevice[];
 extern unsigned char MenuAllControlUout;
 extern unsigned char MenuAllCF[];
+extern unsigned char MenuAllLowCF[];
 extern unsigned int MyInsertion[];
-extern unsigned char rrr[];
 extern __flash uint RangGlb[] [3];
 extern uchar TypeUdDev;
 ///// ПВЗУ-Е
@@ -407,6 +407,7 @@ void FParamDef(unsigned char command){
 						}
 						break;
 						case 3: // ПВЗЕ-У
+						case 4: // ПВЗЛ
 				  		// Женька посылает время до АК
 						{
 							a = Rec_buf_data_uart[5];
@@ -960,6 +961,18 @@ void FParamGlobal(unsigned char command)
 			if ( (tmp < RangGlb[13] [0]) || (tmp > RangGlb[13] [1]) )
 				tmp = RangGlb[13] [1] + 1;
 			sParamPVZE.protocol = tmp;
+			
+			// тоже байт, в ПВЗ означает снижение уровня АК
+			if ( (tmp < RangGlb[20] [0] || (tmp > RangGlb[20] [1]) ) )
+			{
+				MenuAllLowCF[0] = '?';
+				MenuAllLowCF[1] = '?';
+			}
+			else
+			{
+				MenuAllLowCF[0] = (tmp / 10) + '0';
+				MenuAllLowCF[1] = (tmp % 10) + '0';
+			}
 			
 			// признак четности
 			tmp = Rec_buf_data_uart[5];

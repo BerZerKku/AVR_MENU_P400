@@ -158,7 +158,6 @@ __flash unsigned char Menu75[] =	"Загр чувствит по  РЗ";
 __flash unsigned char Menu76[] =	"Снижение уровня АК  ";
 __flash unsigned char Menu77[] =	"Частота ПРД";
 __flash unsigned char Menu78[] =	"Частота ПРМ";
-#define NumParamDef 9 /*кол-во параметров Защиты*/
 __flash unsigned __flash char *Menu7paramPOST[] = 
 {
 	Menu70,
@@ -171,6 +170,9 @@ __flash unsigned __flash char *Menu7paramPOST[] =
 	Menu77,
 	Menu78
 };
+// кол-во параметров поста
+#define NumParamDef (sizeof(Menu7paramPOST) / sizeof(Menu7paramPOST[0]))
+
 
 //Параметры Приемника
 __flash unsigned char Menu81[]= "Задержка на вкл.    ";
@@ -178,7 +180,6 @@ __flash unsigned char Menu82[]= "Длительность команды";
 __flash unsigned char Menu83[]= "Задержка на выкл.  к";
 __flash unsigned char Menu84[]= "Блок. команд  ?..?  ";
 __flash unsigned char Menu85[]= "Длит. команды  ?..? ";
-#define NumParamPrm 5
 __flash unsigned __flash char *Menu8paramPRM[] =
 {
 	Menu81, 
@@ -187,12 +188,13 @@ __flash unsigned __flash char *Menu8paramPRM[] =
 	Menu84, 
 	Menu85
 };
+// кол-во параметров приемника
+#define NumParamPrm (sizeof(Menu8paramPRM) / sizeof(Menu8paramPRM[0]))
 
 //Параметры Передатчика
 __flash unsigned char Menu93[] = "Время на повт. ком. ";
 __flash unsigned char Menu94[] = "Блок. команд  ?..?  ";
 __flash unsigned char Menu95[] = "Длит. команды  ?..? ";
-#define NumParamPrd 5
 __flash unsigned __flash char *Menu9paramPRD[] =
 {
 	Menu81, 
@@ -201,6 +203,8 @@ __flash unsigned __flash char *Menu9paramPRD[] =
 	Menu94, 
 	Menu95
 };
+// кол-во параметров передатчика
+#define NumParamPrd (sizeof(Menu9paramPRD) / sizeof(Menu9paramPRD[0]))
 
 //Общие параметры
 __flash unsigned char Menu100[] =	"Совместимость";
@@ -210,21 +214,21 @@ __flash unsigned char Menu103[] =	"Удержание реле ПРД";
 __flash unsigned char Menu104[] =	"Сетевой адрес";
 __flash unsigned char Menu105[] =	"Время перезапуска";
 __flash unsigned char Menu106[] =	"Частота";
-__flash unsigned char Menu107[] =	"Номер аппарата";
+__flash unsigned char Menu107[]	=	"Номер аппарата";
 __flash unsigned char Menu108[] =	"Контроль вых.сигнала";
 __flash unsigned char Menu109[]	=	"Порог ПРЕДУПР по КЧ ";
-__flash unsigned char Menu1010[]=	"Загр чувствит по  КЧ";
-__flash unsigned char Menu1011[]=	"Коррекция напряжения";
-__flash unsigned char Menu1012[]=	"Коррекция тока";
+__flash unsigned char Menu1010[] =	"Загр чувствит по  КЧ";
+__flash unsigned char Menu1011[] =	"Коррекция напряжения";
+__flash unsigned char Menu1012[] =	"Коррекция тока";
 __flash unsigned char Menu109_1[]=	"Порог ПРЕДУПР по РЗ ";	// номер NumParamGlb
-__flash unsigned char Menu1013[]=	"Протокол обмена";		// ПВЗУ-Е
-__flash unsigned char Menu1014[]=	"Признак четности"; 	// ПВЗУ-Е
-__flash unsigned char Menu1015[]=	"Допустимые провалы"; 	// ПВЗУ-Е 
-__flash unsigned char Menu1016[]=	"Порог по помехе";		// ПВЗУ-Е
-__flash unsigned char Menu1017[]=	"Допустимая помеха";	// ПВЗУ-Е
-__flash unsigned char Menu1018[]=	"Тип автоконтроля";		// ПВЗУ-Е
-__flash unsigned char Menu1019[]=	"Резервирование";		// оптика
-#define NumParamGlb 20
+__flash unsigned char Menu1013[] =	"Протокол обмена";		// ПВЗУ-Е
+__flash unsigned char Menu1014[] =	"Признак четности"; 	// ПВЗУ-Е
+__flash unsigned char Menu1015[] =	"Допустимые провалы"; 	// ПВЗУ-Е 
+__flash unsigned char Menu1016[] =	"Порог по помехе";		// ПВЗУ-Е
+__flash unsigned char Menu1017[] =	"Допустимая помеха";	// ПВЗУ-Е
+__flash unsigned char Menu1018[] =	"Тип автоконтроля";		// ПВЗУ-Е
+__flash unsigned char Menu1019[] =	"Резервирование";		// оптика
+__flash unsigned char Menu1020[] = 	"Снижение ответа АК  ";	// ПВЗЛ
 __flash unsigned __flash char *Menu10paramAll[] = 
 {	
 	Menu100, 
@@ -246,9 +250,13 @@ __flash unsigned __flash char *Menu10paramAll[] =
 	Menu1016, 
 	Menu1017, 
 	Menu1018,	
-	Menu1019, 
+	Menu1019,
+	Menu1020,
 	Menu109_1
 };
+// кол-во общих параметров
+// - 1 , т.к. 109_1 - просто подбена текста
+#define NumParamGlb ( (sizeof(Menu10paramAll) / sizeof(Menu10paramAll[0])) - 1)
 
 __flash uchar TypeUdDev0[] = "АВАНТ Р400";
 __flash uchar TypeUdDev1[] = "ПВЗ-90";
@@ -256,7 +264,6 @@ __flash uchar TypeUdDev2[] = "АВЗК-80";
 __flash uchar TypeUdDev3[] = "ПВЗУ-Е";
 __flash uchar TypeUdDev4[] = "ПВЗЛ";
 __flash uchar TypeUdDevX[] = "ошибка";
-#define NumTypeUdDev 5
 __flash unsigned __flash char *fmTypeUdDev[] = 
 {
 	TypeUdDev0, 
@@ -266,6 +273,9 @@ __flash unsigned __flash char *fmTypeUdDev[] =
 	TypeUdDev4,
 	TypeUdDevX
 };
+// Кол-во типов совместимости,
+// -1, т.к. последний в списке - ошибка
+#define NumTypeUdDev ( (sizeof(fmTypeUdDev) / sizeof(fmTypeUdDev[0])) - 1)
 
 __flash unsigned char Menu11d[]	=	"ЗАЩ";
 __flash unsigned char Menu11r[]	=	"ПРМ";
@@ -516,54 +526,67 @@ __flash unsigned __flash char *fmMenuAllFreq[] =
 __flash unsigned char ParamRange[] 	= "Диапазон: ";
 __flash unsigned char NoData[]		= "нет данных";
 __flash unsigned char List[]		= "список";
-//диапазон значений для Поста //меню 13
-__flash uint RangPost[NumParamDef+1] [3] = {  /* +1  - это автоконтроль, который всегда будет находится в конце*/
-                                            0,	MaxNumTypeDefend,	1,  /*тип защиты*/ /*тут не диапазон значений, а мах и мин номер массива"*/
-                                            2,	3,		1,  	// тип линии
-                                            0,	99,		1,  	// доп время без манипуляции
-                                            0,	18,		1,  	// задержка на линии
-                                            18,	54,		1,  	// перекрытие импульсов
-                                            0,	22,		1,  	// загр. чувств. по РЗ
-                                            0,	1,		1,  	// снижение уровня АК
-											0,	4,		1,		// частота ПРД
-											0,	4,		1,		// частота ПРМ
-                                            1,	9,		1};   	// автоконтроль, всегда в конце  !!! Не забыть исправить в DataCener и StudyATmega162 (обработчик нажатия 'C')!!!*/
+
+//	диапазон значений для Поста //меню 13
+__flash uint RangPost[NumParamDef + 1] [3] = 
+{  /* +1  - это автоконтроль, который всегда будет находится в конце*/
+	0,	MaxNumTypeDefend,	1,  /*тип защиты*/ /*тут не диапазон значений, а мах и мин номер массива"*/
+	2,	3,		1,  	// тип линии
+	0,	99,		1,  	// доп время без манипуляции
+	0,	18,		1,  	// задержка на линии
+	18,	54,		1,  	// перекрытие импульсов
+	0,	22,		1,  	// загр. чувств. по РЗ
+	0,	1,		1,  	// снижение уровня АК
+	0,	4,		1,		// частота ПРД
+	0,	4,		1,		// частота ПРМ
+	1,	9,		1   	// автоконтроль, всегда в конце  !!! Не забыть исправить в DataCener и StudyATmega162 (обработчик нажатия 'C')!!!*/
+};
+
 //диапазон значений для Приемника
-__flash uint RangPrm[NumParamPrm] [3] = {
-                                            0 , 10,   	1,    	// задержка на включение
-                                            1,  50,   	10,   	// длительность команды
-                                            0,  100,  	10,   	// задержка на выключение
-                                            0,  255,  	1,    	// блокированные команды
-                                            0,  255,  	1 };  	// длительные команды
+__flash uint RangPrm[NumParamPrm] [3] = 
+{
+	0 , 10,   	1,    	// задержка на включение
+	1,  50,   	10,   	// длительность команды
+	0,  100,  	10,   	// задержка на выключение
+	0,  255,  	1,    	// блокированные команды
+	0,  255,  	1 		// длительные команды
+};  	
+
 //диапазон значений для Передатчика
-__flash uint RangPrd[NumParamPrd] [3] = {
-                                            0 , 10,   	1,  	// задержка на выкл
-                                            1,  50,  	10,  	// длительность команды
-                                            1,  50,  	10,  	// время на повторение
-                                            0,  255,  	1,  	// блокированные команды
-                                            0,  255,  	1}; 	// длительные команды
+__flash uint RangPrd[NumParamPrd] [3] = 
+{
+	0 , 10,   	1,  	// задержка на выкл
+	1,  50,  	10,  	// длительность команды
+	1,  50,  	10,  	// время на повторение
+	0,  255,  	1,  	// блокированные команды
+	0,  255,  	1		// длительные команды
+}; 	
+
 //диапазон значение для Общих параметров
-__flash uint RangGlb[NumParamGlb] [3] = {	
-											0,	4,		1,		// тип уд.аппарата	
-                                            0,	1,    	1,		// синхронизация часов  
-                                            18, 50,    	1,  	// Uвых номинальное 
-                                            0,  2,    	1,  	// удержание реле ПРД 
-                                            0,  255,  	1,  	// сетевой адрес 
-                                            0,  5,    	1,  	// время перезапуска  
-                                            26, 998,  	1,  	// частота  
-                                            1,  3,    	1,  	// номер аппарата  
-                                            0,  1,   	1,  	// контроль выходного сигнала  
-                                            0,  22,  	1,  	// порог предупреждения по КЧ  
-                                            0,  22,   	1,  	// загрубление чувствительности по КЧ  
-                                            0,  999,  	1,  	// коррекция напряжения  
-                                            0,  999,	1,  	// коррекция тока 
-											1,	2,		1,		// протокол обмена	
-											1,	2,		1,		// признак четности	
-											0,	180,	1,		// допустимые провалы	
-											0,	255,	1,		// порог по помехе	
-											18,	90,		1,		// допустимая помеха	
-											1,	3,		1,		// тип автоконтроля	
-											0,	1,		1,};	// Резервирование (оптика)	
+__flash uint RangGlb[NumParamGlb] [3] = 
+{	
+	0,	4,		1,		// тип уд.аппарата	
+	0,	1,    	1,		// синхронизация часов  
+	18, 50,    	1,  	// Uвых номинальное 
+	0,  2,    	1,  	// удержание реле ПРД 
+	0,  255,  	1,  	// сетевой адрес 
+	0,  5,    	1,  	// время перезапуска  
+	26, 998,  	1,  	// частота  
+	1,  3,    	1,  	// номер аппарата  
+	0,  1,   	1,  	// контроль выходного сигнала  
+	0,  22,  	1,  	// порог предупреждения по КЧ  
+	0,  22,   	1,  	// загрубление чувствительности по КЧ  
+	0,  999,  	1,  	// коррекция напряжения  
+	0,  999,	1,  	// коррекция тока 
+	1,	2,		1,		// протокол обмена	
+	1,	2,		1,		// признак четности	
+	0,	180,	1,		// допустимые провалы	
+	0,	255,	1,		// порог по помехе	
+	18,	90,		1,		// допустимая помеха	
+	1,	3,		1,		// тип автоконтроля	
+	0,	1,		1,		// Резервирование (оптика)
+	0, 20, 		1		// снижение ответа АК (пвзл)
+};		
 
 __flash unsigned char Menu16Shift10[] = "0.0..99.9";
 

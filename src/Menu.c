@@ -89,7 +89,7 @@ void Menu_ParamSetup_Prm(void){
   ShiftMenu=0;
   MaxDisplayLine=1;
   NumberCom=1;
-  MaxShiftMenu=NumParamPrm-1;
+  MaxShiftMenu = NumParamPrm - 1;
   LCD2new=1;
   cNumParam=0x40;
 }
@@ -288,6 +288,7 @@ void MenuParamGlbCreate(void)
 			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
 			sMenuGlbParam.punkt[num] = 11; 	sMenuGlbParam.name[num++] = 11;		// Коррекция напряжения
 			sMenuGlbParam.punkt[num] = 12; 	sMenuGlbParam.name[num++] = 12;		// Коррекция тока
+			sMenuGlbParam.punkt[num] = 20;	sMenuGlbParam.name[num++] = 20;		// Снижение ответа АК
 		}
 		break;
 		

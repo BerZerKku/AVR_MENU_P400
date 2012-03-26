@@ -159,12 +159,13 @@ unsigned char MenuAllSynchrTimer=0x02;  //дл€ него используетс€ массив MenuAllSy
 unsigned char MenuAllKeepComPRM[]="?? ¬";
 uchar MenuAllKeepComPRD = 0x02;
 unsigned char MenuAllLanAddress[]="???";
-unsigned char MenuAllTimeRerun[]="? сек";
-unsigned char MenuAllFreq[]="??? к√ц";
-unsigned char MenuAllNumDevice[]="?";
-unsigned char MenuAllCF[]="?? дЅ";
-unsigned char MenuAllControlUout=0x02; //дл€ него используетс€ массив MenuAllSynchrTimerNum
-unsigned char rrr[7];
+unsigned char MenuAllTimeRerun[]= "? сек";
+unsigned char MenuAllFreq[]		= "??? к√ц";
+unsigned char MenuAllNumDevice[]= "?";
+unsigned char MenuAllCF[]		= "?? дЅ";
+unsigned char MenuAllLowCF[] 	= "?? дЅ";
+unsigned char MenuAllControlUout= 0x02; //дл€ него используетс€ массив MenuAllSynchrTimerNum
+
 uchar TypeUdDev = NumTypeUdDev;	//тип удаленного аппарата
 strMenuGlbParam sMenuGlbParam;
 strParamPVZUE sParamPVZE;
@@ -354,7 +355,7 @@ void FuncViewValue(uchar numparam){
 		case 0x40:{
 			if ((num==3)||(num==4)) var=0;  //там где ввод€тс€ значени€ битовые 0-ками и 1-ами
 			else
-				if (num<NumParamPrm){
+				if (num < NumParamPrm){
 					var=2;
 					min = RangPrm[num] [0] * RangPrm[num] [2];
 					max = RangPrm[num] [1] * RangPrm[num] [2];
@@ -1480,7 +1481,7 @@ void FuncPressKey(void)
 										if (cNumComR2>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
 							} break;
 						}
-						if (ShiftMenu<NumParamPrm) {
+						if (ShiftMenu < NumParamPrm) {
 							MinValue=RangPrm[ShiftMenu] [0] * RangPrm[ShiftMenu] [2];
 							MaxValue=RangPrm[ShiftMenu] [1] * RangPrm[ShiftMenu] [2];
 						}
@@ -1489,7 +1490,8 @@ void FuncPressKey(void)
 				}break;
 				case 15:{  //ввод параметроа ”становить\ѕараметры\ѕередатчик
 					if (CurrentState[4]==0x00){
-						switch(ShiftMenu){
+						switch(ShiftMenu)
+						{
 							case 0: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;/*MaxValue=10;MinValue=0;*/InputParameter=17;Discret=1;} break;
 							case 1: {WorkRate=0x01;MaxNumberInputChar=3;ByteShift=0;/*MaxValue=500;MinValue=10;*/InputParameter=18;Discret=10;} break;
 							case 2: {WorkRate=0x01;MaxNumberInputChar=3;ByteShift=0;/*MaxValue=50;MinValue=10;*/InputParameter=19;Discret=10;} break;

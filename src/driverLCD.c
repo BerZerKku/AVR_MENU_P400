@@ -335,7 +335,8 @@ void LCDprintBitMask(unsigned char Adr, unsigned char Val, unsigned char Mask){
 
 extern uchar cNumLine;
 extern unsigned int iTimeToAKnow, iTimeToAK;
-void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned char* Time){
+void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned char* Time)
+{
   	//			АВАНТ			ПВЗ-90 / АВЗК		ПВЗЛ
 	//AK = 1 - авто ускор 		нормальный			нормальный
   	//АК = 2 - авто норм 	
@@ -455,7 +456,8 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
 extern unsigned char *Measuring[];
 extern __flash unsigned __flash char* fAKdecr[];
 //функция вывода Uk в главном меню, в чистой Защите
-void LCDprintUkDef(unsigned char AKdecrease){
+void LCDprintUkDef(unsigned char AKdecrease)
+{
   unsigned char i=0, j = 60, t;
 
   if (AKdecrease>2) AKdecrease=2;
