@@ -342,7 +342,8 @@ void FParamDef(unsigned char command){
 				cAutoControl = Rec_buf_data_uart[4];
 				
 				// если тип удаленного аппарата ПВЗ или АВЗК
-				if ( (sMenuGlbParam.dev == 1) || (sMenuGlbParam.dev == 2) || (sMenuGlbParam.dev == 3) )
+				if ( 	(sMenuGlbParam.dev >= 1) || 
+						(sMenuGlbParam.dev <= 4) )
 				{
 					long a;
 					
