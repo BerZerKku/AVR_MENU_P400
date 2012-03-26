@@ -198,190 +198,234 @@ void PressInMenuDataTime(char Key){ //нажатеи в меню Дата/Время
   for (char i=0; i<=8; i++) InputDataTime[i]=ChangeMass[i];
 }
 
-void PressInMenuReset(char Key)
-{  //выбор устройства сброса
-	if (Key > sMenuUpr.num)
+/** Выбор пункта в меню Установить
+ *	@param key Код нажатой кнопки
+ *	@return Нет
+ */
+void PressInMenuReset(char key)
+{  
+	if (key > sMenuUpr.num)
 		return;
-	Key--;
-	SelectValue = sMenuUpr.punkt[Key];
 	
-  	switch(sMenuUpr.punkt[Key])
+	char value = sMenuUpr.punkt[--key];
+	
+  	switch(value)
 	{    	
-	  case 2:
-		SelectValue--;
-	  case 0:
-	  case 1:
-	  case 3:
-		{ //сбросы
+		case 2:			// сброс удаленного 1
+			value--;	
+		case 0:			// сброс своего
+		case 1:			// сброс удаленного	
+		case 3:			// сброс удаленного 2
+		{ 	
 			MaxValue = MinValue = InputSelectValue = 0;
-      		SelectValue = SelectValue + 1;
-      		TrValue=0x72;
+      		SelectValue = value + 1;
+      		TrValue = 0x72;
     	}
-		break;    	
-	  case 5:
-	  case 6:
-	  case 7:
-		SelectValue--;
-	  case 4:
-		{  //пуски
+		break;  
+		
+		case 5:			// пуск удаленного 1
+		case 6:			// пуск удаленного 2
+		case 7:			// пуск удаленноых 1,2
+			value--;
+		case 4:			// пуск удаленного
+		{ 
       		MaxValue = MinValue = InputSelectValue = 1;
-      		SelectValue = SelectValue;
+      		SelectValue = value;
       		TrValue = 0x72;
 		}
 		break;
-	  case 9:
-	  case 10:
-	  case 11:
-	  case 12:
-	  case 13:
-		SelectValue++;
-	  case 8:
-		{  //АК
+		
+		case 9:			// АК ускоренный
+		case 10:		// АК выключен
+		case 11:		// АК контр. проверка
+		case 12:		// АК испытания
+		case 13:		// АК пуск
+			value++;
+		case 8:			// АК автоматический
+		{  
       		MaxValue = MinValue = InputSelectValue = 2;
-      		SelectValue = SelectValue - 7;
+      		SelectValue = value - 7;
       		TrValue = 0x8A;
 		}
-	  break;
-	  case 14:
-		{	//вызов
+		break;
+		
+		case 14:		// вызов
+		{	
 			MaxValue = MinValue = InputSelectValue = 3;
 			SelectValue = 7;
 			TrValue = 0x72;
 		}
 		break;
-	  default:
-	  	return;  //ошибка
+		
+		default:		// заглушка
+	  		return;  
 	}
-	ShiftMenu = Key;
-  	WorkRate = 2; //тип ввода с клавиатуры
-  	MassSelectValue = fReset; //массив списка значений
+	
+	ShiftMenu = key;
+  	WorkRate = 2; 				
+  	MassSelectValue = fReset; 
 }
 
+/** Формирование списка параметров Общих в зависимости от совместимости
+ *	@param Нет
+ *	@return Нет
+ */
 void MenuParamGlbCreate(void)
 {
-	sMenuGlbParam.num = 0;
+	char num = 0;
+	
 	switch(TypeUdDev)
 	{
-	  case 1:	//пвз-90
-	  case 2:	//авзк-80	
+		case 1:		// ПВЗ-90
+		case 2:		// АВЗК-80	
+		case 4:		// ПВЗЛ
 		{
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 0; sMenuGlbParam.name[sMenuGlbParam.num++] = 0;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 2; sMenuGlbParam.name[sMenuGlbParam.num++] = 2;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 4; sMenuGlbParam.name[sMenuGlbParam.num++] = 4;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 7; sMenuGlbParam.name[sMenuGlbParam.num++] = 7;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 8; sMenuGlbParam.name[sMenuGlbParam.num++] = 8;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 9; sMenuGlbParam.name[sMenuGlbParam.num++] = NumParamGlb;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 11; sMenuGlbParam.name[sMenuGlbParam.num++] = 11;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 12; sMenuGlbParam.name[sMenuGlbParam.num++] = 12;
+			sMenuGlbParam.punkt[num] = 0; 	sMenuGlbParam.name[num++] = 0;		// Совместимость
+			sMenuGlbParam.punkt[num] = 2; 	sMenuGlbParam.name[num++] = 2;		// Uвых номинальное
+			sMenuGlbParam.punkt[num] = 4;	sMenuGlbParam.name[num++] = 4;		// Сетевой адрес
+			sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;		// Номер аппарата
+			sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;		// Контроль вых.сигнала
+			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
+			sMenuGlbParam.punkt[num] = 11; 	sMenuGlbParam.name[num++] = 11;		// Коррекция напряжения
+			sMenuGlbParam.punkt[num] = 12; 	sMenuGlbParam.name[num++] = 12;		// Коррекция тока
 		}
 		break;
-	  case 3:	// ПВЗУ-Е
+		
+		case 3:		// ПВЗУ-Е
 		{
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 0; sMenuGlbParam.name[sMenuGlbParam.num++] = 0;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 2; sMenuGlbParam.name[sMenuGlbParam.num++] = 2;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 4; sMenuGlbParam.name[sMenuGlbParam.num++] = 4;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 7; sMenuGlbParam.name[sMenuGlbParam.num++] = 7;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 8; sMenuGlbParam.name[sMenuGlbParam.num++] = 8;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 9; sMenuGlbParam.name[sMenuGlbParam.num++] = NumParamGlb;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 11; sMenuGlbParam.name[sMenuGlbParam.num++] = 11;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 12; sMenuGlbParam.name[sMenuGlbParam.num++] = 12;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 13; sMenuGlbParam.name[sMenuGlbParam.num++] = 13;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 14; sMenuGlbParam.name[sMenuGlbParam.num++] = 14;
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 15; sMenuGlbParam.name[sMenuGlbParam.num++] = 15;
+			sMenuGlbParam.punkt[num] = 0; 	sMenuGlbParam.name[num++] = 0;		// Совместимость
+			sMenuGlbParam.punkt[num] = 2; 	sMenuGlbParam.name[num++] = 2;		// Uвых номинальное
+			sMenuGlbParam.punkt[num] = 4; 	sMenuGlbParam.name[num++] = 4;		// Сетевой адрес
+			sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;		// Номер аппарата
+			sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;		// Контроль вых.сигнала
+			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
+			sMenuGlbParam.punkt[num] = 11; 	sMenuGlbParam.name[num++] = 11;		// Коррекция напряжения
+			sMenuGlbParam.punkt[num] = 12; 	sMenuGlbParam.name[num++] = 12;		// Коррекция тока
+			sMenuGlbParam.punkt[num] = 13; 	sMenuGlbParam.name[num++] = 13;		// Протокол обмена
+			sMenuGlbParam.punkt[num] = 14; 	sMenuGlbParam.name[num++] = 14;		// Признак четности
+			sMenuGlbParam.punkt[num] = 15; 	sMenuGlbParam.name[num++] = 15;		// Допустимые провалы
 			for(char i = 0; i < 10; i++)
 			{
 				sParamPVZE.proval[i] = MenuAllProval[i];
 				if (MenuAllProval[i] == 0)
 					break;
 			}
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 16; sMenuGlbParam.name[sMenuGlbParam.num++] = 16;
+			sMenuGlbParam.punkt[num] = 16;	sMenuGlbParam.name[num++] = 16;		// Порог по помехе
 			for(char i = 0; i < 10; i++)
 			{
 				sParamPVZE.porog[i] = MenuAllPorog[i];
 				if (MenuAllPorog[i] == 0)
 					break;
 			}
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 17; sMenuGlbParam.name[sMenuGlbParam.num++] = 17;
+			sMenuGlbParam.punkt[num] = 17;	sMenuGlbParam.name[num++] = 17;		// Допустимая помеха
 			for(char i = 0; i < 10; i++)
 			{
 				sParamPVZE.noise[i] = MenuAllNoise[i];
 				if (MenuAllNoise[i] == 0)
 					break;
 			}
-			sMenuGlbParam.punkt[sMenuGlbParam.num] = 18; sMenuGlbParam.name[sMenuGlbParam.num++] = 18;
+			sMenuGlbParam.punkt[num] = 18; 	sMenuGlbParam.name[num++] = 18;		// Тип автоконтроля
 			
 		}
 		break;
-		default:	//в остальных случаях будет Авант
+		
+		default: 	// АВАНТ
 		{
 			if (cTypeLine == 1)													
 			{
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 0; sMenuGlbParam.name[sMenuGlbParam.num++] = 0;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 1; sMenuGlbParam.name[sMenuGlbParam.num++] = 1;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 2; sMenuGlbParam.name[sMenuGlbParam.num++] = 2;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 4; sMenuGlbParam.name[sMenuGlbParam.num++] = 4;
-				// sMenuGlbParam.punkt[sMenuGlbParam.num] = 5; sMenuGlbParam.name[sMenuGlbParam.num++] = 5;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 6; sMenuGlbParam.name[sMenuGlbParam.num++] = 6;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 7; sMenuGlbParam.name[sMenuGlbParam.num++] = 7;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 8; sMenuGlbParam.name[sMenuGlbParam.num++] = 8;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 9; sMenuGlbParam.name[sMenuGlbParam.num++] = 9;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 11; sMenuGlbParam.name[sMenuGlbParam.num++] = 11;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 12; sMenuGlbParam.name[sMenuGlbParam.num++] = 12;
+				sMenuGlbParam.punkt[num] = 0;	sMenuGlbParam.name[num++] = 0;	// Совместимость
+				sMenuGlbParam.punkt[num] = 1;	sMenuGlbParam.name[num++] = 1;	// Cинхронизация часов
+				sMenuGlbParam.punkt[num] = 2;	sMenuGlbParam.name[num++] = 2;	// Uвых номинальное
+				sMenuGlbParam.punkt[num] = 4;	sMenuGlbParam.name[num++] = 4;	// Сетевой адрес
+//				sMenuGlbParam.punkt[num] = 5; 	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
+				sMenuGlbParam.punkt[num] = 6;	sMenuGlbParam.name[num++] = 6;	// Частота
+				sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;	// Номер аппарата
+				sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;	// Контроль вых.сигнала
+				sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = 9;	// Порог ПРЕДУПР по КЧ
+				sMenuGlbParam.punkt[num] = 11; 	sMenuGlbParam.name[num++] = 11;	// Коррекция напряжения
+				sMenuGlbParam.punkt[num] = 12; 	sMenuGlbParam.name[num++] = 12;	// Коррекция тока
 			}
 			else
 			{
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 1; sMenuGlbParam.name[sMenuGlbParam.num++] = 1;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 4; sMenuGlbParam.name[sMenuGlbParam.num++] = 4;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 7; sMenuGlbParam.name[sMenuGlbParam.num++] = 7;
-				// sMenuGlbParam.punkt[sMenuGlbParam.num] = 5; sMenuGlbParam.name[sMenuGlbParam.num++] = 5;
-				sMenuGlbParam.punkt[sMenuGlbParam.num] = 19; sMenuGlbParam.name[sMenuGlbParam.num++] = 19;
-			}
-			
+				sMenuGlbParam.punkt[num] = 1; 	sMenuGlbParam.name[num++] = 1;	// Cинхронизация часов
+				sMenuGlbParam.punkt[num] = 4; 	sMenuGlbParam.name[num++] = 4;	// Сетевой адрес
+				sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;	// Номер аппарата
+//				sMenuGlbParam.punkt[num] = 5;	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
+				sMenuGlbParam.punkt[num] = 19;	sMenuGlbParam.name[num++] = 19;	// Резервирование
+			}			
 		}
 	}
+	
+	sMenuGlbParam.num = num;
 }
 
+/** Формирование списка параметров Защиты в зависимости от совместимости
+ *	@param Нет
+ *	@return Нет
+ */
 void MenuParamDefCreate(void)
 {
-	sMenuDefParam.num = 0;
+	char num = 0;
+	
 	switch(TypeUdDev)
 	{
-	  case 1:	// пвз-90 
-	  case 2:	// авзк-80
-	  case 3:	// ПВЗУ-Е
+		case 1:		// ПВЗ-90 
+		case 2:		// АВЗК-80
+		case 3:		// ПВЗУ-Е
 		{
-			sMenuDefParam.punkt[sMenuDefParam.num++] = 0;
-			sMenuDefParam.punkt[sMenuDefParam.num++] = 1;
-			sMenuDefParam.punkt[sMenuDefParam.num++] = 2;
-			sMenuDefParam.punkt[sMenuDefParam.num++] = 3;
-			sMenuDefParam.punkt[sMenuDefParam.num++] = 4;
-			sMenuDefParam.punkt[sMenuDefParam.num++] = 5;
-			sMenuDefParam.punkt[sMenuDefParam.num++] = 7;
-			sMenuDefParam.punkt[sMenuDefParam.num++] = 8;	
+			sMenuDefParam.punkt[num++] = 0;		// Тип Защиты
+			sMenuDefParam.punkt[num++] = 1;		// Тип Линии
+			sMenuDefParam.punkt[num++] = 2;		// Доп. время без ман.
+			sMenuDefParam.punkt[num++] = 3;		// Задержка на линии
+			sMenuDefParam.punkt[num++] = 4;		// Перекрытие импульсов
+			sMenuDefParam.punkt[num++] = 5;		// Загр чувствит по  РЗ
+			sMenuDefParam.punkt[num++] = 7;		// Частота ПРД
+			sMenuDefParam.punkt[num++] = 8;		// Частота ПРМ
 		}
 		break;
-	  default:	//в остальных случаях будет Авант
-		sMenuDefParam.punkt[sMenuDefParam.num++] = 0;
-		sMenuDefParam.punkt[sMenuDefParam.num++] = 1;
-		sMenuDefParam.punkt[sMenuDefParam.num++] = 2;
-		sMenuDefParam.punkt[sMenuDefParam.num++] = 3;
-		sMenuDefParam.punkt[sMenuDefParam.num++] = 4;
-		if (cTypeLine == 1)														// в ВЛ есть дополнительные параметры
+		
+		case 4:		// ПВЗЛ
 		{
-			sMenuDefParam.punkt[sMenuDefParam.num++] = 5;						 	
-			sMenuDefParam.punkt[sMenuDefParam.num++] = 6;
+			sMenuDefParam.punkt[num++] = 0;		// Тип Защиты
+			sMenuDefParam.punkt[num++] = 2;		// Доп. время без ман.
+			sMenuDefParam.punkt[num++] = 3;		// Задержка на линии
+			sMenuDefParam.punkt[num++] = 4;		// Перекрытие импульсов
+			sMenuDefParam.punkt[num++] = 5;		// Загр чувствит по  РЗ
+			sMenuDefParam.punkt[num++] = 7;		// Частота ПРД
+			sMenuDefParam.punkt[num++] = 8;		// Частота ПРМ
+		}
+		break;
+		
+		default:	// АВАНТ
+		{
+			sMenuDefParam.punkt[num++] = 0;		// Тип Защиты
+			sMenuDefParam.punkt[num++] = 1;		// Тип Линии
+			sMenuDefParam.punkt[num++] = 2;		// Доп. время без ман.
+			sMenuDefParam.punkt[num++] = 3;		// Задержка на линии
+			sMenuDefParam.punkt[num++] = 4;		// Перекрытие импульсов
+			
+			if (cTypeLine == 1)						// в ВЛ есть дополнительные параметры
+			{
+				sMenuDefParam.punkt[num++] = 5;	// Загр чувствит по  РЗ						 	
+				sMenuDefParam.punkt[num++] = 6;	// Снижение уровня АК
+			}
 		}
 	}	
+	
+	sMenuDefParam.num = num;
 }
 
+/** Формирование списка команд управления в зависимости от совместимости
+ *	@param Нет
+ *	@return Нет
+ */
 void MenuUprCreate(void)
 {
 	char num = 0;
 	
 	switch(TypeUdDev)
 	{
-		case 1:	//пвз-90
-		
+		case 1:	//пвз-90	
 		{
 			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
 			sMenuUpr.punkt[num] = 1;	sMenuUpr.name[num++] = 1;				// Сброс удаленного
@@ -426,44 +470,46 @@ void MenuUprCreate(void)
 			sMenuUpr.punkt[num] = 8;	sMenuUpr.name[num++] = dNumUprLine;		// АК-нормальный
 			sMenuUpr.punkt[num] = 11;	sMenuUpr.name[num++] = dNumUprLine + 3;	// АК-односторонний
 			sMenuUpr.punkt[num] = 10;	sMenuUpr.name[num++] = 10;				// АК-выключен
-			sMenuUpr.punkt[num] = 12;	sMenuUpr.name[num++] = dNumUprLine + 4;	// Сброс АК
-			sMenuUpr.punkt[num] = 4;	sMenuUpr.name[num++] = dNumUprLine + 5;	// Пуск АК свой
-			sMenuUpr.punkt[num] = 5;	sMenuUpr.name[num++] = dNumUprLine + 6;	// Пуск АК удаленный
-			sMenuUpr.punkt[num] = 6;	sMenuUpr.name[num++] = dNumUprLine + 7;	// Пуск ПРД
+			sMenuUpr.punkt[num] = 1;	sMenuUpr.name[num++] = dNumUprLine + 4;	// Сброс АК
+			sMenuUpr.punkt[num] = 12;	sMenuUpr.name[num++] = dNumUprLine + 5;	// Пуск АК свой
+			sMenuUpr.punkt[num] = 6;	sMenuUpr.name[num++] = dNumUprLine + 6;	// Пуск АК удаленный
+			sMenuUpr.punkt[num] = 7;	sMenuUpr.name[num++] = dNumUprLine + 7;	// Пуск ПРД
 			sMenuUpr.punkt[num] = 14;	sMenuUpr.name[num++] = 14;				// Вызов
 			
 		}
 		break;
 		
 		default:	//в остальных случаях будет Авант
-		sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;					// Сброс своего
-		if (cNumLine == 3)
 		{
-			sMenuUpr.punkt[num] = 2;	sMenuUpr.name[num++] = 2;				// Сброс удаленного 1
-			sMenuUpr.punkt[num] = 3; 	sMenuUpr.name[num++] = 3;				// Сброс удаленного 2
-			sMenuUpr.punkt[num] = 5; 	sMenuUpr.name[num++] = 5;				// Пуск удаленного 1
-			sMenuUpr.punkt[num] = 6; 	sMenuUpr.name[num++] = 6;				// Пуск удаленного 2
-			sMenuUpr.punkt[num] = 7; 	sMenuUpr.name[num++] = 7;				// Пуск удаленных 1,2
-			
-			if (cTypeLine == 1)													
+			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;					// Сброс своего
+			if (cNumLine == 3)
 			{
-				// в ВЛ есть смена АК
-				sMenuUpr.punkt[num] = 8;	sMenuUpr.name[num++] = 8;			// АК автоматический
-				sMenuUpr.punkt[num] = 9;	sMenuUpr.name[num++] = 9;			// АК ускоренный
-				sMenuUpr.punkt[num] = 10;	sMenuUpr.name[num++] = 10;			// АК выключен
+				sMenuUpr.punkt[num] = 2;	sMenuUpr.name[num++] = 2;				// Сброс удаленного 1
+				sMenuUpr.punkt[num] = 3; 	sMenuUpr.name[num++] = 3;				// Сброс удаленного 2
+				sMenuUpr.punkt[num] = 5; 	sMenuUpr.name[num++] = 5;				// Пуск удаленного 1
+				sMenuUpr.punkt[num] = 6; 	sMenuUpr.name[num++] = 6;				// Пуск удаленного 2
+				sMenuUpr.punkt[num] = 7; 	sMenuUpr.name[num++] = 7;				// Пуск удаленных 1,2
+				
+				if (cTypeLine == 1)													
+				{
+					// в ВЛ есть смена АК
+					sMenuUpr.punkt[num] = 8;	sMenuUpr.name[num++] = 8;			// АК автоматический
+					sMenuUpr.punkt[num] = 9;	sMenuUpr.name[num++] = 9;			// АК ускоренный
+					sMenuUpr.punkt[num] = 10;	sMenuUpr.name[num++] = 10;			// АК выключен
+				}
 			}
-		}
-		else
-		{
-			sMenuUpr.punkt[num] = 1; 	sMenuUpr.name[num++] = 1;				// Сброс удаленного
-			sMenuUpr.punkt[num] = 4; 	sMenuUpr.name[num++] = 4;				// Пуск удаленного
-			if (cTypeLine == 1)													
+			else
 			{
-				// в ВЛ есть смена АК и вызов
-				sMenuUpr.punkt[num] = 8; 	sMenuUpr.name[num++] = 8;			// АК автоматический
-				sMenuUpr.punkt[num] = 9; 	sMenuUpr.name[num++] = 9;			// АК ускоренный
-				sMenuUpr.punkt[num] = 10; 	sMenuUpr.name[num++] = 10;			// АК выключен 
-				sMenuUpr.punkt[num] = 14; 	sMenuUpr.name[num++] = 14;			// Вызов
+				sMenuUpr.punkt[num] = 1; 	sMenuUpr.name[num++] = 1;				// Сброс удаленного
+				sMenuUpr.punkt[num] = 4; 	sMenuUpr.name[num++] = 4;				// Пуск удаленного
+				if (cTypeLine == 1)													
+				{
+					// в ВЛ есть смена АК и вызов
+					sMenuUpr.punkt[num] = 8; 	sMenuUpr.name[num++] = 8;			// АК автоматический
+					sMenuUpr.punkt[num] = 9; 	sMenuUpr.name[num++] = 9;			// АК ускоренный
+					sMenuUpr.punkt[num] = 10; 	sMenuUpr.name[num++] = 10;			// АК выключен 
+					sMenuUpr.punkt[num] = 14; 	sMenuUpr.name[num++] = 14;			// Вызов
+				}
 			}
 		}
 	}
@@ -471,33 +517,45 @@ void MenuUprCreate(void)
 	sMenuUpr.num = num;	
 }
 
+
+/** Формирование списка типов АК в зависимости от типа совместимости
+ *	@param Нет
+ *	@return Нет
+ */
 void MenuAKCreate(void)
 {
 	char i = 0;
 	
 	param4[i++] = 0;
 	
-	if (TypeUdDev > 0)	//пвз-90, авзк-80, ПВЗЕ-У
-	{
-		param4[i++] = 8;
-		param4[i++] = 8;
+	if (TypeUdDev > 0)			// ПВЗ-90, АВЗК-80, ПВЗЕ-У, ПВЗЛ 
+	{	
+		param4[i++] = 8;	// норм.АК
+		param4[i++] = 8;	// норм.АК
 	}
-	else
+	else						// АВАНТ
 	{
-		param4[i++] = 1;
-		param4[i++] = 2;
+		param4[i++] = 1;	// авто.АК
+		param4[i++] = 2;	// авто.АК
 	}
-	param4[i++] = 3;
-	param4[i++] = 4;
-	if (TypeUdDev == 3) // ПВЗУ-Е
+	
+	param4[i++] = 3;		// уск.АК
+	param4[i++] = 4;		// выкл.АК
+	
+	if (TypeUdDev == 3) 		// ПВЗУ-Е
 	{
-		param4[i++] = 9;
-		param4[i++] = 5;
+		param4[i++] = 9;	// бегл.АК
+		param4[i++] = 5;	// пров.АК
 	}
-	else
+	else if (TypeUdDev == 4)	// ПВЗЛ
 	{
-		param4[i++] = 5;
-		param4[i++] = 6;
+		param4[i++] = 10;	// однос.АК
+		param4[i++] = 5;	// пров.АК
+	}
+	else						// АВАНТ, ПВЗ-90, АВЗК
+	{
+		param4[i++] = 5;	// пров.АК
+		param4[i++] = 6;	// испыт.АК
 	}
 }
 

@@ -876,8 +876,10 @@ void FMeasureParam(void){
 	RecivVar=1;
 }
 
-void FParamGlobal(unsigned char command){
-	switch(command){
+void FParamGlobal(unsigned char command)
+{
+	switch(command)
+	{
 		case 0x35:{  //синхронизация часов (общие)
 			if (Rec_buf_data_uart[4]>RangGlb[1] [1]) MenuAllSynchrTimer=0x02;
 			else MenuAllSynchrTimer=Rec_buf_data_uart[4];

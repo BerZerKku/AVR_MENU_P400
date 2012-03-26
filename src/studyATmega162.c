@@ -1099,8 +1099,20 @@ void FuncPressKey(void)
 			}
         }break;
         case '4':{
-			switch(MenuLevel){
-				case 1: if (cTypeLine==1) {if (LCDtimer>1) LCDtimer--; else LCDtimer=maxLCDtimer;} break; //переключение отображени€ в начальном меню даты/времени
+			switch(MenuLevel)
+			{
+				case 1: 
+				{
+					if (cTypeLine == 1) 
+					{
+						if (LCDtimer > 1) 
+							LCDtimer--; 
+						else 
+							LCDtimer = maxLCDtimer;
+					}
+				}
+				break; //переключение отображени€ в начальном меню даты/времени
+				
 				case 2: Menu_Setup(); break; //вход в меню "”становить"
 				case 4: PressInMenuJournal('4'); break;  //журнал/ третье устройство
 				case 5: Menu_Setup_Test(); break; //переход в меню тестов
