@@ -336,26 +336,27 @@ void LCDprintBitMask(unsigned char Adr, unsigned char Val, unsigned char Mask){
 extern uchar cNumLine;
 extern unsigned int iTimeToAKnow, iTimeToAK;
 void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned char* Time){
-  	//			АВАНТ			ПВЗ-90 / АВЗК
-	//AK = 1 - авто ускор 		нормальный
+  	//			АВАНТ			ПВЗ-90 / АВЗК		ПВЗЛ
+	//AK = 1 - авто ускор 		нормальный			нормальный
   	//АК = 2 - авто норм 	
-  	//АК = 3 - ускор			ускор.
-  	//АК = 4 - АК выключен		выкл.
-	//AK = 5 - 					проверка
-	//AK = 6 - 					испыт.
+  	//АК = 3 - ускор			ускор.				
+  	//АК = 4 - АК выключен		выкл.				выкл.
+	//AK = 5 - 					проверка			односторон.
+	//AK = 6 - 					испыт.				
 	
-	//dev = 0 - авант
-	//dev = 1 - ПВЗ
-	//dev = 2 - АВЗК
-	//dev = 3 - ПВЗУ-Е
+	// dev = 0 - АВАНТ
+	// dev = 1 - ПВЗ-90
+	// dev = 2 - АВЗК
+	// dev = 3 - ПВЗУ-Е
+	// dev = 4 - ПВЗЛ
 	
     uchar 	time1 = 59,	// минуты
-			time2 = 0, 	// секунды
-			time3 = 0;	// часы
+	time2 = 0, 	// секунды
+	time3 = 0;	// часы
     uchar 	start1 = 48;
 	
 	
-	if  ( (AK > 6) || (AK == 4) || (AK == 0) || (dev > 3) || (iTimeToAKnow > iTimeToAK) )
+	if  ( (AK > 6) || (AK == 4) || (AK == 0) || (dev > 4) || (iTimeToAKnow > iTimeToAK) )
 	{
 		// если ошибочный тип АК или тип удаленного устройства
 		// либо текущий счетчик времени больше времени до АК
@@ -369,12 +370,14 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
 	if (LCDbuf[start1 - 1] != ' ')
 		LCDbuf[start1++] = ' ';
 	
+	// в АВАНТе время высчитывается
+	// при совместимости выводится полученное значение
 	switch(dev)
 	{
-	  case 0:	//АВАНТ
+		case 0:		// АВАНТ
 		{
 			time2 = 60 - (Time[6]-0x30)*10 - (Time[7]-0x30);
-
+			
 			if (cNumLine == 2)
 			{
 				if (Num == '2') time2 += 30; //если 2 аппарат, добавим 30 секунд
@@ -384,11 +387,11 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
 				{
 					if (Num == '2') time2+=20;
 					else
-					  if (Num == '3') time2+=40;
+						if (Num == '3') time2+=40;
 				}
-		
+			
 			if (time2 > 59) {time2 -= 60; time1++;} //если 60 сек, то добавим 1 мин и обнулим секунды
-		
+			
 			if ( (AK == 1)||(AK == 3) )
 				time1 = 0; //если АК ускоренныЙ, то нужны только секунды
 			else
@@ -399,19 +402,24 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
 			}
 		}
 		break;
-	  case 1:
-	  case 2:
-	  case 3:
-		unsigned int a;
-		a = iTimeToAK - iTimeToAKnow;
-		time2 = a % 60;
-		a /= 60;
-		time1 = a % 60;
-		a /= 60;
-		time3 = a % 60;
+		
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		{
+			unsigned int a;
+			
+			a = iTimeToAK - iTimeToAKnow;
+			time2 = a % 60;
+			a /= 60;
+			time1 = a % 60;
+			a /= 60;
+			time3 = a % 60;
+		}
 		break;
 	}
-		
+	
 	
 	
 	// выведем время до АК
@@ -419,11 +427,11 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
 	
 	if (time3 == 0)
 	{
-		LCDbuf[start1++] = 0xC0;//'ч';
-		LCDbuf[start1++] = 0x65;//'е';
-		LCDbuf[start1++] = 0x70;//'р';
-		LCDbuf[start1++] = 0x65;//'е';
-		LCDbuf[start1++] = 0xB7;//'з';
+		LCDbuf[start1++] = 0xC0; // 'ч';
+		LCDbuf[start1++] = 0x65; // 'е';
+		LCDbuf[start1++] = 0x70; // 'р';
+		LCDbuf[start1++] = 0x65; // 'е';
+		LCDbuf[start1++] = 0xB7; // 'з';
 		LCDbuf[start1++] = ' ';	
 	}
 	else
@@ -435,11 +443,11 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
 	}
 	LCDbuf[start1++] = (time1 / 10) + '0';
 	LCDbuf[start1++] = (time1 % 10) + '0';
-
+	
 	LCDbuf[start1++] = ':';
 	LCDbuf[start1++] = (time2 / 10) + '0';
 	LCDbuf[start1++] = (time2 % 10) + '0';
-
+	
   	for(; start1 < 60; start1++)
 		LCDbuf[start1] = ' ';  //очистим строку до конца
 }

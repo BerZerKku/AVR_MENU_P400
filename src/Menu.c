@@ -425,7 +425,7 @@ void MenuUprCreate(void)
 	
 	switch(TypeUdDev)
 	{
-		case 1:	//пвз-90	
+		case 1:		// ПВЗ-90	
 		{
 			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
 			sMenuUpr.punkt[num] = 1;	sMenuUpr.name[num++] = 1;				// Сброс удаленного
@@ -438,7 +438,7 @@ void MenuUprCreate(void)
 		}
 		break;
 		
-		case 2:	//авзк-80		
+		case 2:		// АВЗК-80		
 		{		
 			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
 			sMenuUpr.punkt[num] = 8; 	sMenuUpr.name[num++] = dNumUprLine;		// АК нормальный
@@ -450,7 +450,7 @@ void MenuUprCreate(void)
 		}
 		break;
 		
-		case 3:	// ПВЗУ-Е
+		case 3:		// ПВЗУ-Е
 		{
 			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
 			sMenuUpr.punkt[num] = 4; 	sMenuUpr.name[num++] = 4;				// Пуск удаленного
@@ -464,7 +464,7 @@ void MenuUprCreate(void)
 		}
 		break;
 		
-		case 4: // ПВЗЛ
+		case 4: 	// ПВЗЛ
 		{
 			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
 			sMenuUpr.punkt[num] = 8;	sMenuUpr.name[num++] = dNumUprLine;		// АК-нормальный
@@ -479,7 +479,7 @@ void MenuUprCreate(void)
 		}
 		break;
 		
-		default:	//в остальных случаях будет Авант
+		default:	// АВАНТ
 		{
 			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;					// Сброс своего
 			if (cNumLine == 3)
@@ -559,16 +559,18 @@ void MenuAKCreate(void)
 	}
 }
 
+/** Формирование меню Тест
+ *	@param Нет
+ * 	@return Нет
+ */
 void MenuTestCreate(void)
-{
-	//формирование меню Тест
-	//на данный момент только для Защиты
-	
+{	
 	switch(TypeUdDev)
 	{
-	  case 1:	//пвз-90
-	  case 2:	//авзк-80
-	  case 3:	//пвзу-е
+		case 1:		// ПВЗ-90
+		case 2:		// АВЗК-80
+		case 3:		// ПВЗУ-Е
+		case 4:		// ПВЗЛ
 		{
 			sMenuTest.num = 1;
 			sMenuTest.numTr = 1; // передача КЧ и РЗ
@@ -581,10 +583,8 @@ void MenuTestCreate(void)
 			sMenuTest.sT[0].punkt[sMenuTest.sT[0].num++] = 1;
 		}
 		break;
-	  default:
-		{	//авант
-			//или в случае ошибочного значения, параметры будут для Аванта	
-			
+		default:	// АВАНТ
+		{	
 			if (cNumLine == 3)
 			{	//трехконцевая версия пост
 				sMenuTest.num = 4;

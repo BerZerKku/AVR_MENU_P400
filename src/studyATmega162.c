@@ -1612,8 +1612,17 @@ void FuncPressKey(void)
 					
 					if (ShiftMenu < NumParamGlb)
 					{
-						MinValue=RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [0] * RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
-						MaxValue=RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [1] * RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
+						MinValue = 	RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [0] * 
+									RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
+						MaxValue = 	RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [1] * 
+									RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
+						
+						if ( (TypeUdDev == 4) && (sMenuGlbParam.punkt[ShiftMenu] == 7) )
+						{
+							// ПВЗЛ только двух концевая, поэтому макс. номер аппарата 2
+							MaxValue = 2;
+						}
+							
 					}
 					
 				}break;
@@ -2329,33 +2338,46 @@ void LCDwork(void){
 				LCDprintf(1,1,2,LCDavarNoUSP,2);  //стираем с экрана сообщение "Нет связи с USP"
 			}
 		
-		if (bReadVers){  //если считана версия
+		
+		if (bReadVers)		 //если считана версия
+		{ 
 			switch (MenuLevel){
 				case 1:
-				{ //первый уровень
+				{ 
 					i=2;
-					if (bAllDevice){  //елсли 3-х концевая версия и есть все 4 утройства
-						if (ShiftMenu==0) {LCDMenu1(i,1); i++;}
-						LCDMenu1(i,2);i++;
-						LCDMenu1(i,5);i++;
-						if (ShiftMenu==1) LCDMenu1(i,3);
-					}else{
+					if (bAllDevice)	 	//елсли 3-х концевая версия и есть все 4 утройства
+					{ 
+						if (ShiftMenu==0) 
+							LCDMenu1(i++, 1); 
+						LCDMenu1(i++, 2);
+						LCDMenu1(i++, 5);
+						if (ShiftMenu == 1) 
+							LCDMenu1(i, 3);
+					}
+					else
+					{
 						if (bDef) 
-							LCDMenu1(i,1); i++;
-							
-						if (cNumLine==3)
-						{ //если 3-х концевая, проверим оба приемника
-							if (cNumComR1>0) {LCDMenu1(i,2);i++;}
-							if (cNumComR2>0) {LCDMenu1(i,5);i++;}
+							LCDMenu1(i++,1);
+						
+						// В 3-х концевой проверяем оба приемника. в 2-х только 1
+						if (cNumLine == 3)
+						{ 
+							if (cNumComR1 > 0) 
+								LCDMenu1(i++, 2);
+							if (cNumComR2 > 0) 
+								LCDMenu1(i++, 5);
 						}
-						else //иначе проверим только 1 приемник
-							if (cNumComR1>0) {LCDMenu1(i,2);i++;}
-						if (cNumComT>0) LCDMenu1(i,3);
+						else if (cNumComR1 > 0) 
+							LCDMenu1(i++, 2);
+						
+						if (cNumComT > 0) 
+							LCDMenu1(i, 3);
+						
+						// ВЧ
 						if (cTypeLine == 1)
 						{
-							if ( (bDef) && (sArchive.NumDev == 1) )	// если у нас только Пост ВЧ
+							if ( (bDef) && (sArchive.NumDev == 1) )	// если у нас только Пост 
 							{	
-								//if ((CurrentState[0]==2)&&(CurrentState[1]==1)){  // если Пост Введен и состояние Контроль
 								LCDprintf(3 , 1 , 2 , fAk , 1);
 								LCDprintf(3 , 4 , 2 , flAutoContorl1[param4[cAutoControl]], 1);
 								if ((FreqNum[7] < '4')      &&
@@ -2365,7 +2387,7 @@ void LCDwork(void){
 								{
 									// Только в ПВЗУ-Е при аварии/неисправности выводится время до АК
 									if ( (TypeUdDev != 3) && (bDefAvar || bGlobalAvar ||  (CurrentState[1] != 1)) )
-										FuncClearCharLCD(3,9,13);
+										FuncClearCharLCD(3, 9, 13);
 									else
 									{
 										if (TimeError)
@@ -2379,7 +2401,7 @@ void LCDwork(void){
 									}
 								}
 								else
-									FuncClearCharLCD(3,9,13);
+									FuncClearCharLCD(3, 9, 13);
 								
 								if (cNumLine == 2)
 									LCDprint(4,1,2,Measuring[5],1);
