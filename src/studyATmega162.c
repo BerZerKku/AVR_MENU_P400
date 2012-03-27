@@ -322,7 +322,8 @@ char printDr(char Start, uint DecChar){
 }
 
 //формирует строку подсказки диапазона разрешенных значений
-void FuncViewValue(uchar numparam){
+void FuncViewValue(uchar numparam)
+{
 	uchar i=0;
 	uchar var=0;  //0- ошибочное значение, 1 - список, 2 - целое
 	uchar num;
@@ -332,14 +333,18 @@ void FuncViewValue(uchar numparam){
 	numparam = numparam&0xE0;
 	
 	switch(numparam){
-		case 0x20:{ //параметры Защиты
-			if ( (num == 0) || (num == 6) || (num == 7) || (num == 8) ) var=1;  //тип защиты из списка
+		case 0x20:
+		{ //параметры Защиты
+			if ( (num == 0) || (num == 6) || (num == 7) || (num == 8) ) 
+				var=1;  //тип защиты из списка
 			else
-				if (num<NumParamDef)
+			{
+				if (num < NumParamDef)
 				{
 					var=2;
 					min = RangPost[num] [0] * RangPost[num] [2];
 					max = RangPost[num] [1] * RangPost[num] [2];
+					
 					if (cTypeLine == 2)
 					{
 						if ( (num == 3) || (num == 4) )
@@ -351,8 +356,10 @@ void FuncViewValue(uchar numparam){
 				}
 				else 
 					var=0;
+			}
 		}break;
-		case 0x40:{
+		case 0x40:
+		{
 			if ((num==3)||(num==4)) var=0;  //там где вводятся значения битовые 0-ками и 1-ами
 			else
 				if (num < NumParamPrm){
@@ -361,7 +368,8 @@ void FuncViewValue(uchar numparam){
 					max = RangPrm[num] [1] * RangPrm[num] [2];
 				}else var=0;
 		}break;
-		case 0x60:{
+		case 0x60:
+		{
 			if ((num==3)||(num==4)) var=0;  //там где вводятся значения битовые 0-ками и 1-ами
 			else
 				if (num<NumParamPrd){
@@ -370,7 +378,8 @@ void FuncViewValue(uchar numparam){
 					max = RangPrd[num] [1] * RangPrd[num] [2];
 				}else var=0;
 		}break;
-		case 0x80:{
+		case 0x80:
+		{
 			switch(num)
 			{
 				case 0:	// параметры выбираемые из списка
@@ -380,6 +389,7 @@ void FuncViewValue(uchar numparam){
 				case 13:
 				case 14:
 				case 18:
+				case 19:
 				var = 1;
 				break;
 				case 2:	// параметры вводимые с клавиатуры
@@ -393,10 +403,18 @@ void FuncViewValue(uchar numparam){
 				case 15:
 				case 16:
 				case 17:
+				case 20:	// снижение уровня ответа (ПВЗЛ)
 				{
 					var=2;
 					min = RangGlb[num] [0] * RangGlb[num] [2];
 					max = RangGlb[num] [1] * RangGlb[num] [2];
+					
+					// в ПВЗЛ только 2-х концевая версия, т.е. 3-его аппарата нет
+					if (TypeUdDev == 4)
+					{
+						if (num == 7)
+							max = 2;
+					}
 				}
 				break;
 				case 11:	//корркция напряжения
@@ -412,25 +430,33 @@ void FuncViewValue(uchar numparam){
 		}break;
 	}//end switch(numparam)
 	
-	switch(var){
-		case 1:{  //"список"
+	switch(var)
+	{
+		case 1:
+		{  //"список"
 			i=0;
-			do cViewParam[i]=List[i];
-			while (List[i++]!=0x00);
+			do 
+				cViewParam[i] = List[i];
+			while (List[i++] != 0x00);
 		}break;
-		case 2:{  //вывод диапазона целых чисел
+		case 2:
+		{  //вывод диапазона целых чисел
 			i=printDr(i,min); //минимум
 			cViewParam[i++]='.';
 			cViewParam[i++]='.';
 			i=printDr(i,max); //максимум
 		}break;
-		case 3:{  //вывод дробного числа (1 знак после запятой)
+		case 3:
+		{  //вывод дробного числа (1 знак после запятой)
 			do cViewParam[i]=Menu16Shift10[i];
 			while (Menu16Shift10[i++]!=0x00);
 		}break;
-		default:{ //"нет данных"
+		
+		default:
+		{ //"нет данных"
 			i=0;
-			do cViewParam[i]=NoData[i];
+			do 
+				cViewParam[i] = NoData[i];
 			while (NoData[i++]!=0x00);
 		}
 	}//end switch(var)
@@ -886,8 +912,10 @@ void FuncInputData(void)
 				}
 				
 				//а теперь сформируем и отправим в USP введеное значение, если необходимо
-				if (ControlParameter==1){
-					switch(InputParameter){
+				if (ControlParameter==1)
+				{
+					switch(InputParameter)
+					{
 						case 7: {TrParam=2+InputParameter-7;TrValue=TempValue-1;} break;
 						case 8: {TrParam=2+InputParameter-7;TrValue=TempValue;} break;
 						case 9:
@@ -1516,10 +1544,12 @@ void FuncPressKey(void)
 						switch(sMenuGlbParam.punkt[ShiftMenu])
 						{
 							case 0:
-							WorkRate = 2;
-							SelectValue = 3;
-							InputSelectValue = 0;
-							MassSelectValue = fmTypeUdDev;
+							{
+								WorkRate = 2;
+								SelectValue = 3;
+								InputSelectValue = 0;
+								MassSelectValue = fmTypeUdDev;
+							}
 							break;		
 							case 1: {WorkRate=2;SelectValue=1;InputSelectValue=0;/*MaxSelectValue=1;MinSelectValue=0;*/MassSelectValue=MenuAllSynchrTimerNum;} break;
 							case 2: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=0xB6;Discret=1;} break;
@@ -1606,6 +1636,16 @@ void FuncPressKey(void)
 								NumberTransCom = 1;								
 								InputSelectValue = 0;							
 								MassSelectValue = MenuAllSynchrTimerNum; 
+							}
+							break;
+							case 20:
+							{
+								WorkRate = 1;
+								MaxNumberInputChar = 2;
+								ByteShift = 0;
+								InputParameter = 0x39;
+								NumberTransCom = 1;
+								Discret = 1;
 							}
 							break;
 						}
@@ -1861,6 +1901,7 @@ void FuncTr(void){
 								case 16:
 								case 17:
 								case 18:	// параметры ПВЗУ-Е
+								case 20:	// параметр ПВЗЛ
 								{
 									TransDataInf(0x39, 0x00);
 								}
@@ -2668,6 +2709,7 @@ void LCDwork(void){
 								case 17: LCDprint(3, 11, 2, sParamPVZE.noise, 1); break;
 								case 18: LCDprintf(3, 11, 2, MenuAllControlNum[sParamPVZE.autocontrol], 1); break;
 								case 19: LCDprintf(3, 11, 2, MenuAllSynchrTimerNum[sParamOpt.reserv], 1); break;
+								case 20: LCDprint(3, 11, 2, MenuAllLowCF, 1); break;
 							}				
 						}
 						else

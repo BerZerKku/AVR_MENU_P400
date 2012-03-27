@@ -205,26 +205,32 @@ void ErrorMessage(char code)
 	StartTrans(7);
 }
 
-void FParamDef(unsigned char command){
+void FParamDef(unsigned char command)
+{
 	u8 min, max;
-	switch(command){
-		case 0x01:{  //принято значение типа защиты (пост)
+	switch(command)
+	{
+		case 0x01:
+		{  //принято значение типа защиты (пост)
 			if ((Rec_buf_data_uart[4]<RangPost[0] [0])||(Rec_buf_data_uart[4]>RangPost[0] [1])) MenuTypeDefend = RangPost[0] [1] + 1;
 			else MenuTypeDefend=Rec_buf_data_uart[4];
 		}break;
-		case 0x02:{ //принято значение типа линии (пост)
+		case 0x02:
+		{ //принято значение типа линии (пост)
 			Rec_buf_data_uart[4]+=1;
 			if ((Rec_buf_data_uart[4]<RangPost[1] [0])||(Rec_buf_data_uart[4]>RangPost[1] [1])) MenuTypeLine[0]=0x3F; //"?"
 			else MenuTypeLine[0]=Rec_buf_data_uart[4]+0x30;
 		}break;
-		case 0x03:{//принято значение допустимого времени без манипуляции (пост)
+		case 0x03:
+		{//принято значение допустимого времени без манипуляции (пост)
 			if ((Rec_buf_data_uart[4]<RangPost[2] [0])||(Rec_buf_data_uart[4]>RangPost[2] [1])) {MenuPossibleTimeNoMan[0]=0x3F;MenuPossibleTimeNoMan[1]=0x3F;}
 			else{
 				MenuPossibleTimeNoMan[0]=Rec_buf_data_uart[4]/10+0x30;
 				MenuPossibleTimeNoMan[1]=Rec_buf_data_uart[4]%10+0x30;
 			}
 		}break;
-		case 0x04:{//принято значение допустимых провалов в сигнале приема (пост)
+		case 0x04:
+		{//принято значение допустимых провалов в сигнале приема (пост)
 			if (cTypeLine == 1)
 			{
 				min = RangPost[3] [0];
@@ -342,8 +348,7 @@ void FParamDef(unsigned char command){
 				cAutoControl = Rec_buf_data_uart[4];
 				
 				// если тип удаленного аппарата ПВЗ или АВЗК
-				if ( 	(sMenuGlbParam.dev >= 1) || 
-						(sMenuGlbParam.dev <= 4) )
+				if ( (sMenuGlbParam.dev >= 1) || (sMenuGlbParam.dev <= 4) )
 				{
 					long a;
 					
@@ -957,71 +962,79 @@ void FParamGlobal(unsigned char command)
 		{ // параметры ПВЗУ-Е
 			uchar tmp;
 			
-			// протокол обмена
-			tmp = Rec_buf_data_uart[4];
-			if ( (tmp < RangGlb[13] [0]) || (tmp > RangGlb[13] [1]) )
-				tmp = RangGlb[13] [1] + 1;
-			sParamPVZE.protocol = tmp;
-			
-			// тоже байт, в ПВЗ означает снижение уровня АК
-			if ( (tmp < RangGlb[20] [0] || (tmp > RangGlb[20] [1]) ) )
+			// В ПВЗЛ используется первый параметр
+			// остальные в ПВЗУ-Е
+			if (TypeUdDev == 4)
 			{
-				MenuAllLowCF[0] = '?';
-				MenuAllLowCF[1] = '?';
+				//снижение уровня АК
+				tmp = Rec_buf_data_uart[4];
+				if ( (tmp < RangGlb[20] [0] || (tmp > RangGlb[20] [1]) ) )
+				{
+					MenuAllLowCF[0] = '?';
+					MenuAllLowCF[1] = '?';
+				}
+				else
+				{
+					MenuAllLowCF[0] = (tmp / 10) + '0';
+					MenuAllLowCF[1] = (tmp % 10) + '0';
+				}
 			}
 			else
 			{
-				MenuAllLowCF[0] = (tmp / 10) + '0';
-				MenuAllLowCF[1] = (tmp % 10) + '0';
-			}
-			
-			// признак четности
-			tmp = Rec_buf_data_uart[5];
-			if ( (tmp < RangGlb[14] [0]) || (tmp > RangGlb[14] [1]) )
-				tmp = RangGlb[14] [1] + 1;
-			sParamPVZE.parity = tmp;
-			
-			// допустимые провалы
-			tmp = Rec_buf_data_uart[6];
-			if ( (tmp < RangGlb[15] [0]) || (tmp > RangGlb[15] [1]) )
-			{
-				sParamPVZE.proval[0] = '?';
-				sParamPVZE.proval[1] = '?';
-				sParamPVZE.proval[2] = '?';
-			}
-			else
-			{
-				sParamPVZE.proval[2] = (tmp % 10) + '0';
+				// протокол обмена
+				tmp = Rec_buf_data_uart[4];
+				if ( (tmp < RangGlb[13] [0]) || (tmp > RangGlb[13] [1]) )
+					tmp = RangGlb[13] [1] + 1;
+				sParamPVZE.protocol = tmp;
+				
+				// признак четности
+				tmp = Rec_buf_data_uart[5];
+				if ( (tmp < RangGlb[14] [0]) || (tmp > RangGlb[14] [1]) )
+					tmp = RangGlb[14] [1] + 1;
+				sParamPVZE.parity = tmp;
+				
+				// допустимые провалы
+				tmp = Rec_buf_data_uart[6];
+				if ( (tmp < RangGlb[15] [0]) || (tmp > RangGlb[15] [1]) )
+				{
+					sParamPVZE.proval[0] = '?';
+					sParamPVZE.proval[1] = '?';
+					sParamPVZE.proval[2] = '?';
+				}
+				else
+				{
+					sParamPVZE.proval[2] = (tmp % 10) + '0';
+					tmp = tmp / 10;
+					sParamPVZE.proval[1] = (tmp % 10) + '0';
+					sParamPVZE.proval[0] = (tmp / 10) + '0'; 
+				}
+				
+				// порог по помехе
+				tmp = Rec_buf_data_uart[7];
+				sParamPVZE.porog[2] = (tmp % 10) + '0';
 				tmp = tmp / 10;
-				sParamPVZE.proval[1] = (tmp % 10) + '0';
-				sParamPVZE.proval[0] = (tmp / 10) + '0'; 
+				sParamPVZE.porog[1] = (tmp % 10) + '0';
+				sParamPVZE.porog[0] = (tmp / 10) + '0';
+				
+				// допустимая помеха
+				tmp = Rec_buf_data_uart[8];
+				if ( (tmp < RangGlb[17] [0]) || (tmp > RangGlb[17] [1]) )
+				{
+					sParamPVZE.noise[0] = '?';
+					sParamPVZE.noise[1] = '?';
+				}
+				else
+				{
+					sParamPVZE.noise[0] = (tmp / 10) + '0';
+					sParamPVZE.noise[1] = (tmp % 10) + '0';
+				}
+				
+				// тип автоконтроля
+				tmp = Rec_buf_data_uart[9];
+				if ( (tmp < RangGlb[18] [0]) || (tmp > RangGlb[18] [1]) )
+					tmp = RangGlb[18] [1] + 1;
+				sParamPVZE.autocontrol = tmp;
 			}
-			
-			// порог по помехе
-			tmp = Rec_buf_data_uart[7];
-			sParamPVZE.porog[2] = (tmp % 10) + '0';
-			tmp = tmp / 10;
-			sParamPVZE.porog[1] = (tmp % 10) + '0';
-			sParamPVZE.porog[0] = (tmp / 10) + '0';
-			
-			// допустимая помеха
-			tmp = Rec_buf_data_uart[8];
-			if ( (tmp < RangGlb[17] [0]) || (tmp > RangGlb[17] [1]) )
-			{
-				sParamPVZE.noise[0] = '?';
-				sParamPVZE.noise[1] = '?';
-			}
-			else
-			{
-				sParamPVZE.noise[0] = (tmp / 10) + '0';
-				sParamPVZE.noise[1] = (tmp % 10) + '0';
-			}
-			
-			// тип автоконтроля
-			tmp = Rec_buf_data_uart[9];
-			if ( (tmp < RangGlb[18] [0]) || (tmp > RangGlb[18] [1]) )
-				tmp = RangGlb[18] [1] + 1;
-			sParamPVZE.autocontrol = tmp;
 			
 		}
 		break;

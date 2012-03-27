@@ -286,9 +286,9 @@ void MenuParamGlbCreate(void)
 			sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;		// Номер аппарата
 			sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;		// Контроль вых.сигнала
 			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
+			sMenuGlbParam.punkt[num] = 20;	sMenuGlbParam.name[num++] = 20;		// Снижение ответа АК
 			sMenuGlbParam.punkt[num] = 11; 	sMenuGlbParam.name[num++] = 11;		// Коррекция напряжения
 			sMenuGlbParam.punkt[num] = 12; 	sMenuGlbParam.name[num++] = 12;		// Коррекция тока
-			sMenuGlbParam.punkt[num] = 20;	sMenuGlbParam.name[num++] = 20;		// Снижение ответа АК
 		}
 		break;
 		
