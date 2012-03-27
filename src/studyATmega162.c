@@ -2198,7 +2198,8 @@ void LCDMenu1(unsigned char NumString,unsigned char Device){
 			}
 	
 	LCDprintf(NumString,1,2,Title,1);
-	if (bGlobalAvar){ //общая авария
+	if (bGlobalAvar)
+	{ //общая авария
 		tglobal = (GlobalCurrentState[12]<<8) + (GlobalCurrentState[13]);
 		for(i=0, temp=1, j = 0; i<16; i++, temp=temp<<1)
 		{
@@ -2208,166 +2209,187 @@ void LCDMenu1(unsigned char NumString,unsigned char Device){
 		j = (j > 1) ? 1 : 0;
 		
 		
-		if ((Device==1)&&(GlobalCurrentState[12]==0)&&(GlobalCurrentState[13]==0x20)&&(sArchive.NumDev==1)){
+		if ((Device==1)&&(GlobalCurrentState[12]==0)&&(GlobalCurrentState[13]==0x20)&&(sArchive.NumDev==1))
+		{
 			LCDprintf(NumString,5,2,Menu1GLobalError20_1,1);
-		}else{
-			if ( (!TimeWink) && (j) ){ //режим мигания, раз в секунду
+		}
+		else
+		{
+			if ( (!TimeWink) && (j) )
+			{ //режим мигания, раз в секунду
 				LCDprintf(NumString,5,2,Menu1disrepair,1);
 				FuncClearCharLCD(NumString,13,8);
 				LCDprintf(NumString,13,2,GlobalAvar,0);
 				LCDprintHEX(NumString,15,GlobalCurrentState[12]);
 				LCDprintHEX(NumString,17,GlobalCurrentState[13]);
-			}else{
+			}
+			else
+			{
 				tglobal = (GlobalCurrentState[12]<<8) + (GlobalCurrentState[13]);
 				for(i=0, temp=1; i<16; i++, temp=temp<<1)
+				{
 					if (tglobal&temp)
 					{
 						LCDprintf(NumString,5,2,Menu1GlobalErrorT[i],1);
 						break;
 					}
-				
+				}
 			}
 		}
-	}else
-		if (DevAvar){  //если авария устройства
+	}
+	else if (DevAvar)
+	{  //если авария устройства
+		tglobal = (GlobalCurrentState[(Device-1)*4]<<8) + GlobalCurrentState[(Device-1)*4 + 1];
+		for(i=0, temp=1, j = 0; i<16; i++, temp=temp<<1)
+		{
+			if (tglobal & temp)
+				j++;
+		}
+		j = (j > 1) ? 1 : 0;
+		
+		if ( (!TimeWink) && (j) )
+		{ //режим мигания, раз в секунду
+			LCDprintf(NumString,5,2,Menu1disrepair,1);
+			FuncClearCharLCD(NumString,13,8);
+			LCDprintf(NumString,13,2,LocalAvar,0);
+			LCDprintHEX(NumString,15,GlobalCurrentState[(Device-1)*4]);
+			LCDprintHEX(NumString,17,GlobalCurrentState[(Device-1)*4 + 1]);
+		}
+		else
+		{
 			tglobal = (GlobalCurrentState[(Device-1)*4]<<8) + GlobalCurrentState[(Device-1)*4 + 1];
-			for(i=0, temp=1, j = 0; i<16; i++, temp=temp<<1)
+			for(i=0, temp = 1; i < 16; i++, temp *= 2)
 			{
 				if (tglobal & temp)
-					j++;
-			}
-			j = (j > 1) ? 1 : 0;
-			
-			if ( (!TimeWink) && (j) ){ //режим мигания, раз в секунду
-				LCDprintf(NumString,5,2,Menu1disrepair,1);
-				FuncClearCharLCD(NumString,13,8);
-				LCDprintf(NumString,13,2,LocalAvar,0);
-				LCDprintHEX(NumString,15,GlobalCurrentState[(Device-1)*4]);
-				LCDprintHEX(NumString,17,GlobalCurrentState[(Device-1)*4 + 1]);
-			}else{
-				tglobal = (GlobalCurrentState[(Device-1)*4]<<8) + GlobalCurrentState[(Device-1)*4 + 1];
-				for(i=0, temp=1; i<16; i++, temp*=2)
-					if (tglobal&temp)
+				{
+					// в чистой защите, одна неисправность меняет название
+					if ( (Device == 1) && (sArchive.NumDev == 1) && (tglobal == 0x0010) )
 					{
-						LCDprintf(NumString,5,2,MassError[i],1);
-						break;
-					}
-			}
-		}else{  //если неисправностей нет
-			if ((TimeWink)&&((bGlobalWarn)||(DevWarn)))
-			{ //если есть предупреждение и надо его вывести				
-				if (bGlobalWarn)
-				{ //общее предупреждение
-					if ((GlobalCurrentState[14]==0)&&(GlobalCurrentState[15]==1))
-					{
-						LCDprintf(NumString,5,2,Menu1GlobalWarning1,1);
+						LCDprintf(NumString, 5, 2, Menu1PostError10_1, 1);
 					}
 					else
-					{
-						LCDprintf(NumString,5,2,Menu1warning,1);
-						FuncClearCharLCD(NumString,13,8);
-						LCDprintf(NumString,13,2,GlobalAvar,0);
-						LCDprintHEX(NumString,15,GlobalCurrentState[14]);
-						LCDprintHEX(NumString,17,GlobalCurrentState[15]);
-					}
+						LCDprintf(NumString, 5, 2, MassError[i], 1);
+					break;
+				}
+			}
+		}
+	}
+	else
+	{  //если неисправностей нет
+		if ((TimeWink)&&((bGlobalWarn)||(DevWarn)))
+		{ //если есть предупреждение и надо его вывести				
+			if (bGlobalWarn)
+			{ //общее предупреждение
+				if ((GlobalCurrentState[14]==0)&&(GlobalCurrentState[15]==1))
+				{
+					LCDprintf(NumString,5,2,Menu1GlobalWarning1,1);
 				}
 				else
-				{//предупреждение устройства
-					temp = (int) (GlobalCurrentState[2+(Device-1)*4]<<8) + GlobalCurrentState[3+(Device-1)*4];  //предупреждение
-					switch(Device)
-					{
-						case 1:
-						{
-							// предупреждения защиты
-							switch(temp)
-							{
-								case 1:
-								LCDprintf(NumString, 5, 2, Menu1PostWarning1, 1);
-								break;
-								case 2:
-								LCDprintf(NumString, 5, 2, Menu1PostWarning2, 1);			
-								break;
-								case 4:
-								LCDprintf(NumString, 5, 2, Menu1PostWarning4, 1);
-								break;
-								case 8:
-								LCDprintf(NumString, 5, 2, Menu1PostWarning8, 1);
-								break;
-								default:
-								temp = 0;
-							}
-						}
-						break;
-						case 2:
-						case 5:
-						{
-							//  в приемниках 1-о предупреждение
-							//	если код не 1, выводим код на экран
-							if (temp == 1)
-								LCDprintf(NumString, 5, 2,  Menu1PrmWarning1, 1);
-							else 
-								temp = 0;
-						}
-						break;
-						default:
-						temp = 0;
-					}
-					
-					if (temp == 0)
-					{
-						// 	если это ошибочный код
-						// 	или предупреждений несколько
-						// 	выведем на экран код предупреждения
-						LCDprintf(NumString, 5, 2, Menu1warning, 1);
-						FuncClearCharLCD(NumString, 13, 8);
-						LCDprintf(NumString, 13, 2, LocalAvar, 0);
-						LCDprintHEX(NumString, 15, GlobalCurrentState[(Device - 1) * 4 + 2]);
-						LCDprintHEX(NumString, 17, GlobalCurrentState[(Device - 1) * 4 + 3]);
-					}
+				{
+					LCDprintf(NumString,5,2,Menu1warning,1);
+					FuncClearCharLCD(NumString,13,8);
+					LCDprintf(NumString,13,2,GlobalAvar,0);
+					LCDprintHEX(NumString,15,GlobalCurrentState[14]);
+					LCDprintHEX(NumString,17,GlobalCurrentState[15]);
 				}
 			}
 			else
-			{  
-				//вывод режим/статус
-				
-				//в статусе отсутствует общие данные, потому для извлечения из массива уменьшим на 1
-				if (Device == 5) 
-					Device = 4;  
-				
-				// если нам известен код режима, выводим сообщение на экран
-				// если же нам не извесен принятый код, выводим "????"
-				if (CurrentState[(Device - 1) * 2] != 0x4E) 
-					LCDprintf(NumString, 5, 2, Menu1regime[CurrentState[(Device - 1) * 2]], 1); 
-				else 
-					LCDprintf(NumString, 5, 2, Menu1Err, 0);  
-				
-				// выводим состояние устройства
-				// если же нам не извесен принятый код, выводим "????"
-				if (CurrentState[(Device - 1) * 2 + 1] != 0x4E) 
-					LCDprintf(NumString, 13, 2, MassStat[CurrentState[(Device - 1) * 2 + 1]], 1);
-				else 
-					LCDprintf(NumString,13,2,Menu1Err,0);  
-				
-				//вывод на экран дополнительного байта
-				if( (Device == 2) || (Device == 4) )
+			{//предупреждение устройства
+				temp = (int) (GlobalCurrentState[2+(Device-1)*4]<<8) + GlobalCurrentState[3+(Device-1)*4];  //предупреждение
+				switch(Device)
 				{
-					//прием КЧ, команды или блок.команды
-					if ( (CurrentState[(Device - 1) * 2 + 1] == 1)	||
-						 (CurrentState[(Device - 1) * 2 + 1] == 2)	||
-						 (CurrentState[(Device - 1) * 2 + 1] == 7)	)  
+					case 1:
 					{
-						LCDprintDEC(NumString,19,Dop_byte[Device-1]);
+						// предупреждения защиты
+						switch(temp)
+						{
+							case 1:
+							LCDprintf(NumString, 5, 2, Menu1PostWarning1, 1);
+							break;
+							case 2:
+							LCDprintf(NumString, 5, 2, Menu1PostWarning2, 1);			
+							break;
+							case 4:
+							LCDprintf(NumString, 5, 2, Menu1PostWarning4, 1);
+							break;
+							case 8:
+							LCDprintf(NumString, 5, 2, Menu1PostWarning8, 1);
+							break;
+							default:
+							temp = 0;
+						}
 					}
+					break;
+					case 2:
+					case 5:
+					{
+						//  в приемниках 1-о предупреждение
+						//	если код не 1, выводим код на экран
+						if (temp == 1)
+							LCDprintf(NumString, 5, 2,  Menu1PrmWarning1, 1);
+						else 
+							temp = 0;
+					}
+					break;
+					default:
+					temp = 0;
 				}
-				if(Device == 3)
+				
+				if (temp == 0)
 				{
-					//передача КЧ или Команды
-					if ( (CurrentState[(Device - 1) * 2 + 1] == 1) 	||
-						 (CurrentState[(Device - 1) * 2 + 1] == 2)	) 
-						LCDprintDEC(NumString,19,Dop_byte[Device-1]);
+					// 	если это ошибочный код
+					// 	или предупреждений несколько
+					// 	выведем на экран код предупреждения
+					LCDprintf(NumString, 5, 2, Menu1warning, 1);
+					FuncClearCharLCD(NumString, 13, 8);
+					LCDprintf(NumString, 13, 2, LocalAvar, 0);
+					LCDprintHEX(NumString, 15, GlobalCurrentState[(Device - 1) * 4 + 2]);
+					LCDprintHEX(NumString, 17, GlobalCurrentState[(Device - 1) * 4 + 3]);
 				}
 			}
 		}
+		else
+		{  
+			//вывод режим/статус
+			
+			//в статусе отсутствует общие данные, потому для извлечения из массива уменьшим на 1
+			if (Device == 5) 
+				Device = 4;  
+			
+			// если нам известен код режима, выводим сообщение на экран
+			// если же нам не извесен принятый код, выводим "????"
+			if (CurrentState[(Device - 1) * 2] != 0x4E) 
+				LCDprintf(NumString, 5, 2, Menu1regime[CurrentState[(Device - 1) * 2]], 1); 
+			else 
+				LCDprintf(NumString, 5, 2, Menu1Err, 0);  
+			
+			// выводим состояние устройства
+			// если же нам не извесен принятый код, выводим "????"
+			if (CurrentState[(Device - 1) * 2 + 1] != 0x4E) 
+				LCDprintf(NumString, 13, 2, MassStat[CurrentState[(Device - 1) * 2 + 1]], 1);
+			else 
+				LCDprintf(NumString,13,2,Menu1Err,0);  
+			
+			//вывод на экран дополнительного байта
+			if( (Device == 2) || (Device == 4) )
+			{
+				//прием КЧ, команды или блок.команды
+				if ( (CurrentState[(Device - 1) * 2 + 1] == 1)	||
+					(CurrentState[(Device - 1) * 2 + 1] == 2)	||
+						(CurrentState[(Device - 1) * 2 + 1] == 7)	)  
+				{
+					LCDprintDEC(NumString,19,Dop_byte[Device-1]);
+				}
+			}
+			if(Device == 3)
+			{
+				//передача КЧ или Команды
+				if ( (CurrentState[(Device - 1) * 2 + 1] == 1) 	||
+					(CurrentState[(Device - 1) * 2 + 1] == 2)	) 
+					LCDprintDEC(NumString,19,Dop_byte[Device-1]);
+			}
+		}
+	}
 }
 
 void LCDwork(void){

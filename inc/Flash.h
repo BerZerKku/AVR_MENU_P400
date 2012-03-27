@@ -750,6 +750,8 @@ __flash unsigned __flash char *Menu1PostErrorT[] =
 	Menu1PostError4000,
 	Menu1PostError8000
 };
+//в чистой защите вместо "Нет сигнала ПРМ", выведем другое сообщение
+__flash unsigned char Menu1PostError10_1[] 	= "АК-Нет ответа   ";
 
 //предупреждения Защиты
 __flash unsigned char Menu1PostWarning1[]	= "АК-Снижен.запаса";
