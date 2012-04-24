@@ -1400,15 +1400,15 @@ void VersDevice(void)
 	//  ол-во аппаратов в линии
 	// 2 или 3
 	// в звисимости от этого, корректируютс€ некоторые параметры
-	if (Rec_buf_data_uart[8] == 2)
+	if (Rec_buf_data_uart[8] == 1)
 	{
 		cNumLine = 2; 
 		cNumComR2 = 0;
 		cNumComR = cNumComR1;
 	}
-	else if (Rec_buf_data_uart[8] == 3)
+	else if (Rec_buf_data_uart[8] == 2)
 	{
-		cNumLine=3; 
+		cNumLine = 3; 
 		if ( (cNumComR2) || (bDef) )
 			bViewParam[6] = true;  //если есть приемник по второй линии или защита
 		if ((bDef)		&&
