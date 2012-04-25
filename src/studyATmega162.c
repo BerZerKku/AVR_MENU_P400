@@ -329,14 +329,16 @@ void FuncViewValue(uchar numparam)
 	uchar num;
 	uint min, max;
 	
-	num = numparam&0x1F;
-	numparam = numparam&0xE0;
+	num = numparam & 0x1F;
+	numparam = numparam & 0xE0;
 	
 	switch(numparam){
 		case 0x20:
 		{ //параметры «ащиты
-			if ( (num == 0) || (num == 6) || (num == 7) || (num == 8) ) 
+			if ( (num == 0) || (num == 6) || (num == 7) || (num == 8) )
+			{
 				var=1;  //тип защиты из списка
+			}
 			else
 			{
 				if (num < NumParamDef)
@@ -466,20 +468,27 @@ void FuncViewValue(uchar numparam)
 void PressSharp(void)
 {
   	if (MenuLevel == 1)
+	{
 		DopComTrans = 2;
-  	if ( (MenuLevel >= 12) && (MenuLevel < 16) )
+	}
+	else if (MenuLevel == 13)
+	{
+		ValueVsRange = (ValueVsRange > 0) ? 0 : 1;
+		FuncViewValue(cNumParam + sMenuDefParam.punkt[ShiftMenu]);
+		LCD2new = 1;
+	}
+	else if (MenuLevel < 16) 
 	{
     	ValueVsRange = (ValueVsRange > 0) ? 0 : 1;
     	FuncViewValue(cNumParam + ShiftMenu);
     	LCD2new = 1;
   	}
- 	else
-		if (MenuLevel == 16)
-		{
-			ValueVsRange = (ValueVsRange > 0) ? 0 : 1;
-			FuncViewValue(cNumParam + sMenuGlbParam.punkt[ShiftMenu]);
-			LCD2new = 1;
-		}
+ 	else if (MenuLevel == 16)
+	{
+		ValueVsRange = (ValueVsRange > 0) ? 0 : 1;
+		FuncViewValue(cNumParam + sMenuGlbParam.punkt[ShiftMenu]);
+		LCD2new = 1;
+	}
 }
 
 #include "Menu.c"
@@ -2704,7 +2713,8 @@ void LCDwork(void){
 					{
 						LCDprintf(2,1,2,Menu10paramAll[sMenuGlbParam.name[ShiftMenu]],1);
 						FuncClearCharLCD(3,1,20);
-						if ((cNumLine==3)&&(ShiftMenu==9)) LCDprintChar(2,18,NumberCom+0x30);
+						if ( (cNumLine == 3) && (sMenuGlbParam.punkt[ShiftMenu] == 10) ) 
+							LCDprintChar(2, 18, NumberCom + '0');
 						if (ValueVsRange==0)
 						{
 							LCDprintf(3, 1, 2, MenuValue,1);
