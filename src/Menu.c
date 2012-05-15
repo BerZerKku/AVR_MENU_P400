@@ -276,9 +276,9 @@ void MenuParamGlbCreate(void)
 	
 	switch(TypeUdDev)
 	{
+		
 		case 1:		// ПВЗ-90
 		case 2:		// АВЗК-80	
-		case 4:		// ПВЗЛ
 		{
 			sMenuGlbParam.punkt[num] = 0; 	sMenuGlbParam.name[num++] = 0;		// Совместимость
 			sMenuGlbParam.punkt[num] = 2; 	sMenuGlbParam.name[num++] = 2;		// Uвых номинальное
@@ -286,7 +286,6 @@ void MenuParamGlbCreate(void)
 			sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;		// Номер аппарата
 			sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;		// Контроль вых.сигнала
 			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
-			sMenuGlbParam.punkt[num] = 20;	sMenuGlbParam.name[num++] = 20;		// Снижение ответа АК
 			sMenuGlbParam.punkt[num] = 11; 	sMenuGlbParam.name[num++] = 11;		// Коррекция напряжения
 			sMenuGlbParam.punkt[num] = 12; 	sMenuGlbParam.name[num++] = 12;		// Коррекция тока
 		}
@@ -327,6 +326,20 @@ void MenuParamGlbCreate(void)
 			}
 			sMenuGlbParam.punkt[num] = 18; 	sMenuGlbParam.name[num++] = 18;		// Тип автоконтроля
 			
+		}
+		break;
+		
+		case 4:		// ПВЗЛ
+		{
+			sMenuGlbParam.punkt[num] = 0; 	sMenuGlbParam.name[num++] = 0;		// Совместимость
+			sMenuGlbParam.punkt[num] = 2; 	sMenuGlbParam.name[num++] = 2;		// Uвых номинальное
+			sMenuGlbParam.punkt[num] = 4;	sMenuGlbParam.name[num++] = 4;		// Сетевой адрес
+			sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;		// Номер аппарата
+			sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;		// Контроль вых.сигнала
+			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
+			sMenuGlbParam.punkt[num] = 20;	sMenuGlbParam.name[num++] = 20;		// Снижение ответа АК
+			sMenuGlbParam.punkt[num] = 11; 	sMenuGlbParam.name[num++] = 11;		// Коррекция напряжения
+			sMenuGlbParam.punkt[num] = 12; 	sMenuGlbParam.name[num++] = 12;		// Коррекция тока
 		}
 		break;
 		
