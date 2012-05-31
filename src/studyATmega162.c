@@ -166,7 +166,7 @@ unsigned char MenuAllCF[]		= "?? дБ";
 unsigned char MenuAllLowCF[] 	= "?? дБ";
 unsigned char MenuAllControlUout= 0x02; //для него используется массив MenuAllSynchrTimerNum
 
-uchar TypeUdDev = NumTypeUdDev;	//тип удаленного аппарата
+uchar TypeUdDev = 0;	//тип удаленного аппарата, по умолчанию АВАНТ
 strMenuGlbParam sMenuGlbParam;
 strParamPVZUE sParamPVZE;
 strParamOpt	sParamOpt;
@@ -245,7 +245,7 @@ unsigned char cNumComR, cNumComT,cNumComR1,cNumComR2; //кол-во команд на прием и
 bool bInpVal=false;  //разрешение на ввод нового значения параметра
 unsigned char cTypeLine;  //тип линии 1/2/3 = ВЛ/ВОЛС/Е1
 unsigned char cNumLine; //2-3 концевая линия
-bool bReadVers=false; //true - версия была считана, false - ответ не пришел, продолжаем опрос
+bool bReadVers = false; //true - версия была считана, false - ответ не пришел, продолжаем опрос
 bool bParamView=false; //есть/нет вывод на экран дополнительных параметров
 bool bParamValue=false; //true - норм отображение, false - hex вид
 bool bLCDwork;  //разрешение обновления экрана
@@ -1806,7 +1806,8 @@ void FuncTr(void){
 			if (NumberLostLetter<5) NumberLostLetter++; //если у нас меньше 5 потерянных посылок, то увеличим счетчик
         }else {NumberLostLetter=0;RecivVar=0;} //иначе пишем в потерянные посылки 0 и обнуляем переменную полученных данных
 		
-        if (bReadVers){ //если версия аппарата считана
+        if (bReadVers)
+		{ //если версия аппарата считана
 			if (LoopUART==1)  //опрашиваем примерно раз в 1сек
             {
 				//если было введено новое значение дата/время с клавиатуры, отправим его в USP, иначе опросим USP
@@ -2149,7 +2150,8 @@ __interrupt void Timer1ovf(void)
 	bLCDwork=true;
 	
 	// вызываемм обработчик нажатой клавишы, примерно раз в 0.3с
-	if (bReadVers){
+	if (bReadVers)
+	{
 		if (((LoopUART==0)||(LoopUART==3)||(LoopUART==6))&&(PCready==0)&&(TestDelay==0)){
 			switch(WorkRate){
 				case 0: FuncPressKey();break;

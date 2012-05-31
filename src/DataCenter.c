@@ -1331,14 +1331,23 @@ void FTest1(unsigned char com){
 	LCD2new=1;
 }
 
+/**	Определение типа устройства
+ * 	В случае некорректного считанного значения, будет применена установка по умолчанию:
+ *	пость : есть
+ *  команды : нет
+ *	тип линии связи : ВЧ
+ * 	совместимость : АВАНТ - тут вообще не проверяется
+ *  кол-во аппаратов в линии : 2
+ * 	Ошибка при этом на данный момент не обрабатывается !!!
+ *	@param Нет
+ *	@return Нет
+ */
 void VersDevice(void)
 {
-	bool CorrectVers;
+	bool CorrectVers = true;
 	//происходит формирование пунтка меню: журнал
 	sArchive.NumDev=0;  //изначально кол-во устройств=0:
 	sArchive.Dev[0]=0;  //для вывода в архиве "события", всегда должно быть 0
-	
-	CorrectVers=true;
 	
 #if DEB
 	#if !AUT
@@ -1351,20 +1360,21 @@ void VersDevice(void)
 	#endif
 #endif
 	
-	// наличие ПОСТа
-	if (Rec_buf_data_uart[4]==0)
-	{ 
-		bDef = false; 
-		bViewParam[3] = false;
-	}
-	else if (Rec_buf_data_uart[4]==1)
+	// наличие ПОСТа	
+	if (Rec_buf_data_uart[4]==1)
 	{
 		bDef = true;
 		bViewParam[5] = true; 
 		sArchive.Dev[++sArchive.NumDev] = 3;
 	}
 	else 
-		CorrectVers = false;
+	{
+		bDef = false; 
+		bViewParam[3] = false;
+		
+		if (Rec_buf_data_uart[4] != 0)
+			CorrectVers = false;
+	}
 	
 	 //кол-во команд на ПРМ1
 	// кратно 4-ем
@@ -1375,7 +1385,10 @@ void VersDevice(void)
 		bViewParam[5] = true;
 	}
 	else 
+	{
+		cNumComR1 = 0;
 		CorrectVers = false;
+	}
 	
 	// кол-во команд на ПРМ2
 	// кратно 4-ем
@@ -1385,7 +1398,10 @@ void VersDevice(void)
 		cNumComR2 = Rec_buf_data_uart[6] * 4;  
 	}
 	else 
+	{
+		cNumComR2 = 0;
 		CorrectVers = false;
+	}
 	
 	// кол-во кмнанд на ПРД
 	// кратно 4-ем 
@@ -1395,18 +1411,15 @@ void VersDevice(void)
 		cNumComT = Rec_buf_data_uart[7] * 4;  
 	}
 	else 
+	{
+		cNumComT = 0;
 		CorrectVers=false;
+	}
 	
 	// Кол-во аппаратов в линии
 	// 2 или 3
 	// в звисимости от этого, корректируются некоторые параметры
-	if (Rec_buf_data_uart[8] == 2)
-	{
-		cNumLine = 2; 
-		cNumComR2 = 0;
-		cNumComR = cNumComR1;
-	}
-	else if (Rec_buf_data_uart[8] == 3)
+	if (Rec_buf_data_uart[8] == 3)
 	{
 		cNumLine = 3; 
 		if ( (cNumComR2) || (bDef) )
@@ -1425,8 +1438,15 @@ void VersDevice(void)
 		if (cNumComR2 != 0)
 			sArchive.Dev[++sArchive.NumDev] = 4;  
 	}
-	else 
-		CorrectVers = false;
+	else
+	{
+		cNumLine = 2; 
+		cNumComR2 = 0;
+		cNumComR = cNumComR1;
+		
+		if (Rec_buf_data_uart[8] != 2)
+			CorrectVers = false;
+	}
 	
 	// Архив приемника
 	if (cNumComR != 0) 
@@ -1439,12 +1459,15 @@ void VersDevice(void)
 	// Тип линии
 	// 1 - ВЧ
 	// 2 - Оптика
-	if (Rec_buf_data_uart[9] == 1)
-		cTypeLine = 1;	
-	else if (Rec_buf_data_uart[9] == 2)
+	if (Rec_buf_data_uart[9] == 2)
 		cTypeLine = 2;
 	else
-		CorrectVers = false;
+	{
+		cTypeLine = 1;
+		
+		if (Rec_buf_data_uart[9] != 1)
+			CorrectVers = false;
+	}
 	
 	// Кол-во отображаемых параметров, в заивимости от типа линии	
 	// если = 4, то это время/дата/частота/ак
@@ -1457,15 +1480,17 @@ void VersDevice(void)
 	MyInsertion[1] = (Rec_buf_data_uart[10]<<8)+Rec_buf_data_uart[11];  //версия АТмега БСП
 	MyInsertion[2] = (Rec_buf_data_uart[12]<<8)+Rec_buf_data_uart[13];  //версия DSP
 	
-	/*
-		Rec_buf_data_uart[14] - текущая совместимость 
-		
-			0 - авант
-			1 - пвз90
-			2 - авзк
-			3 - пвзуе
-			4 - пвзл
-	*/
+	
+	// проверим совместимость и если не корректная включим АВАНТ
+	if (Rec_buf_data_uart[14] < 5)	// 5 == NumTypeUdDev
+	{
+		TypeUdDev = Rec_buf_data_uart[14];
+	}
+	else
+	{
+		CorrectVers = false;
+		TypeUdDev = 0;
+	}
 	
 	//подсичтаем кол-во параметров в меню тест, группа 1
 	if (cTypeLine == 2)   // если ВОЛС
@@ -1514,7 +1539,7 @@ void VersDevice(void)
 	MenuAKCreate();
 	MenuTestCreate();
 	
-	bReadVers = CorrectVers;
+	bReadVers = true;
 }
 
 //обработка принятого сообщения
