@@ -9,6 +9,8 @@
 #include "WatchDog.h"
 #include "ModBus.h"
 #include "Flash.h"
+#include "Menu.h"
+
 //определяет цикл работы программы
 #define LoopUARTtime 10
 
@@ -2421,7 +2423,7 @@ void LCDwork(void){
 		if (bReadVers)		 //если считана версия
 		{ 
 			switch (MenuLevel){
-				case 1:
+				case LVL_START:
 				{ 
 					i=2;
 					if (bAllDevice)	 	//елсли 3-х концевая версия и есть все 4 утройства
@@ -2496,17 +2498,17 @@ void LCDwork(void){
 						}
 					}
 				}break;
-				case 2:{ //второй уровень меню
+				case LVL_MENU:{ //второй уровень меню
 					if (LCD2new==1){ //обновляем информацию на втором меню
 						for(LCD2new=ShiftMenu;((LCD2new-ShiftMenu)<MaxDisplayLine);LCD2new++)
 							LCDprintf(2+LCD2new-ShiftMenu,1,2,Menu2point[LCD2new],1);
 						LCD2new=0;
 					}
 				}break;
-				case 3:{ //третий уровень меню, ввоод дата/время
+				case LVL_DATA_TIME:{ //третий уровень меню, ввоод дата/время
 					if (LCD2new==1){LCDprintf(2,1,2,Menu31,1);LCDprintf(3,1,2,Menu32,1);LCD2new=0;}
 				}break;
-				case 4:{  //меню/журнал
+				case LVL_JOURNAL:{  //меню/журнал
 					if (LCD2new==1)
 					{
 						for(i=2, LCD2new=ShiftMenu; (LCD2new<=sArchive.NumDev)&&(i<5) ; i++)
@@ -2519,7 +2521,7 @@ void LCDwork(void){
 						LCD2new=0;
 					}
 				}break;
-				case 5: //меню/установить
+				case LVL_SETUP: //меню/установить
 				{
 					if (LCD2new==1)
 					{
@@ -2537,8 +2539,8 @@ void LCDwork(void){
 					}
 				}
 				break;
-				case 6: //меню/просмотр параметров
-				case 12:{
+				case LVL_PARAM_VIEW: //меню/просмотр параметров
+				case LVL_PARAM_SETUP:{
 					for(i=0;  i<MaxDisplayLine; i++){
 						LCDprintChar(2+i,1,'1'+i+ShiftMenu);
 						LCDprintChar(2+i,2,'.');
@@ -2546,8 +2548,8 @@ void LCDwork(void){
 					}
 					LCD2new=0;
 				}break;
-				case 7:
-				case 13:
+				case LVL_DEF_VIEW:
+				case LVL_DEF_SETUP:
 				{  //меню/просмотр(установить) параметров/Защита
 					if (LCD2new==1)
 					{
@@ -2612,7 +2614,7 @@ void LCDwork(void){
 					}
 				}
 				break;
-				case 8: //меню/просмотр параметров/приемник
+				case LVL_PRM_VIEW: //меню/просмотр параметров/приемник
 				{
 					if (LCD2new==1){
 						LCDprintf(2,1,2,Menu8paramPRM[ShiftMenu],1);
@@ -2676,7 +2678,7 @@ void LCDwork(void){
 					
 				}
 				break;
-				case 9: //меню/просмотр параметров/передатчик
+				case LVL_PRD_VIEW: //меню/просмотр параметров/передатчик
 				{
 					if (LCD2new==1){
 						LCDprintf(3,1,2,MenuValue,1);
@@ -2708,8 +2710,8 @@ void LCDwork(void){
 					LCD2new=0;
 				}
 				break;
-				case 10:
-				case 16:
+				case LVL_GLB_VIEW:
+				case LVL_GLB_SETUP:
 				{  //меню/просмотр параметров(установить/параметры)/общие
 					if (LCD2new==1)
 					{
@@ -2754,7 +2756,7 @@ void LCDwork(void){
 					}
 					LCD2new=0;
 				}break;
-				case 11:  //меню/установить/режим
+				case LVL_REGIME:  //меню/установить/режим
 				{
 					if (LCD2new==1)
 					{
@@ -2814,7 +2816,7 @@ void LCDwork(void){
 					}
 				}
 				break;
-				case 14:{  //меню/установить/параметры/Приемник
+				case LVL_PRM_SETUP:{  //меню/установить/параметры/Приемник
 					if (LCD2new==1){
 						//if (ShiftMenu>2) ValueVsRange=0;
 						FuncClearCharLCD(3,1,20);
@@ -2889,7 +2891,7 @@ void LCDwork(void){
 					}
 					LCD2new=0;
 				}break;
-				case 15:  //меню/установить/параметры/передатчик
+				case LVL_PRD_SETUP:  //меню/установить/параметры/передатчик
 				{
 					if (LCD2new==1)
 					{
@@ -2930,8 +2932,12 @@ void LCDwork(void){
 					LCD2new=0;
 				}
 				break;
-				case 18: {LCDprintf(2,1,2,Menu18,1);LCDprintf(3,1,2,MenuValue,1);LCDprintf(3,11,2,Menu18Param[Protocol],1);} break; //меню Протоколы
-				case 19: {//Меню прошивки
+				case LVL_PROTOCOL: 	//меню Протоколы
+				{
+					LCDprintf(2,1,2,Menu18,1);LCDprintf(3,1,2,MenuValue,1);LCDprintf(3,11,2,Menu18Param[Protocol],1);
+				} break; 
+				case LVL_INFO: 		//Меню прошивки
+				{
 					LCDprintf(2,1,2,Menu19Param[ShiftMenu],1);LCDprintf(3,1,2,MenuValue,1);
 					if (ShiftMenu<3){
 						LCDprintHEX(3,11,(char) (MyInsertion[ShiftMenu]>>8));
@@ -2947,7 +2953,8 @@ void LCDwork(void){
 								else LCDprintf(3,11,2,fDopParamValueFalse,1);
 							}
 				}break;
-				case 20:  { //меню тестов
+				case LVL_TEST:  	//меню тестов
+				{ 
 					if (LCD2new==1)
 						if ((cNumComR>0)&&(CurrentState[2]<0x04)) {Menu_Setup(); break;}   //если есть приемник, и он не в Тест1
 					if ((cNumComT>0)&&(CurrentState[4]<0x04)) {Menu_Setup(); break;}  //если есть передатчик, и он не в Тест1
@@ -2992,7 +2999,8 @@ void LCDwork(void){
 					
 					LCD2new=0;
 				}break;
-				case 21:{ //журнал/ (соб, защб прм, прд)
+				case LVL_JRN_VIEW:		//журнал/ (соб, защб прм, прд)
+				{ 
 					LCDprintf(4,1,2,Menu21e[sArchive.Dev[sArchive.CurrDev]],1); // вывод устройства
 					LCDptinrArchCount(3, sArchive.RecCount, ShiftMenu);
 					if (sArchive.RecCount){  //если в архиве что-то есть, будем выводить записи
@@ -3100,7 +3108,8 @@ void LCDwork(void){
 					}
 					LCD2new=0;
 				}break;
-				case 22:{ //меню/управление
+				case LVL_UPR:		//меню/управление
+				{ 
 					if (WorkRate==0)
 					{ //идет выбор пункта
 						if (ShiftMenu > MaxShiftMenu) ShiftMenu = MaxShiftMenu;
