@@ -1,9 +1,10 @@
-#include "ioavr.h"
+#include <ioavr.h>
 #include "MyDef.h"
 #include "InterfaceS.h"
 #include "driverLCD.h"
 #include "modbus.h"
 #include "DataCenter1.h"
+#include "Menu.h"
 
 extern BazaModBus* ModBusBaza;
 extern strMenuGlbParam sMenuGlbParam, sMenuDefParam, sMenuUpr;
@@ -19,7 +20,7 @@ extern unsigned char GlobalCurrentState[];
 extern unsigned char Mass1[];
 extern unsigned char RecivVar;
 extern unsigned char CurrentState[];
-extern unsigned char MenuLevel;
+extern eMENUlvl MenuLevel;
 extern unsigned char maxLCDtimer; //максимальное кол-во шагов параметра LCDtimer
 
 //параметры ПОСТа
@@ -930,19 +931,19 @@ void FParamGlobal(unsigned char command)
 					MenuUprCreate();
 					MenuAKCreate();
 					MenuTestCreate();
-					if ( (MenuLevel == 10) || (MenuLevel == 16) )
+					if ( (MenuLevel == LVL_GLB_VIEW) || (MenuLevel == LVL_GLB_SETUP) )
 					{
 						MaxShiftMenu = sMenuGlbParam.num - 1;
 						if (ShiftMenu > MaxShiftMenu)
 							ShiftMenu = MaxShiftMenu;
 					}
-					if ( (MenuLevel == 7) || (MenuLevel == 13) )
+					else if ( (MenuLevel == LVL_DEF_VIEW) || (MenuLevel == LVL_DEF_SETUP) )
 					{
 						MaxShiftMenu = sMenuDefParam.num - 1;
 						if (ShiftMenu > MaxShiftMenu)
 							ShiftMenu = MaxShiftMenu;
 					}
-					if (MenuLevel == 22)
+					else if (MenuLevel == LVL_UPR)
 					{
 						MaxShiftMenu = sMenuUpr.num - 3;
 						if (ShiftMenu > MaxShiftMenu)

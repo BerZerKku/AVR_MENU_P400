@@ -1,80 +1,86 @@
 /*****************************************
-          переходы между меню
+переходы между меню
 *****************************************/
 
-void Menu_Start(void){
-  MenuLevel=1;
-  LCDbufClMenu();
-  LCDtimerNew=1;
-  ShiftMenu=0;
-  MaxDisplayLine=0;
-  ValueVsRange=0;
-  NumberCom=1;
-  if (bAllDevice) MaxShiftMenu=1;
-  else MaxShiftMenu=0;
+void Menu_Start(void)
+{
+	MenuLevel = LVL_START;
+	LCDbufClMenu();
+	LCDtimerNew=1;
+	ShiftMenu=0;
+	MaxDisplayLine=0;
+	ValueVsRange=0;
+	NumberCom=1;
+	if (bAllDevice) MaxShiftMenu=1;
+	else MaxShiftMenu=0;
 }
 
-void Menu_Second(void){
-  MenuLevel=2;
-  LCDbufClMenu();
-  LCDtimerNew=1;
-  ShiftMenu=0;
-  MaxShiftMenu=3;
-  MaxDisplayLine=3;
-  LCD2new=1;
+void Menu_Second(void)
+{
+	MenuLevel = LVL_MENU;
+	LCDbufClMenu();
+	LCDtimerNew=1;
+	ShiftMenu=0;
+	MaxShiftMenu=3;
+	MaxDisplayLine=3;
+	LCD2new=1;
 }
 
-void Menu_DataTime(void){
-  MenuLevel=3;
-  LCDbufClMenu();
-  LCD2new=1;
+void Menu_DataTime(void)
+{
+	MenuLevel = LVL_DATA_TIME;
+	LCDbufClMenu();
+	LCD2new=1;
 }
 
-void Menu_Journal(void){
-  MenuLevel=4;
-  LCDbufClMenu();
-  ShiftMenu=0;
-  MaxDisplayLine=3;
-  if (sArchive.NumDev>2) MaxShiftMenu=1;
-  else MaxShiftMenu=0;
-  sArchive.Data[12]=0;
-  FuncClearCharLCD(2,1,40);
-  sArchive.RecCount=0;
-  LCD2new=1;
+void Menu_Journal(void)
+{
+	MenuLevel = LVL_JOURNAL;
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxDisplayLine=3;
+	if (sArchive.NumDev>2) MaxShiftMenu=1;
+	else MaxShiftMenu=0;
+	sArchive.Data[12]=0;
+	FuncClearCharLCD(2,1,40);
+	sArchive.RecCount=0;
+	LCD2new=1;
 }
 
-void Menu_Setup(void){
-  MenuLevel=5;
-  LCDbufClMenu();
-  ShiftMenu=0;
-  MaxDisplayLine=3;
-  MaxShiftMenu=1;
-  if ((cNumComR>0)&&(CurrentState[2]<0x04)) MaxShiftMenu=0;   //если есть приемник, и он не в Тест
-  if ((cNumComT>0)&&(CurrentState[4]<0x04)) MaxShiftMenu=0;  //если есть передатчик, и он не в Тест
-  if ((bDef)&&(CurrentState[0]<0x04)) MaxShiftMenu=0; //если есть Пост, и он не в Тест
-  LCD2new=1;
+void Menu_Setup(void)
+{
+	MenuLevel = LVL_SETUP;
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxDisplayLine=3;
+	MaxShiftMenu=1;
+	if ((cNumComR>0)&&(CurrentState[2]<0x04)) MaxShiftMenu=0;   //если есть приемник, и он не в Тест
+	if ((cNumComT>0)&&(CurrentState[4]<0x04)) MaxShiftMenu=0;  //если есть передатчик, и он не в Тест
+	if ((bDef)&&(CurrentState[0]<0x04)) MaxShiftMenu=0; //если есть Пост, и он не в Тест
+	LCD2new=1;
 }
 
 //меню/просмотр параметров
-void Menu_ParamSetup(char Menu){
-  MenuLevel=Menu; // 6 и 12
-  LCDbufClMenu();
-  ShiftMenu=0;
-  ValueVsRange=0;
-  NumberCom=1;
-  if (LineInMenu6 <= 3){ //если 3 или менее строк
-    MaxShiftMenu=0;
-    MaxDisplayLine = LineInMenu6;
-  }else{
-    MaxShiftMenu = LineInMenu6-3;
-    MaxDisplayLine=3;
-  }
-  LCD2new=1;
+void Menu_ParamSetup(eMENUlvl Menu)
+{
+	MenuLevel = Menu; // 6 и 12
+	LCDbufClMenu();
+	ShiftMenu=0;
+	ValueVsRange=0;
+	NumberCom=1;
+	if (LineInMenu6 <= 3){ //если 3 или менее строк
+		MaxShiftMenu=0;
+		MaxDisplayLine = LineInMenu6;
+	}else{
+		MaxShiftMenu = LineInMenu6-3;
+		MaxDisplayLine=3;
+	}
+	LCD2new=1;
 }
 
-void Menu_ParamSetup_Def(void)
+void Menu_ParamSetup_Def(eMENUlvl lvl)
 {
-  	MenuLevel += 1; //7 и 13
+  	MenuLevel = lvl; 
   	LCDbufClMenu();
   	ShiftMenu = 0;
   	MaxDisplayLine = 1;
@@ -83,31 +89,33 @@ void Menu_ParamSetup_Def(void)
   	cNumParam = 0x20;
 }
 
-void Menu_ParamSetup_Prm(void){
-  MenuLevel+=2; // 8 и 14
-  LCDbufClMenu();
-  ShiftMenu=0;
-  MaxDisplayLine=1;
-  NumberCom=1;
-  MaxShiftMenu = NumParamPrm - 1;
-  LCD2new=1;
-  cNumParam=0x40;
-}
-
-void Menu_ParamSetup_Prd(void){
-  MenuLevel+=3; // 9 и 15
-  LCDbufClMenu();
-  ShiftMenu=0;
-  MaxShiftMenu=4;
-  MaxDisplayLine=1;
-  MaxShiftMenu=NumParamPrd-1;
-  LCD2new=1;
-  cNumParam=0x60;
-}
-
-void Menu_ParamSetup_Global(void)
+void Menu_ParamSetup_Prm(eMENUlvl lvl)
 {
-  	MenuLevel += 4; //10 или 16
+	MenuLevel = lvl; 
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxDisplayLine=1;
+	NumberCom=1;
+	MaxShiftMenu = NumParamPrm - 1;
+	LCD2new=1;
+	cNumParam=0x40;
+}
+
+void Menu_ParamSetup_Prd(eMENUlvl lvl)
+{
+	MenuLevel = lvl; 
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxShiftMenu=4;
+	MaxDisplayLine=1;
+	MaxShiftMenu=NumParamPrd-1;
+	LCD2new=1;
+	cNumParam=0x60;
+}
+
+void Menu_ParamSetup_Global(eMENUlvl lvl)
+{
+  	MenuLevel = lvl; 
   	LCDbufClMenu();
   	ShiftMenu = 0;
   	MaxDisplayLine = 1;
@@ -117,31 +125,34 @@ void Menu_ParamSetup_Global(void)
   	cNumParam = 0x80;
 }
 
-void Menu_Setup_Regime(void){
-  MenuLevel=11;
-  LCDbufClMenu();
-  ShiftMenu=0;
-  MaxShiftMenu=0;
-  MaxDisplayLine=1;
-  LCD2new=1;
+void Menu_Setup_Regime(void)
+{
+	MenuLevel = LVL_REGIME;
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxShiftMenu=0;
+	MaxDisplayLine=1;
+	LCD2new=1;
 }
 
-void Menu_Protocol(void){
-  MenuLevel=18;
-  LCDbufClMenu();
-  ShiftMenu=0;
-  MaxShiftMenu=0;
-  MaxDisplayLine=1;
-  LCD2new=1;
+void Menu_Protocol(void)
+{
+	MenuLevel = LVL_PROTOCOL;
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxShiftMenu=0;
+	MaxDisplayLine=1;
+	LCD2new=1;
 }
 
-void Menu_Info(void){
-  MenuLevel=19;
-  LCDbufClMenu();
-  ShiftMenu=0;
-  MaxShiftMenu=3;
-  MaxDisplayLine=1;
-  LCD2new=1;
+void Menu_Info(void)
+{
+	MenuLevel = LVL_INFO;
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxShiftMenu=3;
+	MaxDisplayLine=1;
+	LCD2new=1;
 }
 
 void Menu_Setup_Test(void)
@@ -152,36 +163,38 @@ void Menu_Setup_Test(void)
 		return;  //если есть передатчик, и он не в Тест
   	if ( (bDef) && (CurrentState[0] < 0x04) )
 	 	return;  //если есть Защита, и она не в Тест
-
-   	MenuLevel = 20;
+	
+   	MenuLevel = LVL_TEST;
    	LCDbufClMenu();
    	ShiftMenu = 0;
 	MaxDisplayLine = 3;
 	MaxShiftMenu = sMenuTest.numTr - 1;
-
+	
    	if ((cNumComR>0)&&(CurrentState[2]==5)) MaxShiftMenu=0;   //если есть приемник, и он в Тест2
    	if ((cNumComT>0)&&(CurrentState[4]==5)) MaxShiftMenu=0;  //если есть передатчик, и он в Тест2
    	if ((bDef)&&(CurrentState[0]==5)) MaxShiftMenu=0;  //если есть Защита, и она в Тест2
    	LCD2new=1;
 }
 
-void PressInMenuJournal(char Key){  //нажатие в меню Журна -> переход в подпункты журнала
-  Key-=0x31;
-  if (sArchive.NumDev>=Key){ //если есть устройство
-    MenuLevel=21;
-    LCDbufClMenu();
-    ShiftMenu=0;
-    MaxDisplayLine=2;
-    sArchive.CurrDev=Key;
-    sArchive.RecCount=0;  //для начала сбросим кол-во данных
-
-    LCD2new=1;
-  }
+void PressInMenuJournal(char Key)
+{  //нажатие в меню Журна -> переход в подпункты журнала
+	Key-=0x31;
+	if (sArchive.NumDev>=Key)
+	{ //если есть устройство
+		MenuLevel = LVL_JRN_VIEW;
+		LCDbufClMenu();
+		ShiftMenu=0;
+		MaxDisplayLine=2;
+		sArchive.CurrDev=Key;
+		sArchive.RecCount=0;  //для начала сбросим кол-во данных
+		
+		LCD2new=1;
+	}
 }
 
 void Menu_Upr(void)
 {
-	MenuLevel = 22;
+	MenuLevel = LVL_UPR;
   	LCDbufClMenu();
   	ShiftMenu = 0;
   	MaxDisplayLine = 3;
@@ -189,19 +202,20 @@ void Menu_Upr(void)
   	LCD2new=1;
 }
 
-void PressInMenuDataTime(char Key){ //нажатеи в меню Дата/Время
-  WorkRate=0x03;
-  InputParameter=Key;
-  if (Key==1) ChangeMass=DataLCD;
-  else ChangeMass=TimeLCD;
-  Discret=1;  //дискрет 1
-  for (char i=0; i<=8; i++) InputDataTime[i]=ChangeMass[i];
+void PressInMenuDataTime(char Key)
+{ //нажатеи в меню Дата/Время
+	WorkRate=0x03;
+	InputParameter=Key;
+	if (Key==1) ChangeMass=DataLCD;
+	else ChangeMass=TimeLCD;
+	Discret=1;  //дискрет 1
+	for (char i=0; i<=8; i++) InputDataTime[i]=ChangeMass[i];
 }
 
 /** Выбор пункта в меню Установить
- *	@param key Код нажатой кнопки
- *	@return Нет
- */
+*	@param key Код нажатой кнопки
+*	@return Нет
+*/
 void PressInMenuReset(char key)
 {  
 	if (key > sMenuUpr.num)
@@ -212,7 +226,7 @@ void PressInMenuReset(char key)
   	switch(value)
 	{    	
 		case 2:			// сброс удаленного 1
-			value--;	
+		value--;	
 		case 0:			// сброс своего
 		case 1:			// сброс удаленного	
 		case 3:			// сброс удаленного 2
@@ -226,7 +240,7 @@ void PressInMenuReset(char key)
 		case 5:			// пуск удаленного 1
 		case 6:			// пуск удаленного 2
 		case 7:			// пуск удаленноых 1,2
-			value--;
+		value--;
 		case 4:			// пуск удаленного
 		{ 
       		MaxValue = MinValue = InputSelectValue = 1;
@@ -240,7 +254,7 @@ void PressInMenuReset(char key)
 		case 11:		// АК контр. проверка
 		case 12:		// АК испытания
 		case 13:		// АК пуск
-			value++;
+		value++;
 		case 8:			// АК автоматический
 		{  
       		MaxValue = MinValue = InputSelectValue = 2;
@@ -258,7 +272,7 @@ void PressInMenuReset(char key)
 		break;
 		
 		default:		// заглушка
-	  		return;  
+		return;  
 	}
 	
 	ShiftMenu = key;
@@ -267,9 +281,9 @@ void PressInMenuReset(char key)
 }
 
 /** Формирование списка параметров Общих в зависимости от совместимости
- *	@param Нет
- *	@return Нет
- */
+*	@param Нет
+*	@return Нет
+*/
 void MenuParamGlbCreate(void)
 {
 	char num = 0;
@@ -351,7 +365,7 @@ void MenuParamGlbCreate(void)
 				sMenuGlbParam.punkt[num] = 1;	sMenuGlbParam.name[num++] = 1;	// Cинхронизация часов
 				sMenuGlbParam.punkt[num] = 2;	sMenuGlbParam.name[num++] = 2;	// Uвых номинальное
 				sMenuGlbParam.punkt[num] = 4;	sMenuGlbParam.name[num++] = 4;	// Сетевой адрес
-//				sMenuGlbParam.punkt[num] = 5; 	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
+				//				sMenuGlbParam.punkt[num] = 5; 	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
 				sMenuGlbParam.punkt[num] = 6;	sMenuGlbParam.name[num++] = 6;	// Частота
 				sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;	// Номер аппарата
 				sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;	// Контроль вых.сигнала
@@ -364,7 +378,7 @@ void MenuParamGlbCreate(void)
 				sMenuGlbParam.punkt[num] = 1; 	sMenuGlbParam.name[num++] = 1;	// Cинхронизация часов
 				sMenuGlbParam.punkt[num] = 4; 	sMenuGlbParam.name[num++] = 4;	// Сетевой адрес
 				sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;	// Номер аппарата
-//				sMenuGlbParam.punkt[num] = 5;	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
+				//				sMenuGlbParam.punkt[num] = 5;	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
 				sMenuGlbParam.punkt[num] = 19;	sMenuGlbParam.name[num++] = 19;	// Резервирование
 			}			
 		}
@@ -374,9 +388,9 @@ void MenuParamGlbCreate(void)
 }
 
 /** Формирование списка параметров Защиты в зависимости от совместимости
- *	@param Нет
- *	@return Нет
- */
+*	@param Нет
+*	@return Нет
+*/
 void MenuParamDefCreate(void)
 {
 	char num = 0;
@@ -430,9 +444,9 @@ void MenuParamDefCreate(void)
 }
 
 /** Формирование списка команд управления в зависимости от совместимости
- *	@param Нет
- *	@return Нет
- */
+*	@param Нет
+*	@return Нет
+*/
 void MenuUprCreate(void)
 {
 	char num = 0;
@@ -527,15 +541,15 @@ void MenuUprCreate(void)
 			}
 		}
 	}
-
+	
 	sMenuUpr.num = num;	
 }
 
 
 /** Формирование списка типов АК в зависимости от типа совместимости
- *	@param Нет
- *	@return Нет
- */
+*	@param Нет
+*	@return Нет
+*/
 void MenuAKCreate(void)
 {
 	char i = 0;
@@ -574,9 +588,9 @@ void MenuAKCreate(void)
 }
 
 /** Формирование меню Тест
- *	@param Нет
- * 	@return Нет
- */
+*	@param Нет
+* 	@return Нет
+*/
 void MenuTestCreate(void)
 {	
 	switch(TypeUdDev)

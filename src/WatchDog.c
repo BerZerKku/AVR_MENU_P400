@@ -1,7 +1,6 @@
 #include "ioavr.h"
 #include "ina90.h"
 
-
 void WatchDogInit(void)
 {
   _WDR(); //סבנמס סעמנמזוגמדמ עאילונא
