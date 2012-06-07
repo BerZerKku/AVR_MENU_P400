@@ -2,283 +2,32 @@
 переходы между меню
 *****************************************/
 
-void Menu_Start(void)
-{
-	MenuLevel = LVL_START;
-	LCDbufClMenu();
-	LCDtimerNew=1;
-	ShiftMenu=0;
-	MaxDisplayLine=0;
-	ValueVsRange=0;
-	NumberCom=1;
-	if (bAllDevice) MaxShiftMenu=1;
-	else MaxShiftMenu=0;
-}
 
-void Menu_Second(void)
-{
-	MenuLevel = LVL_MENU;
-	LCDbufClMenu();
-	LCDtimerNew=1;
-	ShiftMenu=0;
-	MaxShiftMenu=3;
-	MaxDisplayLine=3;
-	LCD2new=1;
-}
+void MenuParamGlbCreate	(void);
+void MenuParamDefCreate	(void);
+void MenuUprCreate		(void);
+void MenuAKCreate		(void);
+void MenuTestCreate		(void);
 
-void Menu_DataTime(void)
-{
-	MenuLevel = LVL_DATA_TIME;
-	LCDbufClMenu();
-	LCD2new=1;
-}
+static void Menu_Start				(void);
+static void Menu_Second				(void);
+static void Menu_DataTime			(void);
+static void Menu_Journal			(void);
+static void Menu_Setup				(void);
+static void Menu_ParamSetup			(eMENUlvl Menu);
+static void Menu_ParamSetup_Def		(eMENUlvl lvl);
+static void Menu_ParamSetup_Prm		(eMENUlvl lvl);
+static void Menu_ParamSetup_Prd 	(eMENUlvl lvl);
+static void Menu_ParamSetup_Global	(eMENUlvl lvl);
+static void Menu_Setup_Regime		(void);
+static void Menu_Protocol			(void);
+static void Menu_Info				(void);
+static void Menu_Setup_Test			(void);
+static void PressInMenuJournal		(char Key);
+static void Menu_Upr				(void);
+static void PressInMenuDataTime		(char Key);
+static void PressInMenuReset		(char key);
 
-void Menu_Journal(void)
-{
-	MenuLevel = LVL_JOURNAL;
-	LCDbufClMenu();
-	ShiftMenu=0;
-	MaxDisplayLine=3;
-	if (sArchive.NumDev>2) MaxShiftMenu=1;
-	else MaxShiftMenu=0;
-	sArchive.Data[12]=0;
-	FuncClearCharLCD(2,1,40);
-	sArchive.RecCount=0;
-	LCD2new=1;
-}
-
-void Menu_Setup(void)
-{
-	MenuLevel = LVL_SETUP;
-	LCDbufClMenu();
-	ShiftMenu=0;
-	MaxDisplayLine=3;
-	MaxShiftMenu=1;
-	if ((cNumComR>0)&&(CurrentState[2]<0x04)) MaxShiftMenu=0;   //если есть приемник, и он не в Тест
-	if ((cNumComT>0)&&(CurrentState[4]<0x04)) MaxShiftMenu=0;  //если есть передатчик, и он не в Тест
-	if ((bDef)&&(CurrentState[0]<0x04)) MaxShiftMenu=0; //если есть Пост, и он не в Тест
-	LCD2new=1;
-}
-
-//меню/просмотр параметров
-void Menu_ParamSetup(eMENUlvl Menu)
-{
-	MenuLevel = Menu; // 6 и 12
-	LCDbufClMenu();
-	ShiftMenu=0;
-	ValueVsRange=0;
-	NumberCom=1;
-	if (LineInMenu6 <= 3){ //если 3 или менее строк
-		MaxShiftMenu=0;
-		MaxDisplayLine = LineInMenu6;
-	}else{
-		MaxShiftMenu = LineInMenu6-3;
-		MaxDisplayLine=3;
-	}
-	LCD2new=1;
-}
-
-void Menu_ParamSetup_Def(eMENUlvl lvl)
-{
-  	MenuLevel = lvl; 
-  	LCDbufClMenu();
-  	ShiftMenu = 0;
-  	MaxDisplayLine = 1;
-  	MaxShiftMenu = sMenuDefParam.num - 1;
-  	LCD2new = 1;
-  	cNumParam = 0x20;
-}
-
-void Menu_ParamSetup_Prm(eMENUlvl lvl)
-{
-	MenuLevel = lvl; 
-	LCDbufClMenu();
-	ShiftMenu=0;
-	MaxDisplayLine=1;
-	NumberCom=1;
-	MaxShiftMenu = NumParamPrm - 1;
-	LCD2new=1;
-	cNumParam=0x40;
-}
-
-void Menu_ParamSetup_Prd(eMENUlvl lvl)
-{
-	MenuLevel = lvl; 
-	LCDbufClMenu();
-	ShiftMenu=0;
-	MaxShiftMenu=4;
-	MaxDisplayLine=1;
-	MaxShiftMenu=NumParamPrd-1;
-	LCD2new=1;
-	cNumParam=0x60;
-}
-
-void Menu_ParamSetup_Global(eMENUlvl lvl)
-{
-  	MenuLevel = lvl; 
-  	LCDbufClMenu();
-  	ShiftMenu = 0;
-  	MaxDisplayLine = 1;
-  	NumberCom = 1;
-  	MaxShiftMenu = sMenuGlbParam.num - 1;
-  	LCD2new = 1;
-  	cNumParam = 0x80;
-}
-
-void Menu_Setup_Regime(void)
-{
-	MenuLevel = LVL_REGIME;
-	LCDbufClMenu();
-	ShiftMenu=0;
-	MaxShiftMenu=0;
-	MaxDisplayLine=1;
-	LCD2new=1;
-}
-
-void Menu_Protocol(void)
-{
-	MenuLevel = LVL_PROTOCOL;
-	LCDbufClMenu();
-	ShiftMenu=0;
-	MaxShiftMenu=0;
-	MaxDisplayLine=1;
-	LCD2new=1;
-}
-
-void Menu_Info(void)
-{
-	MenuLevel = LVL_INFO;
-	LCDbufClMenu();
-	ShiftMenu=0;
-	MaxShiftMenu=3;
-	MaxDisplayLine=1;
-	LCD2new=1;
-}
-
-void Menu_Setup_Test(void)
-{
-	if ( (cNumComR) && (CurrentState[2] < 0x04) )
-		return;   //если есть приемник, и он не в Тест
-  	if ( (cNumComT) && (CurrentState[4]  <0x04) )
-		return;  //если есть передатчик, и он не в Тест
-  	if ( (bDef) && (CurrentState[0] < 0x04) )
-	 	return;  //если есть Защита, и она не в Тест
-	
-   	MenuLevel = LVL_TEST;
-   	LCDbufClMenu();
-   	ShiftMenu = 0;
-	MaxDisplayLine = 3;
-	MaxShiftMenu = sMenuTest.numTr - 1;
-	
-   	if ((cNumComR>0)&&(CurrentState[2]==5)) MaxShiftMenu=0;   //если есть приемник, и он в Тест2
-   	if ((cNumComT>0)&&(CurrentState[4]==5)) MaxShiftMenu=0;  //если есть передатчик, и он в Тест2
-   	if ((bDef)&&(CurrentState[0]==5)) MaxShiftMenu=0;  //если есть Защита, и она в Тест2
-   	LCD2new=1;
-}
-
-void PressInMenuJournal(char Key)
-{  //нажатие в меню Журна -> переход в подпункты журнала
-	Key-=0x31;
-	if (sArchive.NumDev>=Key)
-	{ //если есть устройство
-		MenuLevel = LVL_JRN_VIEW;
-		LCDbufClMenu();
-		ShiftMenu=0;
-		MaxDisplayLine=2;
-		sArchive.CurrDev=Key;
-		sArchive.RecCount=0;  //для начала сбросим кол-во данных
-		
-		LCD2new=1;
-	}
-}
-
-void Menu_Upr(void)
-{
-	MenuLevel = LVL_UPR;
-  	LCDbufClMenu();
-  	ShiftMenu = 0;
-  	MaxDisplayLine = 3;
-  	MaxShiftMenu = sMenuUpr.num - 3;
-  	LCD2new=1;
-}
-
-void PressInMenuDataTime(char Key)
-{ //нажатеи в меню Дата/Время
-	WorkRate=0x03;
-	InputParameter=Key;
-	if (Key==1) ChangeMass=DataLCD;
-	else ChangeMass=TimeLCD;
-	Discret=1;  //дискрет 1
-	for (char i=0; i<=8; i++) InputDataTime[i]=ChangeMass[i];
-}
-
-/** Выбор пункта в меню Установить
-*	@param key Код нажатой кнопки
-*	@return Нет
-*/
-void PressInMenuReset(char key)
-{  
-	if (key > sMenuUpr.num)
-		return;
-	
-	char value = sMenuUpr.punkt[--key];
-	
-  	switch(value)
-	{    	
-		case 2:			// сброс удаленного 1
-		value--;	
-		case 0:			// сброс своего
-		case 1:			// сброс удаленного	
-		case 3:			// сброс удаленного 2
-		{ 	
-			MaxValue = MinValue = InputSelectValue = 0;
-      		SelectValue = value + 1;
-      		TrValue = 0x72;
-    	}
-		break;  
-		
-		case 5:			// пуск удаленного 1
-		case 6:			// пуск удаленного 2
-		case 7:			// пуск удаленноых 1,2
-		value--;
-		case 4:			// пуск удаленного
-		{ 
-      		MaxValue = MinValue = InputSelectValue = 1;
-      		SelectValue = value;
-      		TrValue = 0x72;
-		}
-		break;
-		
-		case 9:			// АК ускоренный
-		case 10:		// АК выключен
-		case 11:		// АК контр. проверка
-		case 12:		// АК испытания
-		case 13:		// АК пуск
-		value++;
-		case 8:			// АК автоматический
-		{  
-      		MaxValue = MinValue = InputSelectValue = 2;
-      		SelectValue = value - 7;
-      		TrValue = 0x8A;
-		}
-		break;
-		
-		case 14:		// вызов
-		{	
-			MaxValue = MinValue = InputSelectValue = 3;
-			SelectValue = 7;
-			TrValue = 0x72;
-		}
-		break;
-		
-		default:		// заглушка
-		return;  
-	}
-	
-	ShiftMenu = key;
-  	WorkRate = 2; 				
-  	MassSelectValue = fReset; 
-}
 
 /** Формирование списка параметров Общих в зависимости от совместимости
 *	@param Нет
@@ -676,4 +425,284 @@ void MenuTestCreate(void)
 		}
 	}
 }
+
+
+static void Menu_Start(void)
+{
+	MenuLevel = LVL_START;
+	LCDbufClMenu();
+	LCDtimerNew=1;
+	ShiftMenu=0;
+	MaxDisplayLine=0;
+	ValueVsRange=0;
+	NumberCom=1;
+	if (bAllDevice) MaxShiftMenu=1;
+	else MaxShiftMenu=0;
+}
+
+static void Menu_Second(void)
+{
+	MenuLevel = LVL_MENU;
+	LCDbufClMenu();
+	LCDtimerNew=1;
+	ShiftMenu=0;
+	MaxShiftMenu=3;
+	MaxDisplayLine=3;
+	LCD2new=1;
+}
+
+static void Menu_DataTime(void)
+{
+	MenuLevel = LVL_DATA_TIME;
+	LCDbufClMenu();
+	LCD2new=1;
+}
+
+static void Menu_Journal(void)
+{
+	MenuLevel = LVL_JOURNAL;
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxDisplayLine=3;
+	if (sArchive.NumDev>2) MaxShiftMenu=1;
+	else MaxShiftMenu=0;
+	sArchive.Data[12]=0;
+	FuncClearCharLCD(2,1,40);
+	sArchive.RecCount=0;
+	LCD2new=1;
+}
+
+static void Menu_Setup(void)
+{
+	MenuLevel = LVL_SETUP;
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxDisplayLine=3;
+	MaxShiftMenu=1;
+	if ((cNumComR>0)&&(CurrentState[2]<0x04)) MaxShiftMenu=0;   //если есть приемник, и он не в Тест
+	if ((cNumComT>0)&&(CurrentState[4]<0x04)) MaxShiftMenu=0;  //если есть передатчик, и он не в Тест
+	if ((bDef)&&(CurrentState[0]<0x04)) MaxShiftMenu=0; //если есть Пост, и он не в Тест
+	LCD2new=1;
+}
+
+//меню/просмотр параметров
+static void Menu_ParamSetup(eMENUlvl Menu)
+{
+	MenuLevel = Menu; // 6 и 12
+	LCDbufClMenu();
+	ShiftMenu=0;
+	ValueVsRange=0;
+	NumberCom=1;
+	if (LineInMenu6 <= 3){ //если 3 или менее строк
+		MaxShiftMenu=0;
+		MaxDisplayLine = LineInMenu6;
+	}else{
+		MaxShiftMenu = LineInMenu6-3;
+		MaxDisplayLine=3;
+	}
+	LCD2new=1;
+}
+
+static void Menu_ParamSetup_Def(eMENUlvl lvl)
+{
+  	MenuLevel = lvl; 
+  	LCDbufClMenu();
+  	ShiftMenu = 0;
+  	MaxDisplayLine = 1;
+  	MaxShiftMenu = sMenuDefParam.num - 1;
+  	LCD2new = 1;
+  	cNumParam = 0x20;
+}
+
+static void Menu_ParamSetup_Prm(eMENUlvl lvl)
+{
+	MenuLevel = lvl; 
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxDisplayLine=1;
+	NumberCom=1;
+	MaxShiftMenu = NumParamPrm - 1;
+	LCD2new=1;
+	cNumParam=0x40;
+}
+
+static void Menu_ParamSetup_Prd(eMENUlvl lvl)
+{
+	MenuLevel = lvl; 
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxShiftMenu=4;
+	MaxDisplayLine=1;
+	MaxShiftMenu=NumParamPrd-1;
+	LCD2new=1;
+	cNumParam=0x60;
+}
+
+static void Menu_ParamSetup_Global(eMENUlvl lvl)
+{
+  	MenuLevel = lvl; 
+  	LCDbufClMenu();
+  	ShiftMenu = 0;
+  	MaxDisplayLine = 1;
+  	NumberCom = 1;
+  	MaxShiftMenu = sMenuGlbParam.num - 1;
+  	LCD2new = 1;
+  	cNumParam = 0x80;
+}
+
+static void Menu_Setup_Regime(void)
+{
+	MenuLevel = LVL_REGIME;
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxShiftMenu=0;
+	MaxDisplayLine=1;
+	LCD2new=1;
+}
+
+static void Menu_Protocol(void)
+{
+	MenuLevel = LVL_PROTOCOL;
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxShiftMenu=0;
+	MaxDisplayLine=1;
+	LCD2new=1;
+}
+
+static void Menu_Info(void)
+{
+	MenuLevel = LVL_INFO;
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxShiftMenu=3;
+	MaxDisplayLine=1;
+	LCD2new=1;
+}
+
+static void Menu_Setup_Test(void)
+{
+	if ( (cNumComR) && (CurrentState[2] < 0x04) )
+		return;   //если есть приемник, и он не в Тест
+  	if ( (cNumComT) && (CurrentState[4]  <0x04) )
+		return;  //если есть передатчик, и он не в Тест
+  	if ( (bDef) && (CurrentState[0] < 0x04) )
+	 	return;  //если есть Защита, и она не в Тест
+	
+   	MenuLevel = LVL_TEST;
+   	LCDbufClMenu();
+   	ShiftMenu = 0;
+	MaxDisplayLine = 3;
+	MaxShiftMenu = sMenuTest.numTr - 1;
+	
+   	if ((cNumComR>0)&&(CurrentState[2]==5)) MaxShiftMenu=0;   //если есть приемник, и он в Тест2
+   	if ((cNumComT>0)&&(CurrentState[4]==5)) MaxShiftMenu=0;  //если есть передатчик, и он в Тест2
+   	if ((bDef)&&(CurrentState[0]==5)) MaxShiftMenu=0;  //если есть Защита, и она в Тест2
+   	LCD2new=1;
+}
+
+static void PressInMenuJournal(char Key)
+{  //нажатие в меню Журна -> переход в подпункты журнала
+	Key-=0x31;
+	if (sArchive.NumDev>=Key)
+	{ //если есть устройство
+		MenuLevel = LVL_JRN_VIEW;
+		LCDbufClMenu();
+		ShiftMenu=0;
+		MaxDisplayLine=2;
+		sArchive.CurrDev=Key;
+		sArchive.RecCount=0;  //для начала сбросим кол-во данных
+		
+		LCD2new=1;
+	}
+}
+
+static void Menu_Upr(void)
+{
+	MenuLevel = LVL_UPR;
+  	LCDbufClMenu();
+  	ShiftMenu = 0;
+  	MaxDisplayLine = 3;
+  	MaxShiftMenu = sMenuUpr.num - 3;
+  	LCD2new=1;
+}
+
+static void PressInMenuDataTime(char Key)
+{ //нажатеи в меню Дата/Время
+	WorkRate=0x03;
+	InputParameter=Key;
+	if (Key==1) ChangeMass=DataLCD;
+	else ChangeMass=TimeLCD;
+	Discret=1;  //дискрет 1
+	for (char i=0; i<=8; i++) InputDataTime[i]=ChangeMass[i];
+}
+
+/** Выбор пункта в меню Установить
+*	@param key Код нажатой кнопки
+*	@return Нет
+*/
+static void PressInMenuReset(char key)
+{  
+	if (key > sMenuUpr.num)
+		return;
+	
+	char value = sMenuUpr.punkt[--key];
+	
+  	switch(value)
+	{    	
+		case 2:			// сброс удаленного 1
+		value--;	
+		case 0:			// сброс своего
+		case 1:			// сброс удаленного	
+		case 3:			// сброс удаленного 2
+		{ 	
+			MaxValue = MinValue = InputSelectValue = 0;
+      		SelectValue = value + 1;
+      		TrValue = 0x72;
+    	}
+		break;  
+		
+		case 5:			// пуск удаленного 1
+		case 6:			// пуск удаленного 2
+		case 7:			// пуск удаленноых 1,2
+		value--;
+		case 4:			// пуск удаленного
+		{ 
+      		MaxValue = MinValue = InputSelectValue = 1;
+      		SelectValue = value;
+      		TrValue = 0x72;
+		}
+		break;
+		
+		case 9:			// АК ускоренный
+		case 10:		// АК выключен
+		case 11:		// АК контр. проверка
+		case 12:		// АК испытания
+		case 13:		// АК пуск
+		value++;
+		case 8:			// АК автоматический
+		{  
+      		MaxValue = MinValue = InputSelectValue = 2;
+      		SelectValue = value - 7;
+      		TrValue = 0x8A;
+		}
+		break;
+		
+		case 14:		// вызов
+		{	
+			MaxValue = MinValue = InputSelectValue = 3;
+			SelectValue = 7;
+			TrValue = 0x72;
+		}
+		break;
+		
+		default:		// заглушка
+		return;  
+	}
+	
+	ShiftMenu = key;
+  	WorkRate = 2; 				
+  	MassSelectValue = fReset; 
+}
+
 

@@ -1,5 +1,6 @@
-#include "ioavr.h"
-#include "ina90.h"
+#include <ioavr.h>
+#include <ina90.h>
+#include <stdint.h>
 #include "StartSetup.h"
 #include "InterfaceS.h"
 #include "MyDef.h"
@@ -10,6 +11,21 @@
 #include "ModBus.h"
 #include "Flash.h"
 #include "Menu.h"
+
+static void FuncPrintSignInTest		(uint8_t param, uint8_t line, uint8_t start);
+static char itoa					(uint8_t start, uint16_t val, uint8_t buf[]);
+static void FuncViewValue			(uint8_t numparam);
+static void PressSharp				(void);
+static void FuncInpCorrParam		(void);
+static void FuncSelectValue			(void);
+static void FuncInputDataTime		(void);
+static void FuncInputData			(void);
+static void FuncPressKey			(void);
+static void ModBusOpros				(void);
+static void FuncTr					(void);
+static void LCDMenu1				(uint8_t NumString, uint8_t Device);
+static void LCDwork					(void);
+
 
 //определяет цикл работы программы
 #define LoopUARTtime 10
@@ -272,7 +288,7 @@ strMenuTest sMenuTest;
 BazaModBus* ModBusBaza;
 
 
-uchar cViewParam[11]="          ";
+uint8_t cViewParam[11]="          ";
 /*номер выводимого параметра
 старшая тетрада - группа параметров :
 1(2*) защита
@@ -285,7 +301,7 @@ uchar cViewParam[11]="          ";
 uchar cNumParam;
 
 
-void FuncPrintSignInTest(uchar param, uchar line, uchar start)
+static void FuncPrintSignInTest(uint8_t param, uint8_t line, uint8_t start)
 {//вывод передаваемого/принимаемого сигнала в тесте
 	
     if (param == 0)
@@ -308,23 +324,39 @@ void FuncPrintSignInTest(uchar param, uchar line, uchar start)
 
 
 
-//преобразование целого числа в строку
-char printDr(char Start, uint DecChar){
-	uchar mm[10];
-	uchar step=0;
-	do{
-		mm[step++]=(DecChar%10)+0x30;
-		DecChar=DecChar/10;
-	}while (DecChar>0);
+/* преобразование целого числа в строку
+ *
+ *
+ */
+static char itoa(uint8_t start, uint16_t val, uint8_t buf[])
+{	
+	uint8_t adr = start;
+	uint8_t cnt = 0;
 	
-	while(step>0) cViewParam[Start++]=mm[--step];
-	cViewParam[Start]=0x00; //конец строки
+	// Заполним массив, в обратно порядке
+	do
+	{
+		buf[adr++] = (val % 10) + '0';
+		val = val / 10;
+		cnt++;
+	}
+	while(val > 0);
+	buf[adr] = '\0';
 	
-	return Start;
+	// перевернем полученные данные
+	adr--;
+	for (uint8_t tmp; start < adr; start++, adr--) 
+	{
+		tmp = buf[adr];
+		buf[adr] = buf[start];
+		buf[start] = tmp;
+	}
+	
+	return cnt;
 }
 
 //формирует строку подсказки диапазона разрешенных значений
-void FuncViewValue(uchar numparam)
+static void FuncViewValue(uint8_t numparam)
 {
 	uchar i=0;
 	uchar var=0;  //0- ошибочное значение, 1 - список, 2 - целое
@@ -445,10 +477,10 @@ void FuncViewValue(uchar numparam)
 		}break;
 		case 2:
 		{  //вывод диапазона целых чисел
-			i=printDr(i,min); //минимум
+			i += itoa(i, min, cViewParam); //минимум
 			cViewParam[i++]='.';
 			cViewParam[i++]='.';
-			i=printDr(i,max); //максимум
+			itoa(i, max, cViewParam); //максимум
 		}break;
 		case 3:
 		{  //вывод дробного числа (1 знак после запятой)
@@ -467,7 +499,7 @@ void FuncViewValue(uchar numparam)
 }//end void FuncViewValue(char numparam)
 
 //реакция на нажатие '#'
-void PressSharp(void)
+static void PressSharp(void)
 {
   	if (MenuLevel == LVL_START)
 	{
@@ -496,7 +528,8 @@ void PressSharp(void)
 #include "Menu.c"
 
 //функция ввода значений коррецкий тока/напряжения, с учетом знака
-void FuncInpCorrParam(void){
+static void FuncInpCorrParam(void)
+{
 	signed int ii;
 	LCDprintf(4,1,2,MenuInputData,1); //выводим на экран "Ввод:"
 	
@@ -587,7 +620,8 @@ void FuncInpCorrParam(void){
 
 //функция ввода сброса аппаратов
 //фунцкия выбора значения параметра из списка
-void FuncSelecValueInputParam(void){
+static void FuncSelectValue(void)
+{
 	LCDprintf(4,1,2,MenuInputData,1); //выводим на экран "Ввод:"
 	FuncClearCharLCD(4,6,15); //очищаем 4-ую строку
 	/*
@@ -694,7 +728,7 @@ void FuncSelecValueInputParam(void){
 	PressKey=0xF0;
 }
 
-void FuncInputDataTime(void)
+static void FuncInputDataTime(void)
 {
 	FuncClearCharLCD(4,6,15); //очищаем 4-ую строку
 	LCDprintf(4,1,2,MenuInputData,1); //выводим на экран "Ввод:"
@@ -808,7 +842,7 @@ void FuncInputDataTime(void)
 }
 
 //функция ввода значения с клавиатуры
-void FuncInputData(void)
+static void FuncInputData(void)
 {
   	FuncClearCharLCD(4, 6, 15); //очищаем 4-ую строку
 	//Выводим на индикатор "ВВод:", "Пароль:" или "Новый пароль:"
@@ -1039,7 +1073,7 @@ void FuncInputData(void)
 }
 
 //обработка нажатия кнопки
-void FuncPressKey(void)
+static void FuncPressKey(void)
 {
 	// В случае если отсутствуе тодно из устройств, в меню прсомтра/изменения пар-ов надо исключить/переобозначить часть кнопок
 	if ( (MenuLevel == LVL_PARAM_VIEW) || (MenuLevel == LVL_PARAM_SETUP) )
@@ -1877,7 +1911,8 @@ void FuncPressKey(void)
 }
 
 //опрос параметров для заполнения массива ModBus
-void ModBusOpros(void){
+static void ModBusOpros(void)
+{
 	if (ModBusBaza->status(0)!=2){
 		if (ReadArch==0){ //проверяем идет ли считывание архива
 			PosModBusInfill++;
@@ -1972,7 +2007,8 @@ void ModBusOpros(void){
 	}
 }
 
-void FuncTr(void){
+void FuncTr(void)
+{
 	if (PCready==0){  //связь с БСП
         if(RecivVar==0){
 			if (NumberLostLetter<5) NumberLostLetter++; //если у нас меньше 5 потерянных посылок, то увеличим счетчик
@@ -2336,68 +2372,8 @@ void FuncTr(void){
 	bUartTrReady1=false;
 }
 
-#pragma vector=TIMER1_OVF_vect
-__interrupt void Timer1ovf(void)
-{
-	_SEI();
-	TCNT1H=0xF9;  //
-	TCNT1L=0xF0;  //было E5 установка 0.1с при делителе 1024
-	
-	if (TestDelay>0) {TestDelay--; PressKey=0xF0;}
-	//работа с ПК
-	if (PCready==1) {StartTrans(PCbyte);PCready=2;}
-	if (PCready==3) {StartTrans1(PCbyte);PCready=4;}
-	//если счетчик дошел до 0, значит с ПК больше не идут запросы
-	PCtime--;
-	if (PCtime==0) {
-		if (PCready!=0) {PCready=0; EnableReceive1; FuncClearCharLCD(2,4,14);}
-		PCtime=PC_wait;
-	}
-	
-	LoopUART++; //говорим что прошло еще 100мс
-	//прошла 1с
-	if (LoopUART >= LoopUARTtime)
-	{
-		//раз в секунду мы посылаем запрос общего текущего состояния в MenuLevel = LVL_START,  запрос параметра или отправляем его значение
-		LoopUART=0; //начинаем счет 1с сначала
-		if (TimeInitLCD>=ConstTimeInitLCD) 
-		{
-			//инициализация ЖК-индикатора
-			FuncInitLCD();
-			TimeInitLCD=0;
-		}  
-		else 
-			TimeInitLCD++;
-	}
-	//проверяем прошла ли у нас 1сек
-	if (LoopUART < LoopUARTtime) 
-		bUartTrReady1=true;
-	
-	//это делаетс каждые 0.1с
-	//теперь смотрим, надо ли нам обновить информацию на экране LCD
-	bLCDwork=true;
-	
-	// вызываемм обработчик нажатой клавишы, примерно раз в 0.3с
-	if (bReadVers)
-	{
-		if (((LoopUART==0)||(LoopUART==3)||(LoopUART==6))&&(PCready==0)&&(TestDelay==0)){
-			switch(WorkRate){
-				case 0: FuncPressKey();break;
-				case 1: FuncInputData();break;
-				case 2: FuncSelecValueInputParam();break;
-				case 3: FuncInputDataTime();break;
-				case 4: FuncInpCorrParam();break;
-			}
-		}
-	}//end if (bReadVers)
-	
-	//для мигания надписей, неисправность/предупреждение
-	if (LoopUART == 5) 
-		TimeWink = !TimeWink;
-}
-
 //вывод на экран неисправностеЙ, предупреждений, состояний в первом меню
-void LCDMenu1(unsigned char NumString,unsigned char Device)
+static void LCDMenu1(uint8_t NumString, uint8_t Device)
 {
 	//Device: 1-защита, 2 - ПРМ1, 3 - ПРД, 5 - ПРМ2
 	unsigned int tglobal, temp;
@@ -2633,7 +2609,8 @@ void LCDMenu1(unsigned char NumString,unsigned char Device)
 	}
 }
 
-void LCDwork(void){
+static void LCDwork(void)
+{
 	unsigned char i;
 	if (PCready==0){
 		//вывод надписи "Нет связи с БСП"
@@ -2836,8 +2813,8 @@ void LCDwork(void){
 						}
 						else
 						{
-							LCDprintf(3,1,2,ParamRange,1);
-							LCDprint(3,11,2,cViewParam,1);
+							LCDprintf(3, 1, 2, ParamRange, 1);
+							LCDprint(3, 11, 2, cViewParam, 1);
 						}
 						LCD2new=0;
 					}
@@ -3045,8 +3022,10 @@ void LCDwork(void){
 					}
 				}
 				break;
-				case LVL_PRM_SETUP:{  //меню/установить/параметры/Приемник
-					if (LCD2new==1){
+				case LVL_PRM_SETUP:
+				{  //меню/установить/параметры/Приемник
+					if (LCD2new==1)
+					{
 						//if (ShiftMenu>2) ValueVsRange=0;
 						FuncClearCharLCD(3,1,20);
 						LCDprintf(2,1,2,Menu8paramPRM[ShiftMenu],1);
@@ -3100,7 +3079,8 @@ void LCDwork(void){
 							}break;
 						}
 						
-						if (ValueVsRange==0){
+						if (ValueVsRange==0)
+						{
 							if (ShiftMenu<2)  {LCDprint(3,11,2,tmValuePRMparam[ShiftMenu],1);}
 							if (ShiftMenu==2){
 								if (tmValuePrmTimeOff[NumberCom-1]!=255) LCDprintDEC2(3,11,tmValuePrmTimeOff[NumberCom-1]);
@@ -3112,7 +3092,9 @@ void LCDwork(void){
 								if (cNumLine==3) LCDprintChar(2,19,NumberCom+0x30);
 							}
 							LCDprintf(3,1,2,MenuValue,1);
-						}else{
+						}
+						else
+						{
 							LCDprintf(3,1,2,ParamRange,1);
 							//LCDprintf(3,11,2,Menu14ParamRange[ShiftMenu],1);
 							LCDprint(3,11,2,cViewParam,1);
@@ -3122,43 +3104,99 @@ void LCDwork(void){
 				}break;
 				case LVL_PRD_SETUP:  //меню/установить/параметры/передатчик
 				{
-					if (LCD2new==1)
+//					if (LCD2new==1)
+//					{
+//						LCDprintf(2,1,2,Menu9paramPRD[ShiftMenu],1);
+//						//if (ShiftMenu>2) ValueVsRange=0;
+//						FuncClearCharLCD(3,1,20);
+//						if (ValueVsRange == 0)
+//						{
+//							LCDprintf(3,1,2,MenuValue,1);
+//							if (ShiftMenu<3) LCDprint(3,11,2,MenuParamPRD[ShiftMenu],1);
+//							if (ShiftMenu==3)
+//							{
+//								if (cNumComT>4)
+//								{
+//									LCDprintBits(3,11,ValuePrdBlockCom[NumberCom-1]);
+//									LCDprintDEC1(2,14,(NumberCom-1)*8+8);
+//									LCDprintDEC(2,18,(NumberCom-1)*8+1);
+//								}
+//								else
+//								{
+//									LCDprintDEC1(2,14,(NumberCom-1)*8+4);
+//									LCDprintDEC(2,18,(NumberCom-1)*8+1);
+//									LCDprintTetr(3,11,(ValuePrdBlockCom[0]&0x0F));
+//								}
+//							}
+//							if (ShiftMenu==4)
+//							{
+//								if (cNumComT>4)
+//								{
+//									LCDprintBits(3,11,ValuePrdLongCom[NumberCom-1]);
+//									LCDprintDEC1(2,15,(NumberCom-1)*8+8);
+//									LCDprintDEC(2,19,(NumberCom-1)*8+1);
+//								}
+//								else
+//								{
+//									LCDprintDEC1(2,15,(NumberCom-1)*8+4);
+//									LCDprintDEC(2,19,(NumberCom-1)*8+1);
+//									LCDprintTetr(3,11,(ValuePrdLongCom[0]&0x0F));
+//								}
+//							}
+//						}
+//						else
+//						{
+//							LCDprintf(3,1,2,ParamRange,1);
+//							LCDprint(3,11,2,cViewParam,1);
+//						}
+					
+					// Проверим надо-ли обновлять инф-ию
+					if (LCD2new == 0)
+						return;
+					LCD2new = 0;
+					
+					LCDprintf(2,1,2,Menu9paramPRD[ShiftMenu],1);
+					// Выведем диапазон, для битовых переменных
+					if (ShiftMenu == 3)
 					{
-						LCDprintf(2,1,2,Menu9paramPRD[ShiftMenu],1);
-						//if (ShiftMenu>2) ValueVsRange=0;
-						FuncClearCharLCD(3,1,20);
-						if (ValueVsRange==0){
-							LCDprintf(3,1,2,MenuValue,1);
-							if (ShiftMenu<3) LCDprint(3,11,2,MenuParamPRD[ShiftMenu],1);
-							if (ShiftMenu==3){
-								if (cNumComT>4){
-									LCDprintBits(3,11,ValuePrdBlockCom[NumberCom-1]);
-									LCDprintDEC1(2,14,(NumberCom-1)*8+8);
-									LCDprintDEC(2,18,(NumberCom-1)*8+1);
-								}else{
-									LCDprintDEC1(2,14,(NumberCom-1)*8+4);
-									LCDprintDEC(2,18,(NumberCom-1)*8+1);
-									LCDprintTetr(3,11,(ValuePrdBlockCom[0]&0x0F));
-								}
-							}
-							if (ShiftMenu==4){
-								if (cNumComT>4){
-									LCDprintBits(3,11,ValuePrdLongCom[NumberCom-1]);
-									LCDprintDEC1(2,15,(NumberCom-1)*8+8);
-									LCDprintDEC(2,19,(NumberCom-1)*8+1);
-								}else{
-									LCDprintDEC1(2,15,(NumberCom-1)*8+4);
-									LCDprintDEC(2,19,(NumberCom-1)*8+1);
-									LCDprintTetr(3,11,(ValuePrdLongCom[0]&0x0F));
-								}
-							}
-						}else{
-							LCDprintf(3,1,2,ParamRange,1);
-							//LCDprintf(3,11,2,Menu15ParamRange[ShiftMenu],1);
-							LCDprint(3,11,2,cViewParam,1);
+						if (cNumComT <= 8)
+						{	
+							LCDprintDEC1(2, 14, cNumComT);
+							LCDprintDEC(2, 18, 1);
 						}
+						else
+						{
+							LCDprintDEC1(2, 14, (NumberCom - 1) * 8 + 8);
+							LCDprintDEC(2, 18, (NumberCom - 1) * 8 + 1);
+						}	
 					}
-					LCD2new=0;
+					else if (ShiftMenu == 4)
+					{
+						if (cNumComT <= 8)
+						{	
+							LCDprintDEC1(2, 15, cNumComT);
+							LCDprintDEC(2, 19, 1);
+						}
+						else
+						{
+							LCDprintDEC1(2, 15, (NumberCom - 1) * 8 + 8);
+							LCDprintDEC(2, 19, (NumberCom - 1) * 8 + 1);
+						}	
+					}
+					
+					FuncClearCharLCD(3,1,20);
+					
+					if (ValueVsRange == 0)
+					{
+						LCDprintf(3,1,2,MenuValue,1);
+						if (ShiftMenu < 3) 
+							LCDprint(3, 11, 2, MenuParamPRD[ShiftMenu], 1)
+					}	
+					else
+					{
+						LCDprintf(3,1,2,ParamRange,1);
+						LCDprint(3,11,2,cViewParam,1);
+					}
 				}
 				break;
 				case LVL_PROTOCOL: 	//меню Протоколы
@@ -3451,13 +3489,10 @@ void LCDwork(void){
 	bLCDwork=false;
 }
 
-//char Main[1000];
-//int i_i;
-int main(void)
+
+__C_task main(void)
 {
-	unsigned int i;
-	
-	for(i=30000;i>1;i--); //стратовая задержка, для того чтобы индикатор успел включиться
+	for(unsigned i=30000; i > 1; i--); //стратовая задержка, для того чтобы индикатор успел включиться
 	
 	StartSetup(); 		//начальные установки
 	ModBusBaza = new BazaModBus(DataM, JournalM, ePassword);
@@ -3506,5 +3541,64 @@ int main(void)
 	}
 }
 
+#pragma vector=TIMER1_OVF_vect
+__interrupt void Timer1ovf(void)
+{
+	_SEI();
+	TCNT1H=0xF9;  //
+	TCNT1L=0xF0;  //было E5 установка 0.1с при делителе 1024
+	
+	if (TestDelay>0) {TestDelay--; PressKey=0xF0;}
+	//работа с ПК
+	if (PCready==1) {StartTrans(PCbyte);PCready=2;}
+	if (PCready==3) {StartTrans1(PCbyte);PCready=4;}
+	//если счетчик дошел до 0, значит с ПК больше не идут запросы
+	PCtime--;
+	if (PCtime==0) {
+		if (PCready!=0) {PCready=0; EnableReceive1; FuncClearCharLCD(2,4,14);}
+		PCtime=PC_wait;
+	}
+	
+	LoopUART++; //говорим что прошло еще 100мс
+	//прошла 1с
+	if (LoopUART >= LoopUARTtime)
+	{
+		//раз в секунду мы посылаем запрос общего текущего состояния в MenuLevel = LVL_START,  запрос параметра или отправляем его значение
+		LoopUART=0; //начинаем счет 1с сначала
+		if (TimeInitLCD>=ConstTimeInitLCD) 
+		{
+			//инициализация ЖК-индикатора
+			FuncInitLCD();
+			TimeInitLCD=0;
+		}  
+		else 
+			TimeInitLCD++;
+	}
+	//проверяем прошла ли у нас 1сек
+	if (LoopUART < LoopUARTtime) 
+		bUartTrReady1=true;
+	
+	//это делаетс каждые 0.1с
+	//теперь смотрим, надо ли нам обновить информацию на экране LCD
+	bLCDwork=true;
+	
+	// вызываемм обработчик нажатой клавишы, примерно раз в 0.3с
+	if (bReadVers)
+	{
+		if (((LoopUART==0)||(LoopUART==3)||(LoopUART==6))&&(PCready==0)&&(TestDelay==0)){
+			switch(WorkRate){
+				case 0: FuncPressKey();break;
+				case 1: FuncInputData();break;
+				case 2: FuncSelectValue();break;
+				case 3: FuncInputDataTime();break;
+				case 4: FuncInpCorrParam();break;
+			}
+		}
+	}//end if (bReadVers)
+	
+	//для мигания надписей, неисправность/предупреждение
+	if (LoopUART == 5) 
+		TimeWink = !TimeWink;
+}
 
 
