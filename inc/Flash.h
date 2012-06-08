@@ -178,7 +178,7 @@ __flash unsigned __flash char *Menu7paramPOST[] =
 __flash unsigned char Menu81[]= "Задержка на вкл.    ";
 __flash unsigned char Menu82[]= "Длительность команды";
 __flash unsigned char Menu83[]= "Задержка на выкл.  к";
-__flash unsigned char Menu84[]= "Блок. команд  ?..?  ";
+__flash unsigned char Menu84[]= "Блок. команды  ?..? ";
 __flash unsigned char Menu85[]= "Длит. команды  ?..? ";
 __flash unsigned __flash char *Menu8paramPRM[] =
 {
@@ -193,7 +193,7 @@ __flash unsigned __flash char *Menu8paramPRM[] =
 
 //Параметры Передатчика
 __flash unsigned char Menu93[] = "Время на повт. ком. ";
-__flash unsigned char Menu94[] = "Блок. команд  ?..?  ";
+__flash unsigned char Menu94[] = "Блок. команды  ?..? ";
 __flash unsigned char Menu95[] = "Длит. команды  ?..? ";
 __flash unsigned __flash char *Menu9paramPRD[] =
 {

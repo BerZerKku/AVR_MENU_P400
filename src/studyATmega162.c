@@ -1249,11 +1249,6 @@ static void FuncPressKey(void)
 				case LVL_DEF_VIEW:
 				case LVL_DEF_SETUP:
 				{ //выбор номера, в параметрам Поста для 3-х концевой линии
-//					if (cNumLine==3)
-//					{
-//						if ((ShiftMenu==3)||(ShiftMenu==5)) if (NumberCom==1) NumberCom=2; else NumberCom=1;
-//						LCDbufClMenu();LCD2new=1;
-//					}
 					if ( (cTypeLine == 2) && (cNumLine == 3) )
 					{
 						if ( (sMenuDefParam.punkt[ShiftMenu] == 3) || (sMenuDefParam.punkt[ShiftMenu] == 4) )
@@ -1272,6 +1267,7 @@ static void FuncPressKey(void)
 					unsigned char tNumComR;
 					if (cNumLine==2) tNumComR=cNumComR;
 					else
+					{
 						if (cNumPrm==1) tNumComR=cNumComR1;
 						else tNumComR=cNumComR2;
 						if (ShiftMenu==2){  //задержка на выкл
@@ -1284,15 +1280,22 @@ static void FuncPressKey(void)
 									LCDbufClMenu();LCD2new=1;
 							}
 						}
+					}
 				}break; 
 				
 				case LVL_PRD_VIEW:
 				case LVL_PRD_SETUP:
 				{  //уменьшение номера команды, для передатчика
-					if ((ShiftMenu==3)||(ShiftMenu==4)){
-						if (cNumComT>8){
-							if (NumberCom>1) NumberCom--; else NumberCom=cNumComT/8;
-							LCDbufClMenu();LCD2new=1;
+					if ( (ShiftMenu == 3) || (ShiftMenu == 4) )
+					{
+						if (cNumComT > 8)
+						{
+							
+							if (NumberCom > 1) 
+								NumberCom--; 
+							else 
+								NumberCom=cNumComT/8;
+							LCDbufClMenu(); LCD2new=1;
 						}
 					}
 				}break;
@@ -1305,7 +1308,9 @@ static void FuncPressKey(void)
 							if (NumberCom==1) NumberCom=2; else NumberCom=1;
 				}break;
 				
-				case LVL_UPR: PressInMenuReset(4); break;
+				case LVL_UPR: 
+				PressInMenuReset(4); 
+				break;
 			}
         }break;
         case '5':
@@ -1314,7 +1319,7 @@ static void FuncPressKey(void)
 				Menu_ParamSetup(LVL_PARAM_VIEW); 								// переход в Просмотр параметров
 			if (MenuLevel == LVL_UPR) 
 				PressInMenuReset(5);
-        } break;
+        }break;
 		
         case '6':
 		{
@@ -1484,15 +1489,15 @@ static void FuncPressKey(void)
 				case LVL_DEF_SETUP:
 				case LVL_PRM_SETUP:
 				case LVL_PRD_SETUP:
-				case LVL_GLB_SETUP:	ValueVsRange=0;
+				case LVL_GLB_SETUP:	
+				case LVL_DEF_VIEW:
+				case LVL_PRM_VIEW:
+				case LVL_PRD_VIEW:
+				case LVL_GLB_VIEW: ValueVsRange = 0;
 				case LVL_MENU:
 				case LVL_JOURNAL:
 				case LVL_SETUP:
 				case LVL_PARAM_VIEW:
-				case LVL_DEF_VIEW:
-				case LVL_PRM_VIEW:
-				case LVL_PRD_VIEW:
-				case LVL_GLB_VIEW:
 				case LVL_PARAM_SETUP:
 				case LVL_INFO:
 				case LVL_TEST:
@@ -1546,15 +1551,15 @@ static void FuncPressKey(void)
 				case LVL_DEF_SETUP:
 				case LVL_PRM_SETUP:
 				case LVL_PRD_SETUP:
-				case LVL_GLB_SETUP:	ValueVsRange=0;				
+				case LVL_GLB_SETUP:	
+				case LVL_DEF_VIEW:
+				case LVL_PRM_VIEW:
+				case LVL_PRD_VIEW:
+				case LVL_GLB_VIEW: ValueVsRange=0;				
 				case LVL_MENU:
 				case LVL_JOURNAL:
 				case LVL_SETUP:
 				case LVL_PARAM_VIEW:
-				case LVL_DEF_VIEW:
-				case LVL_PRM_VIEW:
-				case LVL_PRD_VIEW:
-				case LVL_GLB_VIEW:
 				case LVL_PARAM_SETUP:
 				case LVL_INFO:
 				case LVL_TEST:
@@ -2820,102 +2825,70 @@ static void LCDwork(void)
 					}
 				}
 				break;
-				case LVL_PRM_VIEW: //меню/просмотр параметров/приемник
-				{
-					if (LCD2new==1){
-						LCDprintf(2,1,2,Menu8paramPRM[ShiftMenu],1);
-						LCDprintf(3,1,2,MenuValue,1);
-						
-						unsigned char **tmValuePRMparam, **tmMenuVoltageLimitPRM;
-						unsigned char *tmValuePrmTimeOff, *tmValuePrmBlockCom, *tmValuePrmLongCom;
-						unsigned char tNumComR;
-						
-						if ((cNumPrm==1)||(cNumLine==2)){ //если 2-х концевая, или 1-ый приемник в 3-х концевой
-							tmValuePRMparam=MenuParamPRM;
-							tmValuePrmTimeOff=ValuePrmTimeOff;
-							if (cNumLine==2) tNumComR=cNumComR;
-							else tNumComR=cNumComR1;
-							tmValuePrmBlockCom=ValuePrmBlockCom;
-							tmValuePrmLongCom=ValuePrmLongCom;
-							tmMenuVoltageLimitPRM=MenuVoltageLimitPRM;
-						}else{//если 2-ой приемник в 3-х концевой
-							tmValuePRMparam=MenuParamPRM2;
-							tmValuePrmTimeOff=ValuePrmTimeOff2;
-							tNumComR=cNumComR2;
-							tmValuePrmBlockCom=ValuePrmBlockCom2;
-							tmValuePrmLongCom=ValuePrmLongCom2;
-							tmMenuVoltageLimitPRM=MenuVoltageLimitPRM_2;
-						}
-						
-						if (ShiftMenu<2)  {LCDprint(3,11,2,tmValuePRMparam[ShiftMenu],1);}
-						if (ShiftMenu==2){
-							LCDprintDEC1(2,18,NumberCom); LCDprint(3,11,2,tmValuePRMparam[ShiftMenu],1);
-							if (tmValuePrmTimeOff[NumberCom-1]!=255) LCDprintDEC2(3,11,tmValuePrmTimeOff[NumberCom-1]);
-							else LCDprintf(3,11,2,Menu11Err,1);
-						}
-						if (ShiftMenu==3){
-							if (tNumComR>4){
-								LCDprintDEC1(2,14,(NumberCom-1)*8+8);
-								LCDprintDEC(2,18,(NumberCom-1)*8+1);
-								LCDprintBits(3,11,tmValuePrmBlockCom[NumberCom-1]);
-							}else{
-								LCDprintDEC1(2,14,(NumberCom-1)*8+4);
-								LCDprintDEC(2,18,(NumberCom-1)*8+1);
-								LCDprintTetr(3,11,(tmValuePrmBlockCom[0]&0x0F));
-							}
-						}else
-							if (ShiftMenu==4){
-								if (tNumComR>4){
-									LCDprintDEC1(2,15,(NumberCom-1)*8+8);
-									LCDprintDEC(2,19,(NumberCom-1)*8+1);
-									LCDprintBits(3,11,tmValuePrmLongCom[NumberCom-1]);
-								}else{
-									LCDprintDEC1(2,15,(NumberCom-1)*8+4);
-									LCDprintDEC(2,19,(NumberCom-1)*8+1);
-									LCDprintTetr(3,11,(tmValuePrmLongCom[0]&0x0F));
-								}
-							}else
-								if (ShiftMenu==5){
-									LCDprint(3,11,2,tmMenuVoltageLimitPRM[NumberCom-1],1);
-									if (cNumLine==3) LCDprintChar(2,19,NumberCom+0x30);
-								}
-					}
-					LCD2new=0;
-					
-				}
-				break;
-				case LVL_PRD_VIEW: //меню/просмотр параметров/передатчик
-				{
-					if (LCD2new==1){
-						LCDprintf(3,1,2,MenuValue,1);
-						LCDprintf(2,1,2,Menu9paramPRD[ShiftMenu],1);
-						if (ShiftMenu<3) {LCDprint(3,11,2,MenuParamPRD[ShiftMenu],1);}
-						if (ShiftMenu==3){
-							if (cNumComT>4){
-								LCDprintBits(3,11,ValuePrdBlockCom[NumberCom-1]);
-								LCDprintDEC1(2,14,(NumberCom-1)*8+8);
-								LCDprintDEC(2,18,(NumberCom-1)*8+1);
-							}else{
-								LCDprintDEC1(2,14,(NumberCom-1)*8+4);
-								LCDprintDEC(2,18,(NumberCom-1)*8+1);
-								LCDprintTetr(3,11,(ValuePrdBlockCom[0]&0x0F));
-							}
-						}
-						if (ShiftMenu==4){
-							if (cNumComT>4){
-								LCDprintBits(3,11,ValuePrdLongCom[NumberCom-1]);
-								LCDprintDEC1(2,15,(NumberCom-1)*8+8);
-								LCDprintDEC(2,19,(NumberCom-1)*8+1);
-							}else{
-								LCDprintDEC1(2,15,(NumberCom-1)*8+4);
-								LCDprintDEC(2,19,(NumberCom-1)*8+1);
-								LCDprintTetr(3,11,(ValuePrdLongCom[0]&0x0F));
-							}
-						}
-					}
-					LCD2new=0;
-				}
-				break;
+//				case LVL_PRM_VIEW: //меню/просмотр параметров/приемник
+//				{
+//					if (LCD2new==1){
+//						LCDprintf(2,1,2,Menu8paramPRM[ShiftMenu],1);
+//						LCDprintf(3,1,2,MenuValue,1);
+//						
+//						unsigned char **tmValuePRMparam, **tmMenuVoltageLimitPRM;
+//						unsigned char *tmValuePrmTimeOff, *tmValuePrmBlockCom, *tmValuePrmLongCom;
+//						unsigned char tNumComR;
+//						
+//						if ((cNumPrm==1)||(cNumLine==2)){ //если 2-х концевая, или 1-ый приемник в 3-х концевой
+//							tmValuePRMparam=MenuParamPRM;
+//							tmValuePrmTimeOff=ValuePrmTimeOff;
+//							if (cNumLine==2) tNumComR=cNumComR;
+//							else tNumComR=cNumComR1;
+//							tmValuePrmBlockCom=ValuePrmBlockCom;
+//							tmValuePrmLongCom=ValuePrmLongCom;
+//							tmMenuVoltageLimitPRM=MenuVoltageLimitPRM;
+//						}else{//если 2-ой приемник в 3-х концевой
+//							tmValuePRMparam=MenuParamPRM2;
+//							tmValuePrmTimeOff=ValuePrmTimeOff2;
+//							tNumComR=cNumComR2;
+//							tmValuePrmBlockCom=ValuePrmBlockCom2;
+//							tmValuePrmLongCom=ValuePrmLongCom2;
+//							tmMenuVoltageLimitPRM=MenuVoltageLimitPRM_2;
+//						}
+//						
+//						if (ShiftMenu<2)  {LCDprint(3,11,2,tmValuePRMparam[ShiftMenu],1);}
+//						if (ShiftMenu==2){
+//							LCDprintDEC1(2,18,NumberCom); LCDprint(3,11,2,tmValuePRMparam[ShiftMenu],1);
+//							if (tmValuePrmTimeOff[NumberCom-1]!=255) LCDprintDEC2(3,11,tmValuePrmTimeOff[NumberCom-1]);
+//							else LCDprintf(3,11,2,Menu11Err,1);
+//						}
+//						if (ShiftMenu==3){
+//							if (tNumComR>4){
+//								LCDprintDEC1(2,14,(NumberCom-1)*8+8);
+//								LCDprintDEC(2,18,(NumberCom-1)*8+1);
+//								LCDprintBits(3,11,tmValuePrmBlockCom[NumberCom-1]);
+//							}else{
+//								LCDprintDEC1(2,14,(NumberCom-1)*8+4);
+//								LCDprintDEC(2,18,(NumberCom-1)*8+1);
+//								LCDprintTetr(3,11,(tmValuePrmBlockCom[0]&0x0F));
+//							}
+//						}else
+//							if (ShiftMenu==4){
+//								if (tNumComR>4){
+//									LCDprintDEC1(2,15,(NumberCom-1)*8+8);
+//									LCDprintDEC(2,19,(NumberCom-1)*8+1);
+//									LCDprintBits(3,11,tmValuePrmLongCom[NumberCom-1]);
+//								}else{
+//									LCDprintDEC1(2,15,(NumberCom-1)*8+4);
+//									LCDprintDEC(2,19,(NumberCom-1)*8+1);
+//									LCDprintTetr(3,11,(tmValuePrmLongCom[0]&0x0F));
+//								}
+//							}else
+//								if (ShiftMenu==5){
+//									LCDprint(3,11,2,tmMenuVoltageLimitPRM[NumberCom-1],1);
+//									if (cNumLine==3) LCDprintChar(2,19,NumberCom+0x30);
+//								}
+//					}
+//					LCD2new=0;
+//					
+//				}
+//				break;
 				case LVL_GLB_VIEW:
 				case LVL_GLB_SETUP:
 				{  //меню/просмотр параметров(установить/параметры)/общие
@@ -3022,155 +2995,109 @@ static void LCDwork(void)
 					}
 				}
 				break;
+				case LVL_PRM_VIEW: 
 				case LVL_PRM_SETUP:
-				{  //меню/установить/параметры/Приемник
-					if (LCD2new==1)
-					{
-						//if (ShiftMenu>2) ValueVsRange=0;
-						FuncClearCharLCD(3,1,20);
-						LCDprintf(2,1,2,Menu8paramPRM[ShiftMenu],1);
-						
-						unsigned char **tmValuePRMparam, **tmMenuVoltageLimitPRM;
-						unsigned char *tmValuePrmTimeOff, *tmValuePrmBlockCom, *tmValuePrmLongCom;
-						unsigned char tNumComR;
-						
-						if ((cNumPrm==1)||(cNumLine==2)){ //если 2-х концевая, или 1-ый приемник в 3-х концевой
-							tmValuePRMparam=MenuParamPRM;
-							tmValuePrmTimeOff=ValuePrmTimeOff;
-							if (cNumLine==2) tNumComR=cNumComR;
-							else tNumComR=cNumComR1;
-							tmValuePrmBlockCom=ValuePrmBlockCom;
-							tmValuePrmLongCom=ValuePrmLongCom;
-							tmMenuVoltageLimitPRM=MenuVoltageLimitPRM;
-						}else{//если 2-ой приемник в 3-х концевой
-							tmValuePRMparam=MenuParamPRM2;
-							tmValuePrmTimeOff=ValuePrmTimeOff2;
-							tNumComR=cNumComR2;
-							tmValuePrmBlockCom=ValuePrmBlockCom2;
-							tmValuePrmLongCom=ValuePrmLongCom2;
-							tmMenuVoltageLimitPRM=MenuVoltageLimitPRM_2;
-						}
-						
-						switch(ShiftMenu){
-							case 2:{
-								LCDprintDEC1(2,18,NumberCom); LCDprint(3,11,2,tmValuePRMparam[ShiftMenu],1);
-							}break;
-							case 3:{
-								if (tNumComR>4){
-									LCDprintDEC1(2,14,(NumberCom-1)*8+8);
-									LCDprintDEC(2,18,(NumberCom-1)*8+1);
-									LCDprintBits(3,11,tmValuePrmBlockCom[NumberCom-1]);
-								}else{
-									LCDprintDEC1(2,14,(NumberCom-1)*8+4);
-									LCDprintDEC(2,18,(NumberCom-1)*8+1);
-									LCDprintTetr(3,11,(tmValuePrmBlockCom[0]&0x0F));
-								}
-							}break;
-							case 4:{
-								if (tNumComR>4){
-									LCDprintDEC1(2,15,(NumberCom-1)*8+8);
-									LCDprintDEC(2,19,(NumberCom-1)*8+1);
-									LCDprintBits(3,11,tmValuePrmLongCom[NumberCom-1]);
-								}else{
-									LCDprintDEC1(2,15,(NumberCom-1)*8+4);
-									LCDprintDEC(2,19,(NumberCom-1)*8+1);
-									LCDprintTetr(3,11,(tmValuePrmLongCom[0]&0x0F));
-								}
-							}break;
-						}
-						
-						if (ValueVsRange==0)
-						{
-							if (ShiftMenu<2)  {LCDprint(3,11,2,tmValuePRMparam[ShiftMenu],1);}
-							if (ShiftMenu==2){
-								if (tmValuePrmTimeOff[NumberCom-1]!=255) LCDprintDEC2(3,11,tmValuePrmTimeOff[NumberCom-1]);
-								else LCDprintf(3,11,2,Menu11Err,1);
-							}
-							
-							if (ShiftMenu==5){
-								LCDprint(3,11,2,tmMenuVoltageLimitPRM[NumberCom-1],1);
-								if (cNumLine==3) LCDprintChar(2,19,NumberCom+0x30);
-							}
-							LCDprintf(3,1,2,MenuValue,1);
-						}
-						else
-						{
-							LCDprintf(3,1,2,ParamRange,1);
-							//LCDprintf(3,11,2,Menu14ParamRange[ShiftMenu],1);
-							LCDprint(3,11,2,cViewParam,1);
-						}
-					}
-					LCD2new=0;
-				}break;
-				case LVL_PRD_SETUP:  //меню/установить/параметры/передатчик
-				{
-//					if (LCD2new==1)
-//					{
-//						LCDprintf(2,1,2,Menu9paramPRD[ShiftMenu],1);
-//						//if (ShiftMenu>2) ValueVsRange=0;
-//						FuncClearCharLCD(3,1,20);
-//						if (ValueVsRange == 0)
-//						{
-//							LCDprintf(3,1,2,MenuValue,1);
-//							if (ShiftMenu<3) LCDprint(3,11,2,MenuParamPRD[ShiftMenu],1);
-//							if (ShiftMenu==3)
-//							{
-//								if (cNumComT>4)
-//								{
-//									LCDprintBits(3,11,ValuePrdBlockCom[NumberCom-1]);
-//									LCDprintDEC1(2,14,(NumberCom-1)*8+8);
-//									LCDprintDEC(2,18,(NumberCom-1)*8+1);
-//								}
-//								else
-//								{
-//									LCDprintDEC1(2,14,(NumberCom-1)*8+4);
-//									LCDprintDEC(2,18,(NumberCom-1)*8+1);
-//									LCDprintTetr(3,11,(ValuePrdBlockCom[0]&0x0F));
-//								}
-//							}
-//							if (ShiftMenu==4)
-//							{
-//								if (cNumComT>4)
-//								{
-//									LCDprintBits(3,11,ValuePrdLongCom[NumberCom-1]);
-//									LCDprintDEC1(2,15,(NumberCom-1)*8+8);
-//									LCDprintDEC(2,19,(NumberCom-1)*8+1);
-//								}
-//								else
-//								{
-//									LCDprintDEC1(2,15,(NumberCom-1)*8+4);
-//									LCDprintDEC(2,19,(NumberCom-1)*8+1);
-//									LCDprintTetr(3,11,(ValuePrdLongCom[0]&0x0F));
-//								}
-//							}
-//						}
-//						else
-//						{
-//							LCDprintf(3,1,2,ParamRange,1);
-//							LCDprint(3,11,2,cViewParam,1);
-//						}
-					
+				{  
 					// Проверим надо-ли обновлять инф-ию
 					if (LCD2new == 0)
 						return;
 					LCD2new = 0;
 					
-					LCDprintf(2,1,2,Menu9paramPRD[ShiftMenu],1);
-					// Выведем диапазон, для битовых переменных
-					if (ShiftMenu == 3)
+					LCDprintf(2,1,2,Menu8paramPRM[ShiftMenu],1);
+					
+					unsigned char **tmValuePRMparam, **tmMenuVoltageLimitPRM;
+					unsigned char *tmValuePrmTimeOff, *tmValuePrmBlockCom, *tmValuePrmLongCom;
+					unsigned char tNumComR;
+					
+					if ((cNumPrm==1)||(cNumLine==2))
+					{ //если 2-х концевая, или 1-ый приемник в 3-х концевой
+						tmValuePRMparam=MenuParamPRM;
+						tmValuePrmTimeOff=ValuePrmTimeOff;
+						if (cNumLine==2) tNumComR=cNumComR;
+						else tNumComR=cNumComR1;
+						tmValuePrmBlockCom=ValuePrmBlockCom;
+						tmValuePrmLongCom=ValuePrmLongCom;
+						tmMenuVoltageLimitPRM=MenuVoltageLimitPRM;
+					}
+					else
+					{//если 2-ой приемник в 3-х концевой
+						tmValuePRMparam=MenuParamPRM2;
+						tmValuePrmTimeOff=ValuePrmTimeOff2;
+						tNumComR=cNumComR2;
+						tmValuePrmBlockCom=ValuePrmBlockCom2;
+						tmValuePrmLongCom=ValuePrmLongCom2;
+						tmMenuVoltageLimitPRM=MenuVoltageLimitPRM_2;
+					}
+					
+					// Вывод названия параметра
+					if (ShiftMenu == 2)
 					{
-						if (cNumComT <= 8)
+						LCDprintDEC1(2, 18, NumberCom);
+					}
+					else if ( (ShiftMenu == 3) || (ShiftMenu == 4) )
+					{
+						if (tNumComR <= 8)
 						{	
-							LCDprintDEC1(2, 14, cNumComT);
-							LCDprintDEC(2, 18, 1);
+							LCDprintDEC1(2, 15, tNumComR);
+							LCDprintDEC(2, 19, 1);
 						}
 						else
 						{
-							LCDprintDEC1(2, 14, (NumberCom - 1) * 8 + 8);
-							LCDprintDEC(2, 18, (NumberCom - 1) * 8 + 1);
+							LCDprintDEC1(2, 15, (NumberCom - 1) * 8 + 8);
+							LCDprintDEC(2, 19, (NumberCom - 1) * 8 + 1);
 						}	
 					}
-					else if (ShiftMenu == 4)
+					
+					// Вывод значения/подсказки параметра
+					FuncClearCharLCD(3,1,20);
+					if (ValueVsRange == 0)
+					{
+						LCDprintf(3, 1, 2, MenuValue,1);
+						LCDprint(3, 11, 2, tmValuePRMparam[ShiftMenu], 1);
+						
+						if (ShiftMenu == 2)
+						{
+							if (tmValuePrmTimeOff[NumberCom-1] != 255) 
+								LCDprintDEC2(3, 11, tmValuePrmTimeOff[NumberCom - 1]);
+							else 
+								LCDprintf(3, 11, 2, Menu11Err, 1);
+							
+						}
+						else if (ShiftMenu == 3)
+						{
+							if (tNumComR > 4)
+								LCDprintBits(3, 11, tmValuePrmBlockCom[NumberCom - 1]);
+							else
+								LCDprintTetr(3, 11, (tmValuePrmBlockCom[0] & 0x0F));
+							
+						}		
+						else if (ShiftMenu == 4)
+						{
+							if (tNumComR > 4)
+								LCDprintBits(3,11,tmValuePrmLongCom[NumberCom-1]);
+							else
+								LCDprintTetr(3,11,(tmValuePrmLongCom[0]&0x0F));
+						}
+					}
+					else
+					{
+						LCDprintf(3, 1, 2, ParamRange, 1);
+						LCDprint(3, 11, 2, cViewParam, 1);
+					}
+					
+				}break;
+				case LVL_PRD_VIEW:
+				case LVL_PRD_SETUP:  
+				{				
+					// Проверим надо-ли обновлять инф-ию
+					if (LCD2new == 0)
+						return;
+					LCD2new = 0;
+					
+					// Вывод названия параметра
+					LCDprintf(2,1,2,Menu9paramPRD[ShiftMenu],1);
+					// Выведем диапазон, для битовых переменных
+					if ( (ShiftMenu == 3) || (ShiftMenu == 4) )
 					{
 						if (cNumComT <= 8)
 						{	
@@ -3186,11 +3113,26 @@ static void LCDwork(void)
 					
 					FuncClearCharLCD(3,1,20);
 					
+					// Вывод значения/подсказки параметра
 					if (ValueVsRange == 0)
 					{
 						LCDprintf(3,1,2,MenuValue,1);
-						if (ShiftMenu < 3) 
-							LCDprint(3, 11, 2, MenuParamPRD[ShiftMenu], 1)
+						LCDprint(3, 11, 2, MenuParamPRD[ShiftMenu], 1);
+				
+						if (ShiftMenu == 3)
+						{
+							if (cNumComT < 8)
+								LCDprintTetr(3, 11, (ValuePrdBlockCom[0]&0x0F) );
+							else
+								LCDprintBits(3, 11, ValuePrdBlockCom[NumberCom-1] );
+						}
+						else if (ShiftMenu == 4)
+						{
+							if (cNumComT < 8)
+								LCDprintTetr(3, 11, (ValuePrdLongCom[0]&0x0F));
+							else
+								LCDprintBits(3, 11, ValuePrdLongCom[NumberCom-1] );
+						}			
 					}	
 					else
 					{
