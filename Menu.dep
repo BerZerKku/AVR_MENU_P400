@@ -382,10 +382,6 @@
           <name>ICCAVR</name>
           <file> 49 18 42 46 31 24 40 33 72 71</file>
         </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 18 42 46 31 24 40 33 72 71</file>
-        </tool>
       </inputs>
     </file>
     <file>

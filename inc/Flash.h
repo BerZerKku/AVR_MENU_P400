@@ -762,6 +762,7 @@ __flash unsigned char Menu1PostWarning8[]	= "Автоконтроль    ";
 //ошибки Приемника
 __flash unsigned char Menu1PrmError1[]		= "Нет блока БСК   ";
 __flash unsigned char Menu1PrmError2[]		= "Неиспр.верс.БСК ";
+__flash unsigned char Menu1PrmError4[] 		= "Нет КЧ          ";
 __flash unsigned char Menu1PrmError8[]		= "Прев.дл-сти.ком.";
 __flash unsigned char Menu1PrmError100[]	= "Неиспр.зап. БСК ";
 __flash unsigned char Menu1PrmError200[]	= "Неиспр.выкл.КСК ";
@@ -773,7 +774,7 @@ __flash unsigned __flash char *Menu1PrmErrorT[] =
 {
 	Menu1PrmError1,
 	Menu1PrmError2,
-	UnknownErrorT,
+	Menu1PrmError4,
 	Menu1PrmError8,
 	UnknownErrorT,
 	UnknownErrorT,
@@ -794,6 +795,7 @@ __flash unsigned char Menu1PrmWarning1[] = "Сниж. уровня ПРМ";
 //ошибки Передатчика
 __flash unsigned char Menu1PrdError1[]	= "Нет блока БСК   ";
 __flash unsigned char Menu1PrdError2[]	= "Неиспр.верс.БСК ";
+__flash unsigned char Menu1PrdError100[]= "Неиспр.чт.команд";
 __flash unsigned char Menu1PrdError200[]= "Неиспр.выкл.Тест";
 __flash unsigned char Menu1PrdError400[]= "Неиспр.вкл. Тест";
 __flash unsigned char Menu1PrdError800[]= "Неиспр.вход.КСК ";
@@ -807,7 +809,7 @@ __flash unsigned __flash char *Menu1PrdErrorT[] =
 	UnknownErrorT,
 	UnknownErrorT,
 	UnknownErrorT,
-	UnknownErrorT,
+	Menu1PrdError100,
 	Menu1PrdError200,
 	Menu1PrdError400,
 	Menu1PrdError800,
