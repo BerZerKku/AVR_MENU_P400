@@ -2094,9 +2094,6 @@ void FuncTr(void)
 					case 1: {TransDataInf(0x51,0x00);DopComTrans=0;} break; //если нажали на кнопку ПУСК Приемника
 					case 2: {TransDataInf(0x9A,0x00);DopComTrans=3;} break; //сброс индикации ПРМ
 					case 3: {TransDataInf(0xAA,0x00);DopComTrans=0;} break; //сброс индикации ПРД
-					case 4:
-					case 6:
-					case 7: {TransDataByte(0x8A, DopComTrans-3);DopComTrans=0;} break;  //изменения режима автоконтроля
 					default:  TransDataByte(0x34, 0x00); //всегда опрашиваем все измеряемые параметры
 				}
             }
