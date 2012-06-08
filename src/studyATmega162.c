@@ -1097,13 +1097,19 @@ static void FuncPressKey(void)
 						if (PressKey=='2') PressKey='3';
 					}
 				}
-			}else{//end if (bDef) //поста нет
-				if (cNumComR>0){//прм есть
-					if (cNumComT==0){ //прд нет, прм есть, поста нет
+			}
+			else
+			{//end if (bDef) //поста нет
+				if (cNumComR>0)
+				{//прм есть
+					if (cNumComT==0)
+					{ //прд нет, прм есть, поста нет
 						if ((PressKey=='3')||(PressKey=='4')) PressKey=0xF0;
 						if (PressKey=='2') PressKey='4';
 						if (PressKey=='1') PressKey='2';
-					}else{//прд есть, прм есть, поста нет
+					}
+					else
+					{//прд есть, прм есть, поста нет
 						if (PressKey=='4') PressKey=0xF0;
 						if (PressKey=='3') PressKey='4';
 						if (PressKey=='2') PressKey='3';
@@ -1119,9 +1125,12 @@ static void FuncPressKey(void)
 					}
 				}
 			}//end else if (bDef)
-		}else{//end if (cNumLine==2)  //3-х концевая версия
+		}
+		else
+		{//end if (cNumLine==2)  //3-х концевая версия
 			if (bDef){
-				if (cNumComR>0){
+				if (cNumComR>0)
+				{
 					if (PressKey=='2') cNumPrm=1;
 					if (PressKey=='3') {PressKey='2'; cNumPrm=2;}
 					if (cNumComT>0){  //есть все устройства
@@ -1157,6 +1166,7 @@ static void FuncPressKey(void)
 			}//end else if (bDef)
 		}
 	}
+	
 	switch(PressKey)
 	{
         case '1':
@@ -1503,22 +1513,24 @@ static void FuncPressKey(void)
 				case LVL_TEST:
 				case LVL_UPR:
 				{
-					if (ShiftMenu>0) 
+					if (ShiftMenu > 0) 
 					{
 						ShiftMenu--; LCD2new=1; LCDbufClMenu(); NumberCom=1;
 					}
 					
 					if ((MenuLevel == LVL_PRM_VIEW) || (MenuLevel == LVL_PRM_SETUP))
 					{  //меню просмотр параметров приемника
-						if (ShiftMenu==5)
-						{  // напряжение порога для приемника
-							//сделаем проверку на присутствии приемников
-							if (cNumComR1>0) 
-								NumberCom=1; //если есть 1 приемник
-							else if (cNumComR2>0) 
-								NumberCom=2; //если нет приемника 1, но есть приемник 2
-						}
+						if (ShiftMenu == 1)
+							ShiftMenu--;
+						
 					}
+					else if ( (MenuLevel == LVL_PRD_VIEW) || (MenuLevel == LVL_PRD_SETUP) )
+					{
+						if (ShiftMenu == 2)
+							ShiftMenu--;
+					}
+					
+					
 					
 				}break; //прокрутка меню
 				
@@ -1571,14 +1583,14 @@ static void FuncPressKey(void)
 					}
 					if ( (MenuLevel == LVL_PRM_VIEW) || (MenuLevel == LVL_PRM_SETUP) )
 					{  //меню просмотр параметров приемника
-						if (ShiftMenu==5)
-						{  // напряжение порога для приемника
-							//сделаем проверку на присутствии приемников
-							if (cNumComR1>0) 
-								NumberCom=1; //если есть 1 приемник
-							else if (cNumComR2>0) 
-								NumberCom=2; //если нет приемника 1, но есть приемник 2
-						}
+						if (ShiftMenu == 1)
+							ShiftMenu++;
+						
+					}
+					else if ( (MenuLevel == LVL_PRD_VIEW) || (MenuLevel == LVL_PRD_SETUP) )
+					{
+						if (ShiftMenu == 2)
+							ShiftMenu++;
 					}
 				}break; //прокрутка меню
 				
@@ -2242,7 +2254,10 @@ void FuncTr(void)
 								case 1:
 								case 2:
 								case 8:
-								case 9: TransDataByte(0x90+TrParam, TrValue); break;
+								case 9: 
+								{
+									TransDataByte(0x90+TrParam, TrValue); 
+								}break;
 								case 3:
 								case 10:{
 									if ((NumberTransCom>0)&&(NumberTransCom<=(cNumComR))){
@@ -2256,14 +2271,17 @@ void FuncTr(void)
 								case 5:
 								case 11:
 								case 12:{
-									if (cNumComR>4){
+									if (cNumComR>4)
+									{
 										if ((NumberTransCom>0)&&(NumberTransCom<=(cNumComR/8))){
 											Tr_buf_data_uart[4]=NumberTransCom;
 											Tr_buf_data_uart[5]=TrValue;
 											TransDataInf(0x90+TrParam,2);
 											NumberTransCom=0x00;
 										}
-									}else{
+									}
+									else
+									{
 										Tr_buf_data_uart[4]=NumberTransCom;
 										Tr_buf_data_uart[5]=TrValue;
 										TransDataInf(0x90+TrParam,2);
@@ -2275,16 +2293,23 @@ void FuncTr(void)
 						
 						case LVL_PRD_SETUP:
 						{
-							if (TrParam<4) TransDataByte(0xA0+TrParam,TrValue);
+							if (TrParam<4) 
+							{
+								TransDataByte(0xA0+TrParam,TrValue);
+							}
 							else
-								if (cNumComT>4){
-									if ((NumberTransCom>0)&&(NumberTransCom<=(cNumComT/8))){
+								if (cNumComT>4)
+								{
+									if ((NumberTransCom>0)&&(NumberTransCom<=(cNumComT/8)))
+									{
 										Tr_buf_data_uart[4]=NumberTransCom;
 										Tr_buf_data_uart[5]=TrValue;
 										TransDataInf(0xA0+TrParam,2);
 										NumberTransCom=0x00;
 									}
-								}else{
+								}
+								else
+								{
 									Tr_buf_data_uart[4]=NumberTransCom;
 									Tr_buf_data_uart[5]=TrValue;
 									TransDataInf(0xA0+TrParam,2);
@@ -2338,11 +2363,9 @@ void FuncTr(void)
 						}break;
 						
 						case LVL_UPR:
-						{ //сброс аппаратов
-//							Tr_buf_data_uart[4] = TrParam;
-//							TransDataInf(TrValue, 1);
+						{ 
+							//сброс аппаратов
 							TransDataByte(TrValue, TrParam);
-//							TransDataByte1(TrValue, TrParam);
 						}break;
 					}
 					TrValue=0;
@@ -2752,7 +2775,8 @@ static void LCDwork(void)
 				break;
 				case LVL_PARAM_VIEW: //меню/просмотр параметров
 				case LVL_PARAM_SETUP:{
-					for(i=0;  i<MaxDisplayLine; i++){
+					for(i=0;  i<MaxDisplayLine; i++)
+					{
 						LCDprintChar(2+i,1,'1'+i+ShiftMenu);
 						LCDprintChar(2+i,2,'.');
 						LCDprintf(2+i,3,2,mMenu6point[ShiftMenu+i],1);

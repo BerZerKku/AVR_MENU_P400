@@ -519,9 +519,9 @@ static void Menu_ParamSetup_Prm(eMENUlvl lvl)
 	MenuLevel = lvl; 
 	LCDbufClMenu();
 	ShiftMenu=0;
-	MaxDisplayLine=1;
-	NumberCom=1;
-	MaxShiftMenu = NumParamPrm - 1;
+	MaxDisplayLine = 1;
+	NumberCom = 1;
+	MaxShiftMenu = NumParamPrm - 1 - 1;	// на данный момент нет последнего пар-ра
 	LCD2new=1;
 	cNumParam=0x40;
 }
