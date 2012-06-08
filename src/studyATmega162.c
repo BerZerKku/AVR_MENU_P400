@@ -2096,7 +2096,7 @@ void FuncTr(void)
 					case 3: {TransDataInf(0xAA,0x00);DopComTrans=0;} break; //сброс индикации ПРД
 					case 4:
 					case 6:
-					case 7: {TransDataByte1(0x8A, DopComTrans-3);DopComTrans=0;} break;  //изменения режима автоконтроля
+					case 7: {TransDataByte(0x8A, DopComTrans-3);DopComTrans=0;} break;  //изменения режима автоконтроля
 					default:  TransDataByte(0x34, 0x00); //всегда опрашиваем все измеряемые параметры
 				}
             }
