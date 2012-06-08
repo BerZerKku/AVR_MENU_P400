@@ -2,8 +2,6 @@
 #define __MY_DEF
 //версия прошивки, если первый ноль - то убираем
 #define Insertion 0x0747
-//выбор значения делителя для УСП
-#define USPtime 2
 
 #define DEB false /*работа(false)/отладка(true)*/
 #if DEB

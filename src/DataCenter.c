@@ -449,7 +449,6 @@ void FParamPrm(unsigned char command)
 			if (command==0x11) TmpMass=MenuPrmTimeOn;
 			else TmpMass=MenuPrmTimeOn2;
 			
-			Rec_buf_data_uart[4]=Rec_buf_data_uart[4]*USPtime;
 			if ((Rec_buf_data_uart[4]<RangPrm[0] [0])||(Rec_buf_data_uart[4]>RangPrm[0] [1])) {TmpMass[0]='?';TmpMass[1]='?';}
 			else{
 				TmpMass[0]=Rec_buf_data_uart[4]/10+0x30;
@@ -506,8 +505,8 @@ void FParamPrm(unsigned char command)
 
 void FParamPrd(unsigned char command){
 	switch(command){
-		case 0x21:{ //время включения (передатчик)
-			Rec_buf_data_uart[4]*=USPtime;
+		case 0x21:
+		{ //время включения (передатчик)
 			if (Rec_buf_data_uart[4]>RangPrd[0] [1]){
 				MenuPrdTimeOn[0]='?';MenuPrdTimeOn[1]='?';
 			}else{
@@ -960,8 +959,17 @@ void FParamGlobal(unsigned char command)
 			MenuAllLanAddress[0]=Rec_buf_data_uart[4]/10 + 0x30;
 		}break;
 		case 0x39:
-		{ // параметры ПВЗУ-Е
+		{ 	// Оптика - "Время перезапуска"
+			// ВЧ - параметры ПВЗУ-Е
 			uchar tmp;
+			
+			if (cTypeLine == 2)
+			{
+				tmp = Rec_buf_data_uart[4];
+				MenuAllTimeRerun[0] = (tmp > RangGlb[5] [1]) ? '0' : tmp + '0';
+					
+				return;
+			}
 			
 			// В ПВЗЛ используется первый параметр
 			// остальные в ПВЗУ-Е

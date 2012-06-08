@@ -330,7 +330,7 @@ void BazaModBus::writeparampost(unsigned int numcom, unsigned char* mass){
 
 void BazaModBus::writeparamprm(unsigned int numcom, unsigned char* mass){
   switch(numcom){
-    case 0x11:  {DataMass[0x0060]=mass[4]*USPtime;} break;  //Время включения
+    case 0x11:  {DataMass[0x0060]=mass[4];} break;  //Время включения
     case 0x12:  {DataMass[0x0061]=10*mass[4];} break; //длительность команды
 //    case 0x13:  {DataMass[0x006A+mass[4]-1]=mass[5]*10;} break; //задржка на выключение
     case 0x13:  {for(i_mod=0; i_mod<mass[3]; i_mod++) DataMass[0x6A+i_mod]=mass[4+i_mod]*10;} break; //задржка на выключение
@@ -348,7 +348,7 @@ void BazaModBus::writeparamprm(unsigned int numcom, unsigned char* mass){
 
 void BazaModBus::writeparamprd(unsigned int numcom, unsigned char* mass){
   switch(numcom){
-    case 0x21:  {DataMass[0x0090]=mass[4]*USPtime;} break; //время включения
+    case 0x21:  {DataMass[0x0090]=mass[4];} break; //время включения
     case 0x22:  {DataMass[0x0091]=mass[4]*10;} break; //длительность команды
     case 0x23:  {DataMass[0x0092]=mass[4]*10;} break; //время на повторное формирование команды
     case 0x24:  {for(i_mod=0; i_mod<mass[3]; i_mod++) DataMass[0x0093+i_mod]=mass[4+i_mod];} break; //блокировка команд
