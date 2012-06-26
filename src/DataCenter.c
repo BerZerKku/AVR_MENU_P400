@@ -1,4 +1,5 @@
 #include <ioavr.h>
+#include <stdint.h>
 #include "MyDef.h"
 #include "InterfaceS.h"
 #include "driverLCD.h"
@@ -148,7 +149,7 @@ extern  uchar   cNumKF;
 
 extern void MenuParamGlbCreate(void);
 extern void MenuParamDefCreate(void);
-extern void MenuUprCreate(void);
+extern void MenuUprCreate(uint8_t act);
 extern void MenuAKCreate(void);
 extern void MenuTestCreate(void);
 extern unsigned char MaxShiftMenu, ShiftMenu;
@@ -927,7 +928,7 @@ void FParamGlobal(unsigned char command)
 					sMenuGlbParam.dev = TypeUdDev;
 					MenuParamGlbCreate();
 					MenuParamDefCreate();
-					MenuUprCreate();
+					MenuUprCreate(1);
 					MenuAKCreate();
 					MenuTestCreate();
 					if ( (MenuLevel == LVL_GLB_VIEW) || (MenuLevel == LVL_GLB_SETUP) )
@@ -1544,7 +1545,7 @@ void VersDevice(void)
 	sMenuGlbParam.dev = 0xFF;
 	MenuParamGlbCreate();
 	MenuParamDefCreate();
-	MenuUprCreate();
+	MenuUprCreate(1);
 	MenuAKCreate();
 	MenuTestCreate();
 	

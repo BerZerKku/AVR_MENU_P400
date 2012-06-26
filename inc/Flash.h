@@ -341,7 +341,7 @@ __flash unsigned char Menu1post03[]	= "Работа  ";
 __flash unsigned char Menu1post04[]	= "Неиспр. ";
 __flash unsigned char Menu1post05[]	= "П.неиспр";
 __flash unsigned char Menu1post06[]	= "Ожидание";
-__flash unsigned char Menu1post07[]	= "?0x07?  ";
+__flash unsigned char Menu1post07[]	= "Нал.пуск";
 __flash unsigned char Menu1post08[]	= "Уд.пуск ";
 __flash unsigned char Menu1post09[]	= "Нет РЗ  ";
 __flash unsigned char Menu1post0A[]	= "Речь    ";
@@ -612,7 +612,7 @@ __flash unsigned char fDopParamValueTrue[]	= "стандарт";
 __flash unsigned char fDopParamValueFalse[]	= "HEX";
 __flash unsigned __flash char *fDopParamValue[] = {fDopParamValueFalse, fDopParamValueTrue};
 
-//сброс
+// Пункты меню управления
 __flash unsigned char Menu22Shift0[]	= ".Сброс своего.     ";
 __flash unsigned char Menu22Shift1[]	= ".Сброс удаленного. ";
 __flash unsigned char Menu22Shift2[]	= ".Сброс удаленного 1";
@@ -628,16 +628,19 @@ __flash unsigned char Menu22Shift11[]	= ".АК контр.проверка ";
 __flash unsigned char Menu22Shift12[]	= ".АК испытания      ";
 __flash unsigned char Menu22Shift13[]	= ".АК пуск           ";
 __flash unsigned char Menu22Shift14[]	= ".Вызов             ";
-__flash unsigned char Menu22Shift8_1[]	= ".АК нормальный     ";	// +0
-__flash unsigned char Menu22Shift11_1[]	= ".АК беглый         ";	// +1
-__flash unsigned char Menu22Shift6_1[]	= ".Пуск удален. МАН  ";	// +2
-__flash unsigned char Menu22Shift11_2[]	= ".АК односторонний  ";	// +3
-__flash unsigned char Menu22Shift12_1[]	= ".Сброс АК          ";	// +4
-__flash unsigned char Menu22Shift4_1[]	= ".Пуск АК свой      ";	// +5
-__flash unsigned char Menu22Shift5_1[]	= ".Пуск АК удаленный ";	// +6
-__flash unsigned char Menu22Shift6_2[]	= ".Пуск ПРД          ";	// +7
+__flash unsigned char Menu22Shift15[]	= ".АК нормальный     ";	
+__flash unsigned char Menu22Shift16[]	= ".АК беглый         ";	
+__flash unsigned char Menu22Shift17[]	= ".Пуск удален. МАН  ";	
+__flash unsigned char Menu22Shift18[]	= ".АК односторонний  ";
+__flash unsigned char Menu22Shift19[]	= ".Сброс АК          ";
+__flash unsigned char Menu22Shift20[]	= ".Пуск АК свой      ";
+__flash unsigned char Menu22Shift21[]	= ".Пуск АК удаленный ";
+__flash unsigned char Menu22Shift22[]	= ".Пуск ПРД          ";
+__flash unsigned char Menu22Shift23[]	= ".Пуск налад. вкл.  ";
+__flash unsigned char Menu22Shift24[]	= ".Пуск налад. выкл. ";
 
-#define dNumUprLine 15
+// Пункты меню управления
+// должно совпадать с eMENUctrlName
 __flash unsigned __flash char* Menu22upr[] = 
 {
 	Menu22Shift0,
@@ -655,21 +658,28 @@ __flash unsigned __flash char* Menu22upr[] =
 	Menu22Shift12,
 	Menu22Shift13,
 	Menu22Shift14,
-	Menu22Shift8_1,
-	Menu22Shift11_1,
-	Menu22Shift6_1,
-	Menu22Shift11_2,
-	Menu22Shift12_1,
-	Menu22Shift4_1,
-	Menu22Shift5_1,
-	Menu22Shift6_2
+	Menu22Shift15,
+	Menu22Shift16,
+	Menu22Shift17,
+	Menu22Shift18,
+	Menu22Shift19,
+	Menu22Shift20,
+	Menu22Shift21,
+	Menu22Shift22,
+	Menu22Shift23,
+	Menu22Shift24
 };
 
-__flash unsigned char fRes[]	= "Сброс";
-__flash unsigned char fPusk[]	= "Пуск";
-__flash unsigned char fEnter[]	= "Ввод";
-__flash unsigned char fCall[]	= "Вызов";
-__flash unsigned __flash char *fReset[]={fRes, fPusk, fEnter, fCall};
+//__flash unsigned char fRes[]	= "Сброс";
+//__flash unsigned char fPusk[]	= "Пуск";
+//__flash unsigned char fEnter[]	= "Ввод";
+//__flash unsigned char fCall[]	= "Вызов";
+//__flash unsigned char fOn[] 	= "Вкл.";
+//__flash unsigned char fOff[]	= "Выкл.";
+//__flash unsigned __flash char *fReset[] = {fRes, fPusk, fEnter, fCall, fOn, fOff};
+__flash unsigned char fEnter[] = "Выполнить";
+__flash unsigned __flash char *fReset[] = {fEnter};
+
 
 //Неизвестная ошибка
 __flash unsigned char UnknownErrorT[]		= "     Error      ";

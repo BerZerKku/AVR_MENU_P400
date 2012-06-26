@@ -1,11 +1,13 @@
 /*****************************************
 переходы между меню
 *****************************************/
+#include "Menu.h"
 
+#define dSetUprItem(com,nameItem) sMenuUpr.punkt[num] = com; sMenuUpr.name[num++] = nameItem 
 
 void MenuParamGlbCreate	(void);
 void MenuParamDefCreate	(void);
-void MenuUprCreate		(void);
+void MenuUprCreate 		(uint8_t act);
 void MenuAKCreate		(void);
 void MenuTestCreate		(void);
 
@@ -193,105 +195,150 @@ void MenuParamDefCreate(void)
 }
 
 /** Формирование списка команд управления в зависимости от совместимости
-*	@param Нет
-*	@return Нет
-*/
-void MenuUprCreate(void)
+ *	@param act действие
+ *	@arg 0 обновить только пуск наладочный
+ *	@arg 1 обновить полностью
+ *	@return Нет
+ */
+void MenuUprCreate(uint8_t act)
 {
-	char num = 0;
-	
-	switch(TypeUdDev)
+	if (act == 0 )
 	{
-		case 1:		// ПВЗ-90	
+		// Только если есть защита
+		if (bDef)
 		{
-			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
-			sMenuUpr.punkt[num] = 1;	sMenuUpr.name[num++] = 1;				// Сброс удаленного
-			sMenuUpr.punkt[num] = 8;	sMenuUpr.name[num++] = dNumUprLine;		// АК нормальный
-			sMenuUpr.punkt[num] = 9;	sMenuUpr.name[num++] = 9;				// АК ускоренный
-			sMenuUpr.punkt[num] = 10;	sMenuUpr.name[num++] = 10;				// АК выключен
-			sMenuUpr.punkt[num] = 12;	sMenuUpr.name[num++] = 12;				// АК испытания
-			sMenuUpr.punkt[num] = 13;	sMenuUpr.name[num++] = 13;				// АК пуск
-			sMenuUpr.punkt[num] = 14;	sMenuUpr.name[num++] = 14;				// Вызов
-		}
-		break;
-		
-		case 2:		// АВЗК-80		
-		{		
-			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
-			sMenuUpr.punkt[num] = 8; 	sMenuUpr.name[num++] = dNumUprLine;		// АК нормальный
-			sMenuUpr.punkt[num] = 9; 	sMenuUpr.name[num++] = 9;				// АК ускоренный
-			sMenuUpr.punkt[num] = 10; 	sMenuUpr.name[num++] = 10;				// АК выключен
-			sMenuUpr.punkt[num] = 12; 	sMenuUpr.name[num++] = 12;				// АК испытания
-			sMenuUpr.punkt[num] = 13; 	sMenuUpr.name[num++] = 13;				// АК пуск
-			sMenuUpr.punkt[num] = 14; 	sMenuUpr.name[num++] = 14;				// Вызов
-		}
-		break;
-		
-		case 3:		// ПВЗУ-Е
-		{
-			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
-			sMenuUpr.punkt[num] = 4; 	sMenuUpr.name[num++] = 4;				// Пуск удаленного
-			sMenuUpr.punkt[num] = 7; 	sMenuUpr.name[num++] = dNumUprLine + 2;	// Пуск удален. МАН
-			sMenuUpr.punkt[num] = 8; 	sMenuUpr.name[num++] = dNumUprLine;		// АК нормальный
-			sMenuUpr.punkt[num] = 9; 	sMenuUpr.name[num++] = 9;				// АК ускоренный
-			sMenuUpr.punkt[num] = 11; 	sMenuUpr.name[num++] = dNumUprLine + 1;	// АК беглый
-			sMenuUpr.punkt[num] = 12; 	sMenuUpr.name[num++] = 11;				// АК контр. проверка
-			sMenuUpr.punkt[num] = 10; 	sMenuUpr.name[num++] = 10;				// АК выключен
-			sMenuUpr.punkt[num] = 14; 	sMenuUpr.name[num++] = 14;				// Вызов
-		}
-		break;
-		
-		case 4: 	// ПВЗЛ
-		{
-			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;				// Сброс своего
-			sMenuUpr.punkt[num] = 8;	sMenuUpr.name[num++] = dNumUprLine;		// АК-нормальный
-			sMenuUpr.punkt[num] = 11;	sMenuUpr.name[num++] = dNumUprLine + 3;	// АК-односторонний
-			sMenuUpr.punkt[num] = 10;	sMenuUpr.name[num++] = 10;				// АК-выключен
-			sMenuUpr.punkt[num] = 1;	sMenuUpr.name[num++] = dNumUprLine + 4;	// Сброс АК
-			sMenuUpr.punkt[num] = 12;	sMenuUpr.name[num++] = dNumUprLine + 5;	// Пуск АК свой
-			sMenuUpr.punkt[num] = 6;	sMenuUpr.name[num++] = dNumUprLine + 6;	// Пуск АК удаленный
-			sMenuUpr.punkt[num] = 7;	sMenuUpr.name[num++] = dNumUprLine + 7;	// Пуск ПРД
-			sMenuUpr.punkt[num] = 14;	sMenuUpr.name[num++] = 14;				// Вызов
-			
-		}
-		break;
-		
-		default:	// АВАНТ
-		{
-			sMenuUpr.punkt[num] = 0;	sMenuUpr.name[num++] = 0;					// Сброс своего
-			if (cNumLine == 3)
+			if (CurrentState[1] == 7)
 			{
-				sMenuUpr.punkt[num] = 2;	sMenuUpr.name[num++] = 2;				// Сброс удаленного 1
-				sMenuUpr.punkt[num] = 3; 	sMenuUpr.name[num++] = 3;				// Сброс удаленного 2
-				sMenuUpr.punkt[num] = 5; 	sMenuUpr.name[num++] = 5;				// Пуск удаленного 1
-				sMenuUpr.punkt[num] = 6; 	sMenuUpr.name[num++] = 6;				// Пуск удаленного 2
-				sMenuUpr.punkt[num] = 7; 	sMenuUpr.name[num++] = 7;				// Пуск удаленных 1,2
-				
-				if (cTypeLine == 1)													
-				{
-					// в ВЛ есть смена АК
-					sMenuUpr.punkt[num] = 8;	sMenuUpr.name[num++] = 8;			// АК автоматический
-					sMenuUpr.punkt[num] = 9;	sMenuUpr.name[num++] = 9;			// АК ускоренный
-					sMenuUpr.punkt[num] = 10;	sMenuUpr.name[num++] = 10;			// АК выключен
-				}
+				sMenuUpr.punkt[0] = CTRL_COM_START_OFF; 
+				sMenuUpr.name[0] = CTRL_NAME_START_OFF;
 			}
 			else
 			{
-				sMenuUpr.punkt[num] = 1; 	sMenuUpr.name[num++] = 1;				// Сброс удаленного
-				sMenuUpr.punkt[num] = 4; 	sMenuUpr.name[num++] = 4;				// Пуск удаленного
-				if (cTypeLine == 1)													
-				{
-					// в ВЛ есть смена АК и вызов
-					sMenuUpr.punkt[num] = 8; 	sMenuUpr.name[num++] = 8;			// АК автоматический
-					sMenuUpr.punkt[num] = 9; 	sMenuUpr.name[num++] = 9;			// АК ускоренный
-					sMenuUpr.punkt[num] = 10; 	sMenuUpr.name[num++] = 10;			// АК выключен 
-					sMenuUpr.punkt[num] = 14; 	sMenuUpr.name[num++] = 14;			// Вызов
-				}
+				sMenuUpr.punkt[0] = CTRL_COM_START_ON; 
+				sMenuUpr.name[0] = CTRL_NAME_START_ON;
 			}
 		}
 	}
+	else if (act == 1)
+	{
+		char num = 0;
+		
+		// Только если есть защита
+		if (bDef)
+		{
+			if (CurrentState[1] == 7)
+			{
+				dSetUprItem(CTRL_COM_START_OFF, 	CTRL_NAME_START_OFF);
+			}
+			else
+			{
+				dSetUprItem(CTRL_COM_START_ON, 		CTRL_NAME_START_ON);
+			}
+		}
 	
-	sMenuUpr.num = num;	
+		
+		switch(TypeUdDev)
+		{
+			case 1:		// ПВЗ-90	
+			{
+				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
+				dSetUprItem(CTRL_COM_RESET_REMOTE, 		CTRL_NAME_RESET_REMOTE);	
+				dSetUprItem(CTRL_COM_AC_AUTO_NORMAL,	CTRL_NAME_AC_NORMAL);
+				dSetUprItem(CTRL_COM_AC_ACCELERATED,	CTRL_NAME_AC_ACCELERATED);
+				dSetUprItem(CTRL_COM_AC_OFF,			CTRL_NAME_AC_OFF);
+				dSetUprItem(CTRL_COM_AC_TEST,			CTRL_NAME_AC_TEST);
+				dSetUprItem(CTRL_COM_AC_START,			CTRL_NAME_AC_START);
+				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
+			}
+			break;
+			
+			case 2:		// АВЗК-80		
+			{		
+				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
+				dSetUprItem(CTRL_COM_AC_AUTO_NORMAL,	CTRL_NAME_AC_NORMAL);
+				dSetUprItem(CTRL_COM_AC_ACCELERATED,	CTRL_NAME_AC_ACCELERATED);
+				dSetUprItem(CTRL_COM_AC_OFF,			CTRL_NAME_AC_OFF);
+				dSetUprItem(CTRL_COM_AC_TEST,			CTRL_NAME_AC_TEST);
+				dSetUprItem(CTRL_COM_AC_START,			CTRL_NAME_AC_START);
+				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
+			}
+			break;
+			
+			case 3:		// ПВЗУ-Е
+			{
+				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
+				dSetUprItem(CTRL_COM_START_REMOTE,		CTRL_NAME_START_REMOTE);
+				dSetUprItem(CTRL_COM_START_REMOTE_12,	CTRL_NAME_START_REMOTE_MAN);
+				dSetUprItem(CTRL_COM_AC_AUTO_NORMAL,	CTRL_NAME_AC_NORMAL);
+				dSetUprItem(CTRL_COM_AC_ACCELERATED,	CTRL_NAME_AC_ACCELERATED);
+				dSetUprItem(CTRL_COM_AC_CHECK, 			CTRL_NAME_AC_QUICK);
+				dSetUprItem(CTRL_COM_AC_TEST,			CTRL_NAME_AC_CHECK);
+				dSetUprItem(CTRL_COM_AC_OFF,			CTRL_NAME_AC_OFF);
+				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
+			}
+			break;
+			
+			case 4: 	// ПВЗЛ
+			{
+				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
+				dSetUprItem(CTRL_COM_AC_AUTO_NORMAL,	CTRL_NAME_AC_NORMAL);
+				dSetUprItem(CTRL_COM_AC_CHECK,			CTRL_NAME_AC_ONE_SIDE);
+				dSetUprItem(CTRL_COM_AC_OFF,			CTRL_NAME_AC_OFF);
+				dSetUprItem(CTRL_COM_RESET_REMOTE,		CTRL_NAME_AC_RESET);
+				dSetUprItem(CTRL_COM_AC_TEST,			CTRL_NAME_AC_START_SELF);
+				dSetUprItem(CTRL_COM_START_REMOTE_2,	CTRL_NAME_AC_START_REMOTE);
+				dSetUprItem(CTRL_COM_START_REMOTE_12, 	CTRL_NAME_START_PRD);
+				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
+			}
+			break;
+			
+			default:	// АВАНТ
+			{
+				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
+				
+				if (cNumLine == 3)
+				{
+					dSetUprItem(CTRL_COM_RESET_REMOTE, 		CTRL_NAME_RESET_REMOTE_1);
+					dSetUprItem(CTRL_COM_RESET_REMOTE_2,	CTRL_NAME_RESET_REMOTE_2);			
+					
+					if (bDef)
+					{
+						dSetUprItem(CTRL_COM_START_REMOTE,		CTRL_NAME_START_REMOTE_1);
+						dSetUprItem(CTRL_COM_START_REMOTE_2,	CTRL_NAME_START_REMOTE_2);
+						dSetUprItem(CTRL_COM_START_REMOTE_12,	CTRL_NAME_START_REMOTE_12);
+						
+						if (cTypeLine == 1)													
+						{
+							// в ВЛ есть смена АК
+							dSetUprItem(CTRL_COM_AC_AUTO_ACCELERATED, 	CTRL_NAME_AC_AUTO);
+							dSetUprItem(CTRL_COM_AC_ACCELERATED,		CTRL_NAME_AC_ACCELERATED);
+							dSetUprItem(CTRL_COM_AC_OFF,				CTRL_NAME_AC_OFF);
+						}
+					}
+				}
+				else
+				{
+					dSetUprItem(CTRL_COM_RESET_REMOTE,		CTRL_NAME_RESET_REMOTE);
+					
+					if (bDef)
+					{
+						dSetUprItem(CTRL_COM_START_REMOTE,		CTRL_NAME_START_REMOTE);
+						
+						if (cTypeLine == 1)													
+						{
+							// в ВЛ есть смена АК и вызов
+							dSetUprItem(CTRL_COM_AC_AUTO_ACCELERATED, 	CTRL_NAME_AC_AUTO);
+							dSetUprItem(CTRL_COM_AC_ACCELERATED,		CTRL_NAME_AC_ACCELERATED);
+							dSetUprItem(CTRL_COM_AC_OFF,				CTRL_NAME_AC_OFF);
+							dSetUprItem(CTRL_COM_CALL,					CTRL_NAME_CALL);
+						}
+					}
+				}
+			}
+		}
+		
+		sMenuUpr.num = num;	
+	}
 }
 
 
@@ -623,7 +670,10 @@ static void Menu_Upr(void)
   	LCDbufClMenu();
   	ShiftMenu = 0;
   	MaxDisplayLine = 3;
-  	MaxShiftMenu = sMenuUpr.num - 3;
+	if (sMenuUpr.num > 3)
+  		MaxShiftMenu = sMenuUpr.num - 3;
+	else
+		MaxShiftMenu = 0;
   	LCD2new=1;
 }
 
@@ -646,62 +696,23 @@ static void PressInMenuReset(char key)
 	if (key > sMenuUpr.num)
 		return;
 	
-	char value = sMenuUpr.punkt[--key];
+	char value = sMenuUpr.punkt[key];
 	
-  	switch(value)
-	{    	
-		case 2:			// сброс удаленного 1
-		value--;	
-		case 0:			// сброс своего
-		case 1:			// сброс удаленного	
-		case 3:			// сброс удаленного 2
-		{ 	
-			MaxValue = MinValue = InputSelectValue = 0;
-      		SelectValue = value + 1;
-      		TrValue = 0x72;
-    	}
-		break;  
-		
-		case 5:			// пуск удаленного 1
-		case 6:			// пуск удаленного 2
-		case 7:			// пуск удаленноых 1,2
-		value--;
-		case 4:			// пуск удаленного
-		{ 
-      		MaxValue = MinValue = InputSelectValue = 1;
-      		SelectValue = value;
-      		TrValue = 0x72;
-		}
-		break;
-		
-		case 9:			// АК ускоренный
-		case 10:		// АК выключен
-		case 11:		// АК контр. проверка
-		case 12:		// АК испытания
-		case 13:		// АК пуск
-		value++;
-		case 8:			// АК автоматический
-		{  
-      		MaxValue = MinValue = InputSelectValue = 2;
-      		SelectValue = value - 7;
-      		TrValue = 0x8A;
-		}
-		break;
-		
-		case 14:		// вызов
-		{	
-			MaxValue = MinValue = InputSelectValue = 3;
-			SelectValue = 7;
-			TrValue = 0x72;
-		}
-		break;
-		
-		default:		// заглушка
-		return;  
+	if (value & 0x80)
+	{
+		// управление
+		TrValue = 0x72;
+	}
+	else
+	{
+		// автоконтроль
+		TrValue = 0x8A;
 	}
 	
+	SelectValue = value & 0x7F;
 	ShiftMenu = key;
-  	WorkRate = 2; 				
+  	WorkRate = 2; 		
+	MaxValue = MinValue = InputSelectValue = 0;
   	MassSelectValue = fReset; 
 }
 

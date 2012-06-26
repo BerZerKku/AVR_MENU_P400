@@ -1,7 +1,7 @@
 #ifndef __MY_DEF
 #define __MY_DEF
 //версия прошивки, если первый ноль - то убираем
-#define Insertion 0x0748
+#define Insertion 0x0749
 
 #define DEB false /*работа(false)/отладка(true)*/
 #if DEB

@@ -319,12 +319,12 @@
         </option>
         <option>
           <name>CCOptSizeSpeed</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCOptimization</name>
           <version>1</version>
-          <state>1</state>
+          <state>2</state>
         </option>
         <option>
           <name>CCAllowList</name>
@@ -424,12 +424,12 @@
         </option>
         <option>
           <name>CCOptSizeSpeedSlave</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCOptimizationSlave</name>
           <version>1</version>
-          <state>1</state>
+          <state>2</state>
         </option>
         <option>
           <name>CCOutputFile</name>
