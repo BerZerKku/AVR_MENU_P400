@@ -210,25 +210,55 @@ void ErrorMessage(char code)
 void FParamDef(unsigned char command)
 {
 	u8 min, max;
+	uint8_t tmp = Rec_buf_data_uart[4];
+	
 	switch(command)
 	{
 		case 0x01:
 		{  //принято значение типа защиты (пост)
-			if ((Rec_buf_data_uart[4]<RangPost[0] [0])||(Rec_buf_data_uart[4]>RangPost[0] [1])) MenuTypeDefend = RangPost[0] [1] + 1;
-			else MenuTypeDefend=Rec_buf_data_uart[4];
+			if ((tmp < RangPost[0] [0]) || (tmp > RangPost[0] [1])) 
+				MenuTypeDefend = RangPost[0] [1] + 1;
+			else 
+				MenuTypeDefend = tmp;
 		}break;
 		case 0x02:
-		{ //принято значение типа линии (пост)
-			Rec_buf_data_uart[4]+=1;
-			if ((Rec_buf_data_uart[4]<RangPost[1] [0])||(Rec_buf_data_uart[4]>RangPost[1] [1])) MenuTypeLine[0]=0x3F; //"?"
-			else MenuTypeLine[0]=Rec_buf_data_uart[4]+0x30;
+		{ 
+			// принято значение типа линии (пост) (кол-во концов)
+			// проверим на допустимое значение
+			// в случае, если тип линии не совпадает с имеющимся
+			// настроим пункты меню с учетом выбранного значения
+			
+			tmp += 1;
+			if ((tmp < RangPost[1] [0]) || (tmp > RangPost[1] [1])) 
+				MenuTypeLine[0] = '?'; 
+			else 
+			{
+				if (cNumLine != tmp)
+				{
+					MenuTypeLine[0] = tmp + '0';
+					cNumLine = tmp;
+					MenuTestCreate();
+					MenuParamGlbCreate();
+					MenuParamDefCreate();
+					MenuUprCreate(1);
+					MenuAKCreate();
+					MenuTestCreate();
+				}
+			}
+			
+			
 		}break;
 		case 0x03:
 		{//принято значение допустимого времени без манипуляции (пост)
-			if ((Rec_buf_data_uart[4]<RangPost[2] [0])||(Rec_buf_data_uart[4]>RangPost[2] [1])) {MenuPossibleTimeNoMan[0]=0x3F;MenuPossibleTimeNoMan[1]=0x3F;}
-			else{
-				MenuPossibleTimeNoMan[0]=Rec_buf_data_uart[4]/10+0x30;
-				MenuPossibleTimeNoMan[1]=Rec_buf_data_uart[4]%10+0x30;
+			if ((tmp < RangPost[2] [0]) || (tmp > RangPost[2] [1])) 
+			{
+				MenuPossibleTimeNoMan[0] = '?';
+				MenuPossibleTimeNoMan[1] = '?';
+			}
+			else
+			{
+				MenuPossibleTimeNoMan[0] = tmp/10 + '0';
+				MenuPossibleTimeNoMan[1] = tmp%10 + '0';
 			}
 		}break;
 		case 0x04:
@@ -244,28 +274,29 @@ void FParamDef(unsigned char command)
 				max = 54;
 			}
 			
-			if ((Rec_buf_data_uart[4] < min) || (Rec_buf_data_uart[4] > max)) 
+			if ( (tmp < min) || (tmp > max)) 
 			{
-				MenuPossibleTimeSignal1[0]=0x3F;
-				MenuPossibleTimeSignal1[1]=0x3F;
+				MenuPossibleTimeSignal1[0] = '?';
+				MenuPossibleTimeSignal1[1] = '?';
 			}
 			else
 			{
-				MenuPossibleTimeSignal1[0]=Rec_buf_data_uart[4]/10+0x30;
-				MenuPossibleTimeSignal1[1]=Rec_buf_data_uart[4]%10+0x30;
+				MenuPossibleTimeSignal1[0] = tmp/10 + '0';
+				MenuPossibleTimeSignal1[1] = tmp%10 + '0';
 			}
 			
 			if (cNumLine == 3)
 			{
-				if ((Rec_buf_data_uart[5] < min) || (Rec_buf_data_uart[5] > max)) 
+				tmp = Rec_buf_data_uart[5];
+				if ((tmp < min) || (tmp > max)) 
 				{
-					MenuPossibleTimeSignal2[0] = 0x3F;
-					MenuPossibleTimeSignal2[1] = 0x3F;
+					MenuPossibleTimeSignal2[0] = '?';
+					MenuPossibleTimeSignal2[1] = '?';
 				}
 				else
 				{
-					MenuPossibleTimeSignal2[0] = (Rec_buf_data_uart[5] / 10) + 0x30;
-					MenuPossibleTimeSignal2[1] = (Rec_buf_data_uart[5] % 10) + 0x30;
+					MenuPossibleTimeSignal2[0] = tmp/10 + '0';
+					MenuPossibleTimeSignal2[1] = tmp%10 + '0';
 				}
 			}
 		}break;
@@ -281,73 +312,91 @@ void FParamDef(unsigned char command)
 				max = 54;
 			}
 			
-			if ((Rec_buf_data_uart[4]<min)||(Rec_buf_data_uart[4]>max)) 
+			if ((tmp < min) || (tmp > max)) 
 			{
-				MenuCoveringImpulse1[0]=0x3F;
-				MenuCoveringImpulse1[1]=0x3F;
+				MenuCoveringImpulse1[0] = '?';
+				MenuCoveringImpulse1[1] = '?';
 			}
 			else
 			{	
-				MenuCoveringImpulse1[0]=Rec_buf_data_uart[4]/10+0x30;
-				MenuCoveringImpulse1[1]=Rec_buf_data_uart[4]%10+0x30;
+				MenuCoveringImpulse1[0] = tmp/10 + '0';
+				MenuCoveringImpulse1[1] = tmp%10 + '0';
 				
 				if ( (cTypeLine == 2) && (cNumLine == 3) )						// в 3-х концевой оптике параметр дублируется
 				{
-					if ((Rec_buf_data_uart[5]<min)||(Rec_buf_data_uart[5]>max)) 
+					tmp = Rec_buf_data_uart[5];
+					if ((tmp < min) || (tmp > max)) 
 					{
-						MenuCoveringImpulse2[0] = 0x3F;
-						MenuCoveringImpulse2[1] = 0x3F;
+						MenuCoveringImpulse2[0] = '?';
+						MenuCoveringImpulse2[1] = '?';
 					}
 					else
 					{
-						MenuCoveringImpulse2[0] = (Rec_buf_data_uart[5] / 10) + 0x30;
-						MenuCoveringImpulse2[1] = (Rec_buf_data_uart[4] % 10) + 0x30;
+						MenuCoveringImpulse2[0] = (tmp / 10) + '0';
+						MenuCoveringImpulse2[1] = (tmp % 10) + '0';
 					}
 				}
  			}
 		}break;
-		case 0x06:{//принято значение напряжения порога (пост)
-			if ((Rec_buf_data_uart[4]<RangPost[5] [0])||(Rec_buf_data_uart[4]>RangPost[5] [1])) {MenuVoltageLimit1[0]=0x3F;MenuVoltageLimit1[1]=0x3F;}
-			else{
-				MenuVoltageLimit1[0]=Rec_buf_data_uart[4]/10+0x30;
-				MenuVoltageLimit1[1]=Rec_buf_data_uart[4]%10+0x30;
+		case 0x06:
+		{//принято значение напряжения порога (пост)
+			if ( (tmp < RangPost[5] [0]) || (tmp > RangPost[5] [1]) ) 
+			{
+				MenuVoltageLimit1[0] = '?';
+				MenuVoltageLimit1[1] = '?';
 			}
-			if (cNumLine==3){
-				if ((Rec_buf_data_uart[5]<RangPost[5] [0])||(Rec_buf_data_uart[5]>RangPost[5] [1])) {MenuVoltageLimit2[0]=0x3F;MenuVoltageLimit2[1]=0x3F;}
-				else{
-					MenuVoltageLimit2[0]=Rec_buf_data_uart[5]/10+0x30;
-					MenuVoltageLimit2[1]=Rec_buf_data_uart[5]%10+0x30;
+			else
+			{
+				MenuVoltageLimit1[0] = tmp/10 + '0';
+				MenuVoltageLimit1[1] = tmp%10 + '0';
+			}
+			if (cNumLine == 3)
+			{
+				tmp = Rec_buf_data_uart[5];
+				if ( (tmp < RangPost[5] [0]) || (tmp > RangPost[5] [1]) ) 
+				{
+					MenuVoltageLimit2[0] = '?';
+					MenuVoltageLimit2[1] = '?';
+				}
+				else
+				{
+					MenuVoltageLimit2[0] = tmp/10 + '0';
+					MenuVoltageLimit2[1] = tmp%10 + '0';
 				}
 			}
 		}break;
-		case 0x07:{
-			if ((Rec_buf_data_uart[4]<RangPost[6] [0])||(Rec_buf_data_uart[4]>RangPost[6] [1])) MenuAKdecrease=2;
-			else MenuAKdecrease = Rec_buf_data_uart[4];
+		case 0x07:
+		{
+			if ( (tmp < RangPost[6] [0]) || (tmp > RangPost[6] [1]) ) 
+				MenuAKdecrease = 2;
+			else 
+				MenuAKdecrease = tmp;
 		}break;
 		case 0x08:
 		{
-			if (Rec_buf_data_uart[4] > RangPost[7] [1])
+			if (tmp > RangPost[7] [1])
 				MenuFreqPRD = RangPost[7] [1] + 1;
 			else
-				MenuFreqPRD = Rec_buf_data_uart[4];
+				MenuFreqPRD = tmp;
 		}
 		break;
 		case 0x09:
 		{
-			if (Rec_buf_data_uart[4] > RangPost[8] [1])
+			if (tmp > RangPost[8] [1])
 				MenuFreqPRM = RangPost[8] [1] + 1;
 			else
-				MenuFreqPRM = Rec_buf_data_uart[4];
+				MenuFreqPRM = tmp;
 		}
 		break;
-		case 0x0A:{
-			if ((Rec_buf_data_uart[4]<RangPost[9] [0])||(Rec_buf_data_uart[4]>RangPost[9] [1]))
+		case 0x0A:
+		{
+			if ( (tmp < RangPost[9] [0]) || (tmp > RangPost[9] [1]) )
 			{
 				cAutoControl = 0;
 			}
 			else
 			{
-				cAutoControl = Rec_buf_data_uart[4];
+				cAutoControl = tmp;
 				
 				// если тип удаленного аппарата ПВЗ или АВЗК
 				if ( (sMenuGlbParam.dev >= 1) || (sMenuGlbParam.dev <= 4) )
@@ -953,7 +1002,8 @@ void FParamGlobal(unsigned char command)
 			}
 		}
 		break;
-		case 0x38:{ //адрес аппарата в локальной сети (общие)
+		case 0x38:
+		{ //адрес аппарата в локальной сети (общие)
 			MenuAllLanAddress[2]=Rec_buf_data_uart[4]%10 + 0x30;
 			Rec_buf_data_uart[4]=Rec_buf_data_uart[4]/10;
 			MenuAllLanAddress[1]=Rec_buf_data_uart[4]%10 + 0x30;
@@ -1174,13 +1224,15 @@ void FArchive(void){
 extern strMenuTest sMenuTest;
 
 void FTest1(unsigned char com){
-	//4-ый байт: 0xXXXc XXba ; a- кч1, b- кч2, с- РЗ1, d- РЗ2
+	//4-ый байт: 0xXXdc XXba ; a- кч1, b- кч2, с- РЗ1, d- РЗ2
 	//5-ой байт: 0xhgfedcba ; a- 1ком, h- 8ком
 	//6-ой байт: 0xhgfedcba ; a- 9ком, h- 16ком
 	//7-ой байт: 0xhgfedcba ; a- 1ком, h- 8ком
 	//8-ой байт: 0xhgfedcba ; a- 9ком, h- 16ком
-	gr1=0; gr2=0;
-	gr21=0; gr22=0;
+	gr1=0; 
+	gr2=0;
+	gr21=0; 
+	gr22=0;
 	
 	// определим номер группы КЧ и РЗ
 	uchar tmp;
@@ -1205,13 +1257,28 @@ void FTest1(unsigned char com){
 			case 3:	// группа 1
 			if ((tmp & 0x0F) > 0)
 			{
-				if (tmp & 0x01)
-					sMenuTest.sT[j].val = 1;
-				else
-					if (tmp & 0x02)
+				if (cNumLine == 2)
+				{
+					if (tmp & 0x01)
+						sMenuTest.sT[j].val = 1;
+					else if (tmp & 0x02)
 						sMenuTest.sT[j].val = 2;
 					else
+						sMenuTest.sT[j].val = 5;
+				}
+				else if (cNumLine == 3)
+				{
+					if (tmp & 0x01)
+						sMenuTest.sT[j].val = 1;
+					else if (tmp & 0x02)
+						sMenuTest.sT[j].val = 2;
+					else if (tmp & 0x04)
 						sMenuTest.sT[j].val = 3;
+					else if (tmp & 0x08)
+						sMenuTest.sT[j].val = 4;
+					else
+						sMenuTest.sT[j].val = 5;
+				}
 			}
 			else
 				sMenuTest.sT[j].val = 0;
@@ -1241,48 +1308,65 @@ void FTest1(unsigned char com){
         }
     }
 	
-	if (Rec_buf_data_uart[4]&0x10) gr2=1;
+	if (Rec_buf_data_uart[4] & 0x10) 
+		gr2=1;
 	
-	if (cNumComT>0){
-		if (Rec_buf_data_uart[5]!=0){
+	if (cNumComT>0)
+	{
+		if (Rec_buf_data_uart[5]!=0)
+		{
 			gr1=3;
-			do{
+			do
+			{
 				gr1++;
 				Rec_buf_data_uart[5]=Rec_buf_data_uart[5]>>1;
-			}while(Rec_buf_data_uart[5]!=0);
+			}
+			while(Rec_buf_data_uart[5]!=0);
 		}
 	}
-	if (cNumComT>8){
-		if (Rec_buf_data_uart[6]!=0){
+	if (cNumComT>8)
+	{
+		if (Rec_buf_data_uart[6]!=0)
+		{
 			gr1=11;
-			do{
+			do
+			{
 				gr1++;
 				Rec_buf_data_uart[6]=Rec_buf_data_uart[6]>>1;
-			}while(Rec_buf_data_uart[6]!=0);
+			}
+			while(Rec_buf_data_uart[6]!=0);
 		}
 	}
 	
-	if (cNumComT>16){
-		if (Rec_buf_data_uart[7]!=0){
+	if (cNumComT>16)
+	{
+		if (Rec_buf_data_uart[7]!=0)
+		{
 			gr1=19;
-			do{
+			do
+			{
 				gr1++;
 				Rec_buf_data_uart[7]=Rec_buf_data_uart[7]>>1;
-			}while(Rec_buf_data_uart[7]!=0);
+			}
+			while(Rec_buf_data_uart[7]!=0);
 		}
 	}
 	
-	if (cNumComT>24){
+	if (cNumComT>24)
+	{
 		if (Rec_buf_data_uart[8]!=0){
 			gr1=27;
-			do{
+			do
+			{
 				gr1++;
 				Rec_buf_data_uart[8]=Rec_buf_data_uart[8]>>1;
-			}while(Rec_buf_data_uart[8]!=0);
+			}
+			while(Rec_buf_data_uart[8]!=0);
 		}
 	}
 	//для второго приемника, если 3-х концевая с командами
-	if ((cNumLine==3)&&(cNumComR2!=0)){
+	if ((cNumLine==3)&&(cNumComR2!=0))
+	{
 		
 		for(schar i = 0; i < 4 ; i++)
 		{
@@ -1293,45 +1377,58 @@ void FTest1(unsigned char com){
 			}
 		}
 		
-		if (Rec_buf_data_uart[9]&0x10) gr22=1;
+		if (Rec_buf_data_uart[9]&0x10) 
+			gr22=1;
 		
-		if (cNumComR2>0){
+		if (cNumComR2>0)
+		{
 			if (Rec_buf_data_uart[10]!=0){
 				gr21=3;
-				do{
+				do
+				{
 					gr21++;
 					Rec_buf_data_uart[10]=Rec_buf_data_uart[10]>>1;
-				}while(Rec_buf_data_uart[10]!=0);
+				}
+				while(Rec_buf_data_uart[10]!=0);
 			}
 		}
 		
-		if (cNumComR2>8){
+		if (cNumComR2>8)
+		{
 			if (Rec_buf_data_uart[11]!=0){
 				gr21=11;
-				do{
+				do
+				{
 					gr21++;
 					Rec_buf_data_uart[11]=Rec_buf_data_uart[11]>>1;
-				}while(Rec_buf_data_uart[11]!=0);
+				}
+				while(Rec_buf_data_uart[11]!=0);
 			}
 		}
 		
-		if (cNumComR2>16){
+		if (cNumComR2>16)
+		{
 			if (Rec_buf_data_uart[12]!=0){
 				gr21=19;
-				do{
+				do
+				{
 					gr21++;
 					Rec_buf_data_uart[12]=Rec_buf_data_uart[12]>>1;
-				}while(Rec_buf_data_uart[12]!=0);
+				}
+				while(Rec_buf_data_uart[12]!=0);
 			}
 		}
 		
-		if (cNumComR2>24){
+		if (cNumComR2>24)
+		{
 			if (Rec_buf_data_uart[13]!=0){
 				gr21=27;
-				do{
+				do
+				{
 					gr21++;
 					Rec_buf_data_uart[13]=Rec_buf_data_uart[13]>>1;
-				}while(Rec_buf_data_uart[13]!=0);
+				}
+				while(Rec_buf_data_uart[13]!=0);
 			}
 		}
 	}

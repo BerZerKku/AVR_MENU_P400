@@ -571,7 +571,7 @@ __flash uint RangGlb[NumParamGlb] [3] =
 	0,  2,    	1,  	// удержание реле ПРД 
 	0,  255,  	1,  	// сетевой адрес 
 	0,  5,    	1,  	// время перезапуска  
-	26, 998,  	1,  	// частота  
+	16, 998,  	1,  	// частота  
 	1,  3,    	1,  	// номер аппарата  
 	0,  1,   	1,  	// контроль выходного сигнала  
 	0,  22,  	1,  	// порог предупреждения по КЧ  
@@ -844,14 +844,18 @@ __flash unsigned __flash char *Menu20line2[] = {Menu20line2test11, Menu20line2te
 __flash unsigned char Menu20gr10[] = "выкл";
 __flash unsigned char Menu20gr11[] = "КЧ1";
 __flash unsigned char Menu20gr12[] = "КЧ2";
-__flash unsigned char Menu20gr13[] = "ошиб";
-#define dNumGrCH 3
+__flash unsigned char Menu20gr13[] = "КЧ3";
+__flash unsigned char Menu20gr14[] = "КЧ4";
+__flash unsigned char Menu20gr15[] = "ошиб";
+#define dNumGrCH 5
 __flash unsigned __flash char *Menu20gr1[] = 
 {
 	Menu20gr10,
 	Menu20gr11,
 	Menu20gr12,
-	Menu20gr13
+	Menu20gr13,
+	Menu20gr14,
+	Menu20gr15
 };
 
 __flash unsigned char Menu20gr21[] = "выкл";
