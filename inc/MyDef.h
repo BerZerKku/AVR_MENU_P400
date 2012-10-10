@@ -3,7 +3,12 @@
 //версия прошивки, если первый ноль - то убираем
 #define Insertion 0x0750
 
-#define DEB false /*работа(false)/отладка(true)*/
+// выставочный вариант
+// отключение неисправностей, отключение контроля версии
+// константные измеряемые параметры
+#define EXHIBITION
+
+#define DEB false/*работа(false)/отладка(true)*/
 #if DEB
   #include "debug.h"
 #endif

@@ -3393,17 +3393,23 @@ static void LCDwork(void)
 						if (MenuLevel != LVL_DATA_TIME) 
 						{
 							FuncClearCharLCD(1,11,2);
-							while(!bViewParam[NumberAskMeasuring-1]){ //проверка на запрет отображения пар-ра
+							while(!bViewParam[NumberAskMeasuring-1])
+							{ //проверка на запрет отображения пар-ра
 								NumberAskMeasuring++;
-								if (NumberAskMeasuring>10) NumberAskMeasuring=1;
+								if (NumberAskMeasuring > 10) 
+									NumberAskMeasuring=1;
 							}
-							if ((!bParamValue)&&((NumberAskMeasuring==1)||(NumberAskMeasuring==9)||(NumberAskMeasuring==10))){
-								if (NumberAskMeasuring==1) LCDprint(1,13,2,Iline1H,1);
-								else
-									if (NumberAskMeasuring==9) LCDprint(1,13,2,KovH,1);
-									else
-										if (NumberAskMeasuring==10) LCDprint(1,13,2,PkH,1);
-							}else LCDprint(1,13,2,Measuring[NumberAskMeasuring-1],1);
+							if ((!bParamValue)&&((NumberAskMeasuring==1)||(NumberAskMeasuring==9)||(NumberAskMeasuring==10)))
+							{
+								if (NumberAskMeasuring == 1) 
+									LCDprint(1,13,2,Iline1H,1);
+								else if (NumberAskMeasuring == 9) 
+									LCDprint(1,13,2,KovH,1);
+								else if (NumberAskMeasuring == 10) 
+									LCDprint(1,13,2,PkH,1);
+							}
+							else 
+								LCDprint(1,13,2,Measuring[NumberAskMeasuring-1],1);
 							
 							if (cNumLine==3)
 							{ //если трех-концевая линия, то выведем 1 или 2 перед Uк/Uз

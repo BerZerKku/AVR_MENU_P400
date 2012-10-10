@@ -616,6 +616,13 @@ void FParamPrd(unsigned char command){
  */
 void FCurrentState(void)
 {
+#ifdef EXHIBITION
+	Rec_buf_data_uart[4] = 2;
+	Rec_buf_data_uart[5] = 1;
+	for(char i = 6; i <= 15; i++)
+		Rec_buf_data_uart[i] = 0;
+#endif	
+	
 	for (char i = 0; i < 4; i++)
 	{ //сделаем проверку принятого состояния и перепишем значение в массив
     	if (Rec_buf_data_uart[(i * 3) + 4] > 0x05)
@@ -640,6 +647,11 @@ void FCurrentState(void)
  */
 void FGlobalCurrentState(void)
 {
+#ifdef EXHIBITION
+	for (char i = 4; i <= 23; i++)
+		Rec_buf_data_uart[i] = 0;
+#endif
+	
 	for (char i = 0; i < 20; i++) 
 		GlobalCurrentState[i] = Rec_buf_data_uart[i + 4];
 	
@@ -884,9 +896,16 @@ void vfOptParam(void)
 	sParamOpt.reserv = tmp;
 }
 
-void FMeasureParam(void){
+void FMeasureParam(void)
+{
+#ifdef EXHIBITION
+	for(char i = 5; i <= 18; i++)
+		Rec_buf_data_uart[i] = 0;
+#endif	
+	
 	unsigned int itmp;
-	if (Rec_buf_data_uart[4]==0x00){  //пришли все параметры
+	if (Rec_buf_data_uart[4]==0x00)
+	{  //пришли все параметры
 		//коэффициент перекрытия
 		fDopCodeToChar(Iline1,2,2,1,Rec_buf_data_uart[5]);
 		HexToViewHex(Iline1H,3,Rec_buf_data_uart[5]);
@@ -895,7 +914,7 @@ void FMeasureParam(void){
 		IlineValue=(Rec_buf_data_uart[7]<<8)+Rec_buf_data_uart[8];  //значение для вычисления коррекции
 		fIntCodeToChar(Iline2,3,1,1,IlineValue,1000);
 		//напряжение на линии
-		Uline[5]=Rec_buf_data_uart[10]/10;
+		Uline[5]=Rec_buf_data_uart[10] / 10;
 		UlineValue=((signed int) Rec_buf_data_uart[9])*10 + Uline[5];  //значение для вычисления коррекции
 		if ((UlineValue>999)||(UlineValue<0)||(Uline[5]>9)){
 			UlineValue=0;
