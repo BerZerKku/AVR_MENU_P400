@@ -77,7 +77,6 @@ enum eMENUctrlCom
 	CTRL_COM_AC_START,
 	
 	// старший бит 1, ком. управления 0x72
-	
 	CTRL_COM_RESET_SELF = 0x81,
 	CTRL_COM_RESET_REMOTE,
 	CTRL_COM_RESET_REMOTE_2,

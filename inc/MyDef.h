@@ -1,12 +1,12 @@
 #ifndef __MY_DEF
 #define __MY_DEF
 //версия прошивки, если первый ноль - то убираем
-#define Insertion 0x0750
+#define Insertion 0x0751
 
 // выставочный вариант
 // отключение неисправностей, отключение контроля версии
 // константные измеряемые параметры
-#define EXHIBITION
+//#define EXHIBITION
 
 #define DEB false/*работа(false)/отладка(true)*/
 #if DEB
