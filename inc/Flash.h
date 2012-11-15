@@ -1,6 +1,9 @@
 #ifndef __MY_FLASH
 #define __MY_FLASH
 
+#include "MyDef.h"
+#include "Menu.h"
+
 __flash unsigned char fNoIzmI[] = "I1= --- ";
 __flash unsigned char fAC_0[] = "ошиб.АК ";
 __flash unsigned char fAC_1[] = "авто.АК ";
@@ -724,6 +727,21 @@ __flash unsigned char Menu1GLobalError20_1[] 	= "АК-Нет ответа   ";
 
 //общие предупреждения
 __flash unsigned char Menu1GlobalWarning1[] 	= "Установите часы ";
+__flash unsigned char Menu1GlobalWarning2[]		= "Отказ резерв.лин";
+__flash unsigned char Menu1GlobalWarning10[]	= "Удал.пост неиспр";
+__flash unsigned char Menu1GlobalWarning20[] 	= "Удал.ПРД неиспр.";
+__flash unsigned char Menu1GlobalWarning40[] 	= "Удал.ПРМ неиспр.";
+__flash unsigned __flash char *Menu1GlobalWarningT[] =
+{	
+	Menu1GlobalWarning1,
+	Menu1GlobalWarning2,
+	UnknownErrorT,
+	UnknownErrorT,
+	Menu1GlobalWarning10,
+	Menu1GlobalWarning20,
+	Menu1GlobalWarning40,
+	UnknownErrorT
+};
 
 //ошибки Защиты
 __flash unsigned char Menu1PostError1[]		= "Нет блока БСЗ   ";
@@ -802,6 +820,7 @@ __flash unsigned __flash char *Menu1PrmErrorT[] =
 
 //предупреждения Приемника
 __flash unsigned char Menu1PrmWarning1[] = "Сниж. уровня ПРМ";
+
 //ошибки Передатчика
 __flash unsigned char Menu1PrdError1[]	= "Нет блока БСК   ";
 __flash unsigned char Menu1PrdError2[]	= "Неиспр.верс.БСК ";
@@ -830,39 +849,109 @@ __flash unsigned __flash char *Menu1PrdErrorT[] =
 };
 
 //Тестовый режим 1
-__flash unsigned char Menu20line2test11[] = "Гр1:";
-__flash unsigned char Menu20line2test12[] = "Гр2:";
-__flash unsigned char Menu20line2test13[] = "1Гр1:";
-__flash unsigned char Menu20line2test14[] = "2Гр1:";
-__flash unsigned char Menu20line2test15[] = "1Гр2:";
-__flash unsigned char Menu20line2test16[] = "2Гр2:";
-__flash unsigned char Menu201line3test1[] = "Группа 1";
-__flash unsigned char Menu202line3test1[] = "Группа 2";
-__flash unsigned __flash char *Menu20line3[] = {Menu201line3test1, Menu202line3test1};
-__flash unsigned __flash char *Menu20line2[] = {Menu20line2test11, Menu20line2test12};
-
-__flash unsigned char Menu20gr10[] = "выкл";
-__flash unsigned char Menu20gr11[] = "КЧ1";
-__flash unsigned char Menu20gr12[] = "КЧ2";
-__flash unsigned char Menu20gr13[] = "КЧ3";
-__flash unsigned char Menu20gr14[] = "КЧ4";
-__flash unsigned char Menu20gr15[] = "ошиб";
-#define dNumGrCH 5
-__flash unsigned __flash char *Menu20gr1[] = 
+__flash unsigned char Menu20gr1n[] = "Гр1:";
+__flash unsigned char Menu20gr2n[] = "Гр2:";
+__flash unsigned char Menu20grName1[] = "Группа 1";
+__flash unsigned char Menu20grName2[] = "Группа 2";
+__flash strNameToVal Menu20grName[] = 
 {
-	Menu20gr10,
-	Menu20gr11,
-	Menu20gr12,
-	Menu20gr13,
-	Menu20gr14,
-	Menu20gr15
+	{Menu20grName1, 1},
+	{Menu20grName2, 2}
 };
 
-__flash unsigned char Menu20gr21[] = "выкл";
-__flash unsigned char Menu20gr22[] = "РЗ";
-__flash unsigned char Menu20gr23[] = "ошиб";
-#define sNumGrRZ 2
-__flash unsigned __flash char *Menu20gr2[] = {Menu20gr21, Menu20gr22, Menu20gr23};
+__flash unsigned char Menu20gr_off[] = "выкл";
+__flash unsigned char Menu20gr_err[] = "ошиб";
+__flash unsigned char Menu20gr_def[] = "РЗ";
+__flash unsigned char Menu20gr_cf1[] = "КЧ1";
+__flash unsigned char Menu20gr_cf2[] = "КЧ2";
+__flash unsigned char Menu20gr_cf3[] = "КЧ3";
+__flash unsigned char Menu20gr_cf4[] = "КЧ4";
+__flash unsigned char Menu20gr_com1[] = "Ком1";
+__flash unsigned char Menu20gr_com2[] = "Ком2";
+__flash unsigned char Menu20gr_com3[] = "Ком3";
+__flash unsigned char Menu20gr_com4[] = "Ком4";
+__flash unsigned char Menu20gr_com5[] = "Ком5";
+__flash unsigned char Menu20gr_com6[] = "Ком6";
+__flash unsigned char Menu20gr_com7[] = "Ком7";
+__flash unsigned char Menu20gr_com8[] = "Ком8";
+__flash unsigned char Menu20gr_com9[] = "Ком9";
+__flash unsigned char Menu20gr_com10[] = "Км10";
+__flash unsigned char Menu20gr_com11[] = "Км11";
+__flash unsigned char Menu20gr_com12[] = "Км12";
+__flash unsigned char Menu20gr_com13[] = "Км13";
+__flash unsigned char Menu20gr_com14[] = "Км14";
+__flash unsigned char Menu20gr_com15[] = "Км15";
+__flash unsigned char Menu20gr_com16[] = "Км16";
+__flash unsigned char Menu20gr_com17[] = "Км17";
+__flash unsigned char Menu20gr_com18[] = "Км18";
+__flash unsigned char Menu20gr_com19[] = "Км19";
+__flash unsigned char Menu20gr_com20[] = "Км20";
+__flash unsigned char Menu20gr_com21[] = "Км21";
+__flash unsigned char Menu20gr_com22[] = "Км22";
+__flash unsigned char Menu20gr_com23[] = "Км23";
+__flash unsigned char Menu20gr_com24[] = "Км24";
+__flash unsigned char Menu20gr_com25[] = "Км25";
+__flash unsigned char Menu20gr_com26[] = "Км26";
+__flash unsigned char Menu20gr_com27[] = "Км27";
+__flash unsigned char Menu20gr_com28[] = "Км28";
+__flash unsigned char Menu20gr_com29[] = "Км29";
+__flash unsigned char Menu20gr_com30[] = "Км30";
+__flash unsigned char Menu20gr_com31[] = "Км31";
+__flash unsigned char Menu20gr_com32[] = "Км32";
+
+// начальные номера для сигналов
+// защиты
+#define NDEF 0
+// контрольных частот
+#define NCF (1 - 1)
+// команд
+#define NCOM (3 - 1)
+
+// массив сигналов в Тестах 1, 2
+// strNameToVal.name - имя сигнала
+// strNameToVal.val - номер отправляемый в БСП при смене сигнала в Тест 1
+__flash strNameToVal Menu20gr[] = 
+{
+	{Menu20gr_err, 0xFF},
+	{Menu20gr_off, 0},
+	{Menu20gr_def, NDEF + 1},
+	{Menu20gr_cf1, NCF + 1},
+	{Menu20gr_cf2, NCF + 2},
+	{Menu20gr_cf3, NCF + 3},
+	{Menu20gr_cf4, NCF + 4},
+	{Menu20gr_com1, NCOM + 1},
+	{Menu20gr_com2, NCOM + 2},
+	{Menu20gr_com3, NCOM + 3},
+	{Menu20gr_com4, NCOM + 4},
+	{Menu20gr_com5, NCOM + 5},
+	{Menu20gr_com6, NCOM + 6},
+	{Menu20gr_com7, NCOM + 7},
+	{Menu20gr_com8,	NCOM + 8},
+	{Menu20gr_com9, NCOM + 9},
+	{Menu20gr_com10, NCOM + 10},
+	{Menu20gr_com11, NCOM + 11},
+	{Menu20gr_com12, NCOM + 12},
+	{Menu20gr_com13, NCOM + 13},
+	{Menu20gr_com14, NCOM + 14},
+	{Menu20gr_com15, NCOM + 15},
+	{Menu20gr_com16, NCOM + 16},
+	{Menu20gr_com17, NCOM + 17},
+	{Menu20gr_com18, NCOM + 18},
+	{Menu20gr_com19, NCOM + 19},
+	{Menu20gr_com20, NCOM + 20},
+	{Menu20gr_com21, NCOM + 21},
+	{Menu20gr_com22, NCOM + 22},
+	{Menu20gr_com23, NCOM + 23},
+	{Menu20gr_com24, NCOM + 24},
+	{Menu20gr_com25, NCOM + 25},
+	{Menu20gr_com26, NCOM + 26},
+	{Menu20gr_com27, NCOM + 27},
+	{Menu20gr_com28, NCOM + 28},
+	{Menu20gr_com29, NCOM + 29},
+	{Menu20gr_com30, NCOM + 30},
+	{Menu20gr_com31, NCOM + 31},
+	{Menu20gr_com32, NCOM + 32}
+};
 
 __flash unsigned char Menu201line4[] = "Тест 1";
 __flash unsigned char Menu202line4[] = "Тест 2";

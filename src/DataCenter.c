@@ -651,9 +651,19 @@ void FGlobalCurrentState(void)
 	for (char i = 4; i <= 23; i++)
 		Rec_buf_data_uart[i] = 0;
 #endif
-	
+
 	for (char i = 0; i < 20; i++) 
 		GlobalCurrentState[i] = Rec_buf_data_uart[i + 4];
+
+	/*
+#if DEB // установка предупреждения/неисправности
+	for (char i = 0; i <= 20; i++)
+		GlobalCurrentState[i] = 0;
+	
+	GlobalCurrentState[14] = 0;
+	GlobalCurrentState[15] = 0x40;
+#endif
+	*/
 	
 	bGlobalAvar = (GlobalCurrentState[12] != 0) || (GlobalCurrentState[13] != 0) ? true : false;
 	bGlobalWarn = (GlobalCurrentState[14] != 0) || (GlobalCurrentState[15] != 0) ? true : false;
@@ -1242,216 +1252,96 @@ void FArchive(void){
 
 extern strMenuTest sMenuTest;
 
-void FTest1(unsigned char com){
-	//4-ый байт: 0xXXdc XXba ; a- кч1, b- кч2, с- РЗ1, d- РЗ2
-	//5-ой байт: 0xhgfedcba ; a- 1ком, h- 8ком
-	//6-ой байт: 0xhgfedcba ; a- 9ком, h- 16ком
-	//7-ой байт: 0xhgfedcba ; a- 1ком, h- 8ком
-	//8-ой байт: 0xhgfedcba ; a- 9ком, h- 16ком
-	gr1=0; 
-	gr2=0;
-	gr21=0; 
-	gr22=0;
+/** Определение сигналов в тестовых режимах
+ *	Определяет первый выставленный сигнал в каждой из групп
+* 	Например: при наличии Ком1, Ком2, Ком10 - определена будет только Ком1
+ * 	@param com Номер команды (на данный момент не используется)
+ *	@return Нет
+ */
+void FTest1(unsigned char com)
+{
+	// 4-ый байт: 0x76543210 ;
+	// 	бит 0 - кч1 
+	//	бит 1 -	кч2
+	//	бит 2 - кч3
+	//	бит 3 - кч4
+	//	бит 4 - РЗ1
+	//	бит 5 - РЗ2
+	// 5-ой байт: 0xhgfedcba ; a- 1ком, h- 8ком
+	// 6-ой байт: 0xhgfedcba ; a- 9ком, h- 16ком
+	// 7-ой байт: 0xhgfedcba ; a- 17ком, h- 24ком
+	// 8-ой байт: 0xhgfedcba ; a- 25ком, h- 32ком
+	uint8_t sign = 0;
+	uint8_t tmp = 0;
 	
-	// определим номер группы КЧ и РЗ
-	uchar tmp;
-	
-	for(uchar j = 0; j < sMenuTest.num; j++)
+	// Изначально проверим наличие сигналов КЧ
+	// Если их нет и есть прм/прд,  проверим наличие сигналов команд
+	sign = SIGN_OFF;
+	tmp = Rec_buf_data_uart[4];
+	if (tmp & 0x0F)
 	{
-		switch(sMenuTest.sT[j].type)
-		{
-			case 1:	// аппарат 1
-			case 2:
-			tmp = Rec_buf_data_uart[4];
-			break;
-			case 3:	
-			case 4:	// аппарат 2
-			tmp = Rec_buf_data_uart[9];
-			break;
-		}
 		
-		switch(sMenuTest.sT[j].type)
+		if (tmp & 0x01)
+			sign = SIGN_CF1;	
+		else if (tmp & 0x02)
+			sign = SIGN_CF2;
+		
+		// В случае трехконцевой линии
+		// проверим наличие КЧ3 и КЧ4 
+		if ( (cNumLine == 3) && (sign == SIGN_OFF) )
 		{
-			case 1:
-			case 3:	// группа 1
-			if ((tmp & 0x0F) > 0)
+			if (tmp & 0x04)
+				sign = SIGN_CF3;
+			else if (tmp & 0x08)
+				sign = SIGN_CF4;
+		}
+	}
+	else if ( (cNumComR > 0) || (cNumComT > 0) )
+	{
+		// максимаьлное кол-во команд
+		signed char num_com = (cNumComR > cNumComT) ? cNumComR : cNumComT;
+		// указатель на байт данных с командами
+		uint8_t *ptr = &Rec_buf_data_uart[5];
+		// номер первой команды в текущем байте данных
+		uint8_t cur_sign = SIGN_COM1;
+		
+		// Проверяем текущий байт данных на наличие команд
+		// При первом обнаружении, завершаем поиск
+		do
+		{
+			tmp = *ptr++;
+			
+			if (tmp > 0)
 			{
-				if (cNumLine == 2)
+				for(uint8_t i = 0; i < 8; i++)
 				{
-					if (tmp & 0x01)
-						sMenuTest.sT[j].val = 1;
-					else if (tmp & 0x02)
-						sMenuTest.sT[j].val = 2;
-					else
-						sMenuTest.sT[j].val = 5;
-				}
-				else if (cNumLine == 3)
-				{
-					if (tmp & 0x01)
-						sMenuTest.sT[j].val = 1;
-					else if (tmp & 0x02)
-						sMenuTest.sT[j].val = 2;
-					else if (tmp & 0x04)
-						sMenuTest.sT[j].val = 3;
-					else if (tmp & 0x08)
-						sMenuTest.sT[j].val = 4;
-					else
-						sMenuTest.sT[j].val = 5;
+					if (tmp & (1 << i))
+					{
+						sign = cur_sign + i;
+						break;
+					}
 				}
 			}
+			
+			cur_sign += 8;		
+			if (sign == SIGN_OFF)
+				num_com -= 8;
 			else
-				sMenuTest.sT[j].val = 0;
-			break;
-			case 2:
-			case 4:	// группа 2
-			if (tmp & 0xF0)
-			{
-				if (tmp & 0x10)
-					sMenuTest.sT[j].val = 1;
-				else
-					sMenuTest.sT[j].val = 2;
-			}
-			else
-				sMenuTest.sT[j].val = 0;
-			break;	
+				num_com = 0;
 		}
+		while (num_com > 0);
+		
 	}
+	sMenuTest.cf_val = sign;
 	
-	
-    for(schar i = 0; i < 4 ; i++)
-    {
-        if (Rec_buf_data_uart[4] & (1<<i))
-        {
-            gr1 = i + 1;
-            break;
-        }
-    }
-	
-	if (Rec_buf_data_uart[4] & 0x10) 
-		gr2=1;
-	
-	if (cNumComT>0)
+	// Считаем сигнал группы 2, если есть защита
+	if (bDef)
 	{
-		if (Rec_buf_data_uart[5]!=0)
-		{
-			gr1=3;
-			do
-			{
-				gr1++;
-				Rec_buf_data_uart[5]=Rec_buf_data_uart[5]>>1;
-			}
-			while(Rec_buf_data_uart[5]!=0);
-		}
+		tmp = Rec_buf_data_uart[4];
+		sign = (tmp & 0x10) ? SIGN_DEF : SIGN_OFF;
+		
+		sMenuTest.def_val = sign;
 	}
-	if (cNumComT>8)
-	{
-		if (Rec_buf_data_uart[6]!=0)
-		{
-			gr1=11;
-			do
-			{
-				gr1++;
-				Rec_buf_data_uart[6]=Rec_buf_data_uart[6]>>1;
-			}
-			while(Rec_buf_data_uart[6]!=0);
-		}
-	}
-	
-	if (cNumComT>16)
-	{
-		if (Rec_buf_data_uart[7]!=0)
-		{
-			gr1=19;
-			do
-			{
-				gr1++;
-				Rec_buf_data_uart[7]=Rec_buf_data_uart[7]>>1;
-			}
-			while(Rec_buf_data_uart[7]!=0);
-		}
-	}
-	
-	if (cNumComT>24)
-	{
-		if (Rec_buf_data_uart[8]!=0){
-			gr1=27;
-			do
-			{
-				gr1++;
-				Rec_buf_data_uart[8]=Rec_buf_data_uart[8]>>1;
-			}
-			while(Rec_buf_data_uart[8]!=0);
-		}
-	}
-	//для второго приемника, если 3-х концевая с командами
-	if ((cNumLine==3)&&(cNumComR2!=0))
-	{
-		
-		for(schar i = 0; i < 4 ; i++)
-		{
-			if (Rec_buf_data_uart[9] & (1<<i))
-			{
-				gr21 = i + 1;
-				break;
-			}
-		}
-		
-		if (Rec_buf_data_uart[9]&0x10) 
-			gr22=1;
-		
-		if (cNumComR2>0)
-		{
-			if (Rec_buf_data_uart[10]!=0){
-				gr21=3;
-				do
-				{
-					gr21++;
-					Rec_buf_data_uart[10]=Rec_buf_data_uart[10]>>1;
-				}
-				while(Rec_buf_data_uart[10]!=0);
-			}
-		}
-		
-		if (cNumComR2>8)
-		{
-			if (Rec_buf_data_uart[11]!=0){
-				gr21=11;
-				do
-				{
-					gr21++;
-					Rec_buf_data_uart[11]=Rec_buf_data_uart[11]>>1;
-				}
-				while(Rec_buf_data_uart[11]!=0);
-			}
-		}
-		
-		if (cNumComR2>16)
-		{
-			if (Rec_buf_data_uart[12]!=0){
-				gr21=19;
-				do
-				{
-					gr21++;
-					Rec_buf_data_uart[12]=Rec_buf_data_uart[12]>>1;
-				}
-				while(Rec_buf_data_uart[12]!=0);
-			}
-		}
-		
-		if (cNumComR2>24)
-		{
-			if (Rec_buf_data_uart[13]!=0){
-				gr21=27;
-				do
-				{
-					gr21++;
-					Rec_buf_data_uart[13]=Rec_buf_data_uart[13]>>1;
-				}
-				while(Rec_buf_data_uart[13]!=0);
-			}
-		}
-	}
-	
 	
 	RecivVar=1;
 	LCD2new=1;
@@ -1475,15 +1365,14 @@ void VersDevice(void)
 	sArchive.NumDev=0;  //изначально кол-во устройств=0:
 	sArchive.Dev[0]=0;  //для вывода в архиве "события", всегда должно быть 0
 	
-#if DEB
-	#if !AUT
-		Rec_buf_data_uart[4]=DEF;
-		Rec_buf_data_uart[5]=PRM1;
-		Rec_buf_data_uart[6]=PRM2;
-		Rec_buf_data_uart[7]=PRD;
-		Rec_buf_data_uart[8]=LIN;
-		Rec_buf_data_uart[9]=TYP;
-	#endif
+#if ( (DEB) && (!AUT) ) // принудительная установка типа аппарата
+	#warning Включена принудительная установка типа аппарата!!!
+	Rec_buf_data_uart[4] = DEF;
+	Rec_buf_data_uart[5] = PRM1;
+	Rec_buf_data_uart[6] = PRM2;
+	Rec_buf_data_uart[7] = PRD;
+	Rec_buf_data_uart[8] = LIN;
+	Rec_buf_data_uart[9] = TYP;
 #endif
 	
 	// наличие ПОСТа	
@@ -1682,21 +1571,21 @@ void DataModBus(unsigned char NumberByte)
 		//for (i_dc=0; i_dc<NumberByte; i_dc++) Tr_buf_data_uart1[i_dc]=Rec_buf_data_uart[i_dc];
 		//TransDataInf1(Tr_buf_data_uart1[2], Tr_buf_data_uart1[3]);
 		
-#if ((DEB)&&(PK))
-		if ( (ALR)	||
-			 (Rec_buf_data_uart[2] == CR1)	||
-			 (Rec_buf_data_uart[2] == CR2)	||
-			 (Rec_buf_data_uart[2] == CR3)	||
-			 (Rec_buf_data_uart[2] == CR4)	||
-			 ((Rec_buf_data_uart[2] & 0xF0) == MSR)
-			)
-		{
-			for (i_dc = 0; i_dc < NumberByte; i_dc++) 
-				Tr_buf_data_uart1[i_dc] = Rec_buf_data_uart[i_dc];
-			TransDataInf1(Tr_buf_data_uart1[2], Tr_buf_data_uart1[3]);
-		}
+#if ( (DEB) && (PK) )	// пересылка сообщений из БСП на ПК
+	#warning Включена пересылка сообщений из БСП на ПК!!!
+	if ( (ALR)	||
+		 (Rec_buf_data_uart[2] == CR1)	||
+		 (Rec_buf_data_uart[2] == CR2)	||
+		 (Rec_buf_data_uart[2] == CR3)	||
+		 (Rec_buf_data_uart[2] == CR4)	||
+		 ((Rec_buf_data_uart[2] & 0xF0) == MSR)
+		)
+	{
+		for (i_dc = 0; i_dc < NumberByte; i_dc++) 
+			Tr_buf_data_uart1[i_dc] = Rec_buf_data_uart[i_dc];
+		TransDataInf1(Tr_buf_data_uart1[2], Tr_buf_data_uart1[3]);
+	}
 #endif
-		
 		
 		if (PCready==2)
 		{ 

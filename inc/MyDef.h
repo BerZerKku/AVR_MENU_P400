@@ -1,16 +1,17 @@
 #ifndef __MY_DEF
 #define __MY_DEF
 //версия прошивки, если первый ноль - то убираем
-#define Insertion 0x0751
+#define Insertion 0x0752
 
 // выставочный вариант
 // отключение неисправностей, отключение контроля версии
 // константные измеряемые параметры
 //#define EXHIBITION
 
-#define DEB false/*работа(false)/отладка(true)*/
-#if DEB
-  #include "debug.h"
+#define DEB true/*работа(false)/отладка(true)*/
+#if DEB // подключение файла "debug.h" 
+	#warning "DEBUG MODE ON!!!"
+	#include "debug.h"
 #endif
 
 //Взять старший байт int
@@ -73,12 +74,6 @@
 //остановка таймера 0
 #define StopT0 TCCR0=0
 
-//для вывода на индикатор
-#define DataTimeNew 1
-#define GlobalCurrentStateNew 2
-#define CurrentStateNew 3
-#define Menu1all 4
-
 //*100мс , время ожидания запроса с ПК
 #define PC_wait 15
 
@@ -110,21 +105,42 @@ struct strMenuGlbParam
 	uchar name[20];		// номер названия , из списка во флэш
 };
 
-struct strTest
+//struct strTest
+//{
+//	uchar type;					//тип
+//	uchar val;					//значение
+//	uchar __flash* __flash* sp;	//перечень
+//	uchar __flash* name;		//имя пункта
+//	uchar num;					//кол-во записей в группе
+//	uchar punkt[3];				//номера пунктов
+//};
+//
+//struct strMenuTest
+//{
+//	strTest sT[2];		//структуры групп
+//	uchar num;			//кол-во групп на прием
+//	uchar numTr;		//кол-во групп на передачу
+//};
+
+struct strNameToVal
 {
-	uchar type;					//тип
-	uchar val;					//значение
-	uchar __flash* __flash* sp;	//перечень
-	uchar __flash* name;		//имя пункта
-	uchar num;					//кол-во записей в группе
-	uchar punkt[3];				//номера пунктов
+	uchar __flash *name;
+	uchar val;
 };
 
 struct strMenuTest
 {
-	strTest sT[4];		//структуры групп
-	uchar num;			//кол-во групп на прием
-	uchar numTr;		//кол-во групп на передачу
+	uchar gr_items[2];			// имеющиеся группы сигналов
+	uchar gr_items_max;			// кол-во групп сишналов
+			
+	
+	uchar def_items[2];			// массив имя сигнала защиты <-> значение 
+	uchar def_items_max;		// максимальное кол-во эл-ов защиты
+	uchar def_val;				// текущее значение сигнала защиты		
+	
+	uchar cf_items[40];			// массив имя сигнала кч <-> значение 
+	uchar cf_items_max;			// максимальное кол-во эл-ов кч
+	uchar cf_val;				// текущее значение сигнала КЧ
 };
 
 struct strParamPVZUE

@@ -1953,6 +1953,9 @@
         <name>$PROJ_DIR$\inc\InterfaceS.h</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\inc\Menu.h</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\inc\ModBus.h</name>
       </file>
       <file>

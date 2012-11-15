@@ -12,7 +12,6 @@
 #include "Flash.h"
 #include "Menu.h"
 
-static void FuncPrintSignInTest		(uint8_t param, uint8_t line, uint8_t start);
 static char itoa					(uint8_t start, uint16_t val, uint8_t buf[]);
 static void FuncViewValue			(uint8_t numparam);
 static void PressSharp				(void);
@@ -243,7 +242,10 @@ unsigned char NumberAskMeasuring=0x01;
 unsigned char InputSelectValue;
 unsigned char SelectValue;
 //unsigned char MaxSelectValue, MinSelectValue;
-unsigned char __flash* __flash* MassSelectValue;
+unsigned char __flash* __flash *MassSelectValue;
+strNameToVal __flash *MassSelectValueRam; 
+uint8_t *MassItems;
+
 unsigned char TrParam, TrValue;
 unsigned int TrValueD;
 
@@ -300,33 +302,11 @@ uint8_t cViewParam[11]="          ";
 */
 uchar cNumParam;
 
-
-static void FuncPrintSignInTest(uint8_t param, uint8_t line, uint8_t start)
-{//вывод передаваемого/принимаемого сигнала в тесте
-	
-    if (param == 0)
-        LCDprintf(line , start , 2 , Menu20gr1[0] , 1);
-    else
-        if (param <= cNumKF)
-        {
-            LCDprintf(line , start , 2 , Menu20gr1[1] , 1);
-            LCDprintDEC(line , (start + 2) , param);
-        }
-        else
-            if (param < (1 + cNumKF + cNumComT))
-            {
-                LCDprintf(line , start , 2 ,  Menu20gr1[2] , 1);
-                LCDprintDEC(line , (start + 3) , (param - 3));
-            }
-            else
-                LCDprintf(line , start , 2 , Menu11Err , 1);
-}//end void FuncPrintSugnInTest( )
-
-
-
-/* преобразование целого числа в строку
- *
- *
+/**	Преобразование целого числа в строку
+ *	@param start Начальный адрес вывода в массиве
+ *	@param val Преобразуемое значение
+ *	@param buf[] Буфер
+ *	@return Кол-во символов записанных в буфер
  */
 static char itoa(uint8_t start, uint16_t val, uint8_t buf[])
 {	
@@ -622,31 +602,16 @@ static void FuncInpCorrParam(void)
 //фунцкия выбора значения параметра из списка
 static void FuncSelectValue(void)
 {
-	LCDprintf(4,1,2,MenuInputData,1); //выводим на экран "Ввод:"
-	FuncClearCharLCD(4,6,15); //очищаем 4-ую строку
-	/*
-    if ((MenuLevel == LVL_TEST) && (ShiftMenu == 0))
-    {//в Тестовом меню, выбор идет не из заданного списка, а формируется
-	FuncPrintSignInTest(InputSelectValue , 4 , 7);
-}
-    else*/
-	LCDprintf(4,7,2,MassSelectValue[InputSelectValue],1);
+	LCDprintf(4, 1, 2, MenuInputData, 1); 	//выводим на экран "Ввод:"
+	FuncClearCharLCD(4, 6, 15); 			//очищаем 4-ую строку
+	LCDprintf(4, 7, 2, MassSelectValue[InputSelectValue], 1);
 	
 	switch(PressKey)
     {
-        case 'U': {
+        case 'U': 
+		{
             if (InputSelectValue > MinValue) InputSelectValue--;
-			
-            if (MenuLevel == LVL_TEST)
-            {//меню Тестов
-                if (cTypeLine == 2) // если ВОЛС, то есть только КЧ1
-                    if ((InputSelectValue > 1) && (InputSelectValue < (1 + cNumKF)))
-                        InputSelectValue = 1;
-                if (cNumLine == 2)
-                    if ((InputSelectValue > 2) && (InputSelectValue < (1 + cNumKF)))
-                        InputSelectValue = 1;
-            }
-			
+
             if (MenuLevel == LVL_REGIME)
             {//в меню установки режимов
                 if ((cNumComT == 0) && (!bDef))
@@ -656,35 +621,35 @@ static void FuncSelectValue(void)
                         InputSelectValue--;
                 }
             }
-        }break;
-        case 'D': {
+        }
+		break;
+		
+        case 'D': 
+		{
             if (InputSelectValue < MaxValue)  InputSelectValue++;
-			
-			if (MenuLevel == LVL_TEST)
-            {//меню Тестов	
-                if ((cTypeLine == 2) && (InputSelectValue == 2))
-                    InputSelectValue = 1 + cNumKF; 								// если ВОЛС, то только КЧ1
-                if ((cNumLine == 2) && (InputSelectValue == 3))
-                    InputSelectValue = 1 + cNumKF; //если двухконцевая версия, то есть только КЧ1/КЧ2
-				
-            }
-			
-            if ( (cTypeLine == 2) && (InputSelectValue == 2) &&	(MenuLevel == LVL_TEST) )	//если ВОЛС, нет КЧ2 
-				InputSelectValue++;  
-			
+		
             if (MenuLevel == LVL_REGIME)  //в меню установки режимов
 			{
                 if ((cNumComT==0)&&(!bDef)){  //если нет поста и прд, надо убрать тест 1
                     if (((SelectValue==1)&&(InputSelectValue==2))||((SelectValue==2)&&(InputSelectValue==1))) InputSelectValue++;
                 }
 			}
-        }break;
-		case 'C': {
+        }
+		break;
+		
+		case 'C': 
+		{
 			WorkRate=0x00; LCDbufClMenu(); LCD2new=1; InputSelectValue=0x00;
 			MaxValue=0; MinValue=0;TrParam=0;
-		}break;
-		case '#': PressSharp(); break;
-		case 'E': {
+		}
+		break;
+		
+		case '#': 
+		PressSharp(); 
+		break;
+		
+		case 'E': 
+		{
 			switch(MenuLevel)
 			{
 				case LVL_PROTOCOL:
@@ -692,7 +657,9 @@ static void FuncSelectValue(void)
 					Protocol=InputSelectValue; TrParam=0;
 					eProtocol[0]=Protocol;eWrite=1;eAddressWrite=7;eMassiveWrite=eProtocol;
 					if (Protocol==0) {Tr_buf_data_uart[0]=0x55; Tr_buf_data_uart[1]=0xAA;}
-				}break;
+				}
+				break;
+				
 				case LVL_INFO:
 				{
 					if (SelectValue==1) 
@@ -702,39 +669,86 @@ static void FuncSelectValue(void)
 						else {bViewParam[0]=false;bViewParam[8]=false;bViewParam[9]=false;}
 					}
 					if (SelectValue==2) bParamValue=InputSelectValue;
-				}break;
+				}
+				break;
+				
 				case LVL_UPR:
 				{
 					TrParam = SelectValue;
-				}break;
+				}
+				break;
+				
 				default:
 				{
 					TrParam = SelectValue; TrValue = InputSelectValue;
-//					if (MenuLevel == LVL_REGIME)
-//					{  //меню режимов
-//						if (((SelectValue==1)&&(InputSelectValue>1))||((SelectValue==2)&&(InputSelectValue>0))) //ввод теста
-//							if (((cNumComR>0)&&(CurrentState[2]<0x04))||   /*если есть приемник, и он не в Тест1*/
-//								((cNumComT>0)&&(CurrentState[4]<0x04))||   /*если есть передатчик, и он не в Тест1*/
-//									((bDef)&&(CurrentState[0]<0x04)))   /*если есть Защита, и она не в Тест1*/
-//								TestDelay=Delay1; //сделаем паузу при вводе в Тест
-//					}	
 				}
 			}
 			LCDbufClMenu();
 			LCD2new=1;
 			WorkRate=0x00;
-		}break;
+		}
+		break;
     }
 	PressKey=0xF0;
 }
 
+/** Функция обработки нажатий кнопок при выборе значения из списка
+ *	имен связянного со списком значений
+ *	MassSelectValueRam - массив структур значение <-> список
+ *	MassItems - массив имеющихся пунктов из массива структур
+ *	MaxValue - кол-во элементов в массиве MassItems (напр. для [2] равен 2)
+ *	@param Нет
+ *	@return Нет
+ */
+static void FuncSelectValueList(void)
+{
+	FuncClearCharLCD(4, 6, 15); 			// очищаем 4-ую строку
+	LCDprintf(4, 1, 2, MenuInputData, 1); 	// выводим на экран "Ввод:"
+	LCDprintf(4, 7, 2, MassSelectValueRam[MassItems[InputSelectValue]].name, 1);
+	
+	switch(PressKey)
+	{
+		 case 'U': 
+		{
+            if (InputSelectValue > MinValue) 
+				InputSelectValue--;
+        }
+		break;
+		
+		case 'D': 
+		{
+            if (InputSelectValue < (MaxValue - 1))
+				InputSelectValue++;
+        }
+		break;
+		
+		case 'C': 
+		{
+			WorkRate=0x00; LCDbufClMenu(); LCD2new=1; InputSelectValue=0x00;
+			MaxValue=0; MinValue=0; TrParam=0;
+		}
+		break;
+		
+		case 'E':
+		{
+			TrParam = SelectValue; 
+			TrValue = MassSelectValueRam[MassItems[InputSelectValue]].val;
+			LCDbufClMenu();
+			LCD2new=1;
+			WorkRate=0x00;
+		}
+		break;
+	}
+	PressKey = 0xF0;
+}
+
 static void FuncInputDataTime(void)
 {
-	FuncClearCharLCD(4,6,15); //очищаем 4-ую строку
-	LCDprintf(4,1,2,MenuInputData,1); //выводим на экран "Ввод:"
-	LCDprint(4,7,2,InputDataTime,1);
+	FuncClearCharLCD(4, 6, 15); //очищаем 4-ую строку
+	LCDprintf(4, 1, 2, MenuInputData, 1); //выводим на экран "Ввод:"
+	LCDprint(4, 7, 2, InputDataTime, 1);
 	
-	if (NumberInputChar<8)
+	if (NumberInputChar < 8)
 	{ //вывод мигающего курсора
 		if (Winking==1)
 		{
@@ -1173,13 +1187,33 @@ static void FuncPressKey(void)
 		{
 			switch(MenuLevel)
 			{
-				case LVL_MENU: 			Menu_Journal(); 					break;	//журнал
-				case LVL_DATA_TIME: 	PressInMenuDataTime(1); 			break;  //ввод Даты/времени
-				case LVL_JOURNAL: 		PressInMenuJournal('1'); 			break;  // журнал\журнал событий
-				case LVL_SETUP: 		Menu_Setup_Regime(); 				break;  //переход в меню установить\Режим
-				case LVL_PARAM_VIEW:	Menu_ParamSetup_Def(LVL_DEF_VIEW); 	break; 	//переход в меню Просомтр пармаетров ПОСТА
-				case LVL_PARAM_SETUP: 	Menu_ParamSetup_Def(LVL_DEF_SETUP); break; 	//переход в установить\параметры\пост
-				case LVL_UPR: 			PressInMenuReset(1); 				break;
+				case LVL_MENU: 			//журнал	
+				Menu_Journal(); 					
+				break;	
+				
+				case LVL_DATA_TIME: 	//ввод Даты/времени	
+				PressInMenuDataTime(1); 			
+				break;  
+				
+				case LVL_JOURNAL: 		// журнал\журнал событий	
+				PressInMenuJournal('1'); 			
+				break;  
+				
+				case LVL_SETUP: 		//переход в меню установить\Режим	
+				Menu_Setup_Regime(); 				
+				break;  
+				
+				case LVL_PARAM_VIEW:	//переход в меню Просомтр пармаетров ПОСТА
+				Menu_ParamSetup_Def(LVL_DEF_VIEW); 	
+				break; 	
+				
+				case LVL_PARAM_SETUP: 	//переход в установить\параметры\пост
+				Menu_ParamSetup_Def(LVL_DEF_SETUP); 
+				break; 	
+				
+				case LVL_UPR: 			
+				PressInMenuReset(1); 				
+				break;
 			}
 		}break;
 		
@@ -1187,7 +1221,7 @@ static void FuncPressKey(void)
 		{
 			switch(MenuLevel)
 			{
-				case LVL_START:
+				case LVL_START:			
 				{  //прокрутка измеряемых параметров
 					if (cTypeLine==1)
 					{
@@ -1204,13 +1238,34 @@ static void FuncPressKey(void)
 						eMassiveWrite = eNumberAskMeasuring;
 					}
 				}break;
-				case LVL_MENU: 			Menu_DataTime(); 					break;	//заходим в пункт "Ввод дата/время"
-				case LVL_DATA_TIME: 	PressInMenuDataTime(2); 			break;  // ввод Времени
-				case LVL_JOURNAL: 		PressInMenuJournal('2'); 			break;  //журнал/ первое устройство
-				case LVL_SETUP: 		Menu_ParamSetup(LVL_PARAM_SETUP); 	break; 	//  Установить\Параметры
-				case LVL_PARAM_VIEW:	Menu_ParamSetup_Prm(LVL_PRM_VIEW); 	break;
-				case LVL_PARAM_SETUP: 	Menu_ParamSetup_Prm(LVL_PRM_SETUP);	break; 	// переход в Просмотр параметров\Приемник
-				case LVL_UPR: 			PressInMenuReset(2); 				break;
+				
+				case LVL_MENU: 			// заходим в пункт "Ввод дата/время"		
+				Menu_DataTime(); 					
+				break;	
+				
+				case LVL_DATA_TIME: 	 // ввод Времени
+				PressInMenuDataTime(2); 			
+				break; 
+				
+				case LVL_JOURNAL: 		// журнал/ первое устройство
+				PressInMenuJournal('2'); 			
+				break;  
+				
+				case LVL_SETUP: 		// Установить\Параметры
+				Menu_ParamSetup(LVL_PARAM_SETUP); 	
+				break; 	
+				
+				case LVL_PARAM_VIEW:	
+				Menu_ParamSetup_Prm(LVL_PRM_VIEW); 	
+				break;
+				
+				case LVL_PARAM_SETUP: 	// переход в Просмотр параметров\Приемник
+				Menu_ParamSetup_Prm(LVL_PRM_SETUP);	
+				break; 	
+				
+				case LVL_UPR: 			
+				PressInMenuReset(2); 				
+				break;
 			}
         }break;
 		
@@ -1218,22 +1273,50 @@ static void FuncPressKey(void)
 		{
 			switch(MenuLevel)
 			{
-				case LVL_MENU: 			Menu_Upr(); 						break;	//переход в меню/управление
-				case LVL_JOURNAL: 		PressInMenuJournal('3'); 			break; 	//журнал/ второе устройство
-				case LVL_SETUP:
-				{ //ВВод нового пароля
-					if (PressPassword==2)
+				case LVL_MENU: 		//переход в меню/управление	
+				Menu_Upr(); 						
+				break;	
+				
+				case LVL_JOURNAL: 	//журнал/ второе устройство	
+				PressInMenuJournal('3'); 			
+				break; 				
+				
+				case LVL_SETUP:	
+				{ 
+					//ВВод нового пароля
+					if (PressPassword==2)		
 					{
-						WorkRate=0x01;MaxNumberInputChar=4;ChangeMass=ePassword;ByteShift=0;MaxValue=0;MinValue=0;Discret=1;
+						WorkRate=0x01;
+						MaxNumberInputChar=4;
+						ChangeMass=ePassword;
+						ByteShift=0;
+						MaxValue=0;
+						MinValue=0;
+						Discret=1;
 					}
-					else if (PressPassword==1)
+					else if (PressPassword == 1)
 					{
-						WorkRate=0x01;MaxNumberInputChar=4;ChangeMass=ePassword;ByteShift=0;MaxValue=0;MinValue=0; Discret=1; //дискрет 1
+						WorkRate=0x01;
+						MaxNumberInputChar=4;
+						ChangeMass=ePassword;
+						ByteShift=0;
+						MaxValue=0;
+						MinValue=0; 
+						Discret=1; //дискрет 1
 					}
 				}break;
-				case LVL_PARAM_VIEW:  	Menu_ParamSetup_Prd(LVL_PRD_VIEW); 	break;	//Просмотр параметров\Приемник
-				case LVL_PARAM_SETUP: 	Menu_ParamSetup_Prd(LVL_PRD_SETUP); break; 	//переход Установить\Параметры\Передатчик
-				case LVL_UPR: 			PressInMenuReset(3); 				break;
+				
+				case LVL_PARAM_VIEW:  	//Просмотр параметров\Приемник
+				Menu_ParamSetup_Prd(LVL_PRD_VIEW); 	
+				break;	
+				
+				case LVL_PARAM_SETUP: 	//переход Установить\Параметры\Передатчик
+				Menu_ParamSetup_Prd(LVL_PRD_SETUP); 
+				break; 	
+				
+				case LVL_UPR: 			
+				PressInMenuReset(3); 				
+				break;
 			}
         }break;
         case '4':
@@ -1249,16 +1332,33 @@ static void FuncPressKey(void)
 						else 
 							LCDtimer = maxLCDtimer;
 					}
-				}break; 
+				}
+				break; 
 				
-				case LVL_MENU: 			Menu_Setup(); 						break; 	//вход в меню "Установить"
-				case LVL_JOURNAL: 		PressInMenuJournal('4'); 			break;  //журнал/ третье устройство
-				case LVL_SETUP: 		Menu_Setup_Test(); 					break; 	//переход в меню тестов
-				case LVL_PARAM_VIEW:	Menu_ParamSetup_Global(LVL_GLB_VIEW);break;
-				case LVL_PARAM_SETUP: 	Menu_ParamSetup_Global(LVL_GLB_SETUP);break;//переход в Просмотр параметров\общие (установить\общие)
+				case LVL_MENU: 			//вход в меню "Установить"	
+				Menu_Setup(); 						
+				break; 	
+				
+				case LVL_JOURNAL:		//журнал/ третье устройство 		
+				PressInMenuJournal('4'); 			
+				break;  
+				
+				case LVL_SETUP: 		//переход в Просмотр параметров\общие (установить\общие)//переход в меню тестов	
+				Menu_Setup_Test(); 					
+				break; 
+				
+				case LVL_PARAM_VIEW:	
+				Menu_ParamSetup_Global(LVL_GLB_VIEW);
+				break;
+				
+				case LVL_PARAM_SETUP: 	//переход в Просмотр параметров\общие (установить\общие)
+				Menu_ParamSetup_Global(LVL_GLB_SETUP);
+				break;
+				
 				case LVL_DEF_VIEW:
 				case LVL_DEF_SETUP:
-				{ //выбор номера, в параметрам Поста для 3-х концевой линии
+				{ 
+					//выбор номера, в параметрам Поста для 3-х концевой линии
 					if ( (cTypeLine == 2) && (cNumLine == 3) )
 					{
 						if ( (sMenuDefParam.punkt[ShiftMenu] == 3) || (sMenuDefParam.punkt[ShiftMenu] == 4) )
@@ -1303,7 +1403,8 @@ static void FuncPressKey(void)
 								LCDbufClMenu();LCD2new=1;
 						}
 					}
-				}break; 
+				}
+				break; 
 				
 				case LVL_PRD_VIEW:
 				case LVL_PRD_SETUP:
@@ -1320,7 +1421,8 @@ static void FuncPressKey(void)
 							LCDbufClMenu(); LCD2new=1;
 						}
 					}
-				}break;
+				}
+				break;
 				
 				case LVL_GLB_VIEW:
 				case LVL_GLB_SETUP:												//параметры/ощие
@@ -1328,7 +1430,8 @@ static void FuncPressKey(void)
 					if (ShiftMenu==9)
 						if (cNumLine==3)
 							if (NumberCom==1) NumberCom=2; else NumberCom=1;
-				}break;
+				}
+				break;
 				
 				case LVL_UPR: 
 				PressInMenuReset(4); 
@@ -1338,9 +1441,14 @@ static void FuncPressKey(void)
         case '5':
 		{
 			if (MenuLevel == LVL_MENU)
-				Menu_ParamSetup(LVL_PARAM_VIEW); 								// переход в Просмотр параметров
-			if (MenuLevel == LVL_UPR) 
+			{
+				// переход в Просмотр параметров
+				Menu_ParamSetup(LVL_PARAM_VIEW); 								
+			}
+			else if (MenuLevel == LVL_UPR) 
+			{
 				PressInMenuReset(5);
+			}
         }break;
 		
         case '6':
@@ -1355,9 +1463,12 @@ static void FuncPressKey(void)
 						if (LCDtimer>maxLCDtimer) 
 							LCDtimer=1;
 					}
-				}break; 		
+				}
+				break; 		
 				
-				case LVL_MENU: 	Menu_Protocol(); break;
+				case LVL_MENU: 	
+				Menu_Protocol(); 
+				break;
 
 				case LVL_DEF_VIEW:
 				case LVL_DEF_SETUP:
@@ -1375,7 +1486,8 @@ static void FuncPressKey(void)
 							LCD2new=1;
 						}
 					}
-				}break;
+				}
+				break;
 				
 				case LVL_PRM_VIEW:
 				case LVL_PRM_SETUP:
@@ -1412,7 +1524,8 @@ static void FuncPressKey(void)
 								LCD2new=1;
 						}
 					}
-				}break; //раньше небыло
+				}
+				break; //раньше небыло
 				
 				case LVL_PRD_VIEW:
 				case LVL_PRD_SETUP:
@@ -1423,7 +1536,8 @@ static void FuncPressKey(void)
 							LCDbufClMenu();LCD2new=1;
 						}
 					}
-				}break;
+				}
+				break;
 				
 				case LVL_GLB_VIEW:
 				case LVL_GLB_SETUP:
@@ -1431,9 +1545,12 @@ static void FuncPressKey(void)
 					if (ShiftMenu==9)
 						if (cNumLine==3)
 							if (NumberCom==1) NumberCom=2; else NumberCom=1;
-				}break;
+				}
+				break;
 				
-				case LVL_UPR: PressInMenuReset(6); break;
+				case LVL_UPR: 
+				PressInMenuReset(6); 
+				break;
 			}
         }break;
 		
@@ -1442,7 +1559,8 @@ static void FuncPressKey(void)
 				Menu_Info();
 			if (MenuLevel == LVL_UPR) 
 				PressInMenuReset(7);
-        }break;
+        }
+		break;
 		
         case '8':{
 			if (MenuLevel == LVL_START)
@@ -1464,19 +1582,22 @@ static void FuncPressKey(void)
 			}
 			if (MenuLevel == LVL_UPR) 
 				PressInMenuReset(8);
-        }break;
+        }
+		break;
 		
         case '9':
         {
             if (MenuLevel == LVL_UPR) 
 				PressInMenuReset(9);
-        }break;
+        }
+		break;
 		
 		case '0':
         {
             if (MenuLevel == LVL_UPR) 
 				PressInMenuReset(0);
-        }break;
+        }
+		break;
 		
         case 'M':
 		{
@@ -1484,7 +1605,8 @@ static void FuncPressKey(void)
 				Menu_Second(); //заходим на второй уровень
 			else 
 				Menu_Start();//иначе с любого уровня прыгаем на начальное меню
-        }break;
+        }
+		break;
 		
         case 'C':
 		{
@@ -1516,7 +1638,9 @@ static void FuncPressKey(void)
 
 				case LVL_JRN_VIEW: 		Menu_Journal(); break;		 			//возврат в меню Журнал
 			}
-        }break;
+        }
+		break;
+		
         case 'U':
 		{
 			switch(MenuLevel)
@@ -1528,7 +1652,8 @@ static void FuncPressKey(void)
 						if (ShiftMenu == 1) 
 							ShiftMenu=0;
 					}
-				}break;
+				}
+				break;
 				
 				case LVL_DEF_SETUP:
 				case LVL_PRM_SETUP:
@@ -1566,7 +1691,8 @@ static void FuncPressKey(void)
 					
 					
 					
-				}break; //прокрутка меню
+				}
+				break; //прокрутка меню
 				
 				case LVL_JRN_VIEW:
 				{
@@ -1578,9 +1704,12 @@ static void FuncPressKey(void)
 						FuncClearCharLCD(2,1,40); //очистка инф-ы
 						FuncClearCharLCD(4,13,8); //очистка даты записи
 					}
-				}break;
+				}
+				break;
 			}
-        }break;
+        
+		}break;
+		
         case 'D':
 		{
 			switch(MenuLevel)
@@ -1920,12 +2049,14 @@ static void FuncPressKey(void)
 							
 					}
 					
-				}break;
+				}
+				break;
 				
 				case LVL_PROTOCOL: 
 				{
 					WorkRate=2;SelectValue=2;InputSelectValue=0;MaxValue=1;MinValue=0;/*MaxSelectValue=1;MinSelectValue=0;*/MassSelectValue=Menu18Param;
-				}break;
+				}
+				break;
 				
 				case LVL_INFO: 
 				{
@@ -1937,7 +2068,8 @@ static void FuncPressKey(void)
 					{
 						WorkRate=2; SelectValue=2; InputSelectValue=0; /*MaxSelectValue=1;MinSelectValue=0;*/ MinValue=0; MaxValue=1; MassSelectValue=fDopParamValue;
 					}
-				}break;
+				}
+				break;
 				
 				case LVL_TEST: 
 				{
@@ -1948,14 +2080,30 @@ static void FuncPressKey(void)
 					if (((cNumComT>0)&&(CurrentState[4]==0x05))) break;
 					if (((bDef)&&(CurrentState[0]==0x05))) break;
 					
-					WorkRate=2;InputSelectValue=0;
+					WorkRate = 5;
+					InputSelectValue = 0;
 					MinValue = 0;
-					SelectValue = sMenuTest.sT[ShiftMenu].type;
-					MaxValue = sMenuTest.sT[ShiftMenu].num - 1;
-					MassSelectValue = sMenuTest.sT[ShiftMenu].sp;
-				}break;
+					
+					uint8_t group = sMenuTest.gr_items[ShiftMenu];
+					
+					SelectValue = Menu20grName[group - 1].val;
+					MassSelectValueRam = Menu20gr;
+					if (group == 1)
+					{
+						MaxValue = sMenuTest.cf_items_max;
+						MassItems = sMenuTest.cf_items;
+						
+					}
+					else if (group == 2)
+					{
+						MaxValue = sMenuTest.def_items_max;
+						MassItems = sMenuTest.def_items;
+					}
+				}
+				break;
 			}
-        }break;
+        }
+		break;
         default: { _NOP();};
 	}
 	PressKey=0xF0;
@@ -2223,11 +2371,16 @@ void FuncTr(void)
 								TransDataByte(0x24+ShiftMenu-3,NumberCom);
 						}break;
 						
-						case LVL_INFO: 		TransDataInf(0x34,0x00); 	break;
-						case LVL_TEST: 		TransDataByte(0x3E,0x00);	break; 	//запрос параметров в меню Тест
+						case LVL_INFO: 		
+						TransDataInf(0x34,0x00); 	
+						break;
+						
+						case LVL_TEST: 			//запрос параметров в меню Тест	
+						TransDataByte(0x3E,0x00);	
+						break; 
 
-						case LVL_JRN_VIEW:
-						{  //если находимся в подпунктах Журнала
+						case LVL_JRN_VIEW:		// подпункты Журнала
+						{  
 							if (sArchive.RecCount>0){
 								if (ShiftMenu>sArchive.RecCount){ //в случае если указатель превышает кол-во записей массива
 									sArchive.Data[12]=0;
@@ -2320,7 +2473,8 @@ void FuncTr(void)
 									}
 								}break;
 							}
-						}break;
+						}
+						break;
 						
 						case LVL_PRD_SETUP:
 						{
@@ -2346,27 +2500,35 @@ void FuncTr(void)
 									TransDataInf(0xA0+TrParam,2);
 									NumberTransCom=0x00;
 								}
-						}break;
+						}
+						break;
 						
 						case LVL_GLB_SETUP:
 						{
-							switch(TrParam){
+							switch(TrParam)
+							{
 								case 6:{										//частота
 									Tr_buf_data_uart[4]=((char) (TrValueD>>8));
 									Tr_buf_data_uart[5]=((char) TrValueD);
 									TransDataInf(0xBA,2);
-								}break;
+								}
+								break;
+								
 								case 8:{										//пороги КЧ
 									Tr_buf_data_uart[4]=NumberTransCom;
 									Tr_buf_data_uart[5]=TrValue;
 									TransDataInf(0xBC,2);
-								}break;
+								}
+								break;
+								
 								case 10:{										//коррекция тока/напряжения
 									Tr_buf_data_uart[4]=NumberTransCom;
 									Tr_buf_data_uart[5]=TrValueD>>8;
 									Tr_buf_data_uart[6]=TrValueD;
 									TransDataInf(0xB3,3);
-								}break;
+								}
+								break;
+								
 								case 0x33:										// параметры ВОЛС							
 								{
 									Tr_buf_data_uart[4] = NumberTransCom;
@@ -2374,6 +2536,7 @@ void FuncTr(void)
 									TransDataInf(0xB3, 2);
 								}
 								break;
+								
 								case 0x39:
 								{
 									Tr_buf_data_uart[4] = NumberTransCom;
@@ -2381,24 +2544,28 @@ void FuncTr(void)
 									TransDataInf(0xB9, 2);
 								}
 								break;
+								
 								default:
 								TransDataByte(0xB4 + TrParam, TrValue);
 							}
-						}break;
+						}
+						break;
 						
 						case LVL_TEST:
 						{
 							Tr_buf_data_uart[4] = TrParam;
 							Tr_buf_data_uart[5] = TrValue;
 							TransDataInf(0x7E,2);
-						}break;
+						}
+						break;
 						
 						case LVL_UPR:
 						{ 
 							//сброс аппаратов
 							TransDataByte(TrValue, TrParam);
 							TransDataByte1(TrValue, TrParam);
-						}break;
+						}
+						break;
 					}
 					TrValue=0;
 					TrParam=0;
@@ -2554,21 +2721,59 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 	else
 	{  //если неисправностей нет
 		if ((TimeWink)&&((bGlobalWarn)||(DevWarn)))
-		{ //если есть предупреждение и надо его вывести				
+		{ 
+			// Проверим наличие общего предупреждения
+			// На данный момент проверяется только младший байт GlobalCurrentState[15]			
 			if (bGlobalWarn)
-			{ //общее предупреждение
-				if ((GlobalCurrentState[14]==0)&&(GlobalCurrentState[15]==1))
+			{ 
+				uint8_t num_warn = 0;
+				uint8_t cur_warn = 0;
+				uint8_t warn = GlobalCurrentState[15];
+				
+				// Определим кол-во предупреждений
+				// и номер младшего из них
+				for(uint8_t i = 1; i > 0; i <<= 1)
 				{
-					LCDprintf(NumString,5,2,Menu1GlobalWarning1,1);
+					if (i & warn)
+						num_warn += 1;
+					
+					if (num_warn == 0)
+						cur_warn += 1;
 				}
-				else
+				
+				// Если есть предупреждения:
+				// Если только одно - выводится его расшифровка
+				// Если больше одного - выводится полученный код предупреждения
+				if (num_warn > 0)
 				{
-					LCDprintf(NumString,5,2,Menu1warning,1);
-					FuncClearCharLCD(NumString,13,8);
-					LCDprintf(NumString,13,2,GlobalAvar,0);
-					LCDprintHEX(NumString,15,GlobalCurrentState[14]);
-					LCDprintHEX(NumString,17,GlobalCurrentState[15]);
+					if ( (num_warn == 1) && (Menu1GlobalWarningT[cur_warn] != UnknownErrorT) )
+					{
+						LCDprintf(NumString, 5, 2, Menu1GlobalWarningT[cur_warn], 1);
+					}
+					else
+					{
+						LCDprintf(NumString, 5, 2, Menu1warning,1);
+						FuncClearCharLCD(NumString, 13, 8);
+						LCDprintf(NumString, 13, 2, GlobalAvar,0);
+						LCDprintHEX(NumString, 15, GlobalCurrentState[14]);
+						LCDprintHEX(NumString, 17, GlobalCurrentState[15]);
+					}
 				}
+				
+//				
+//				//общее предупреждение
+//				if ((GlobalCurrentState[14]==0)&&(GlobalCurrentState[15]==1))
+//				{
+//					LCDprintf(NumString,5,2,Menu1GlobalWarning1,1);
+//				}
+//				else
+//				{
+//					LCDprintf(NumString,5,2,Menu1warning,1);
+//					FuncClearCharLCD(NumString,13,8);
+//					LCDprintf(NumString,13,2,GlobalAvar,0);
+//					LCDprintHEX(NumString,15,GlobalCurrentState[14]);
+//					LCDprintHEX(NumString,17,GlobalCurrentState[15]);
+//				}
 			}
 			else
 			{//предупреждение устройства
@@ -2676,7 +2881,8 @@ static void LCDwork(void)
 		if (NumberLostLetter>4){ //если было не принято 5 посылок подряд, то выводим на экран аварию
 			AvarNoUsp=1;  //говорим что у нас сейчас нет связи с USP
 			if (LoopUART==1) LCDprintf(1,1,2,LCDavarNoUSP,1);  //выводим на экран сообщение "Нет связи с USP"
-		}else
+		}
+		else
 			if ((NumberLostLetter<5)&&(AvarNoUsp==1)){ //если же у нас наконец-то была получена посылка от USP
 				AvarNoUsp=0;  //говрим что связь с USP налажена
 				LCDtimerNew=1;
@@ -3157,50 +3363,65 @@ static void LCDwork(void)
 				}break;
 				case LVL_TEST:  	//меню тестов
 				{ 
-					if (LCD2new==1)
-						if ((cNumComR>0)&&(CurrentState[2]<0x04)) {Menu_Setup(); break;}   //если есть приемник, и он не в Тест1
-					if ((cNumComT>0)&&(CurrentState[4]<0x04)) {Menu_Setup(); break;}  //если есть передатчик, и он не в Тест1
-					if ((bDef)&&(CurrentState[0]<0x04))       {Menu_Setup(); break;}   //если есть Защита, и она не в Тест1
-					char Test=0xFF;
-					if ((cNumComR>0)) Test=CurrentState[2]-4;   //если есть приемник, то присовим Test номер режима - 4
-					if ((cNumComT>0)&&(Test==0xFF)) Test=CurrentState[4]-4;  //если есть передатчик, и Test еще не определен, присвоим номер режима - 4
-					if ((bDef)&&(Test==0xFF)) Test=CurrentState[0]-4; //если есть защита, и Test еще не определен, присвоим номер режима - 4
+					// Проверим состояния всех имеющихся устройств
+					// Если хотя бы одно не в тесте. выйдем из меню
+					bool isTest = true;
+					if ( (cNumComR > 0) && (CurrentState[2] < 0x04) ) 
+						isTest = false;
+					if ( (cNumComT > 0) && (CurrentState[4] < 0x04) ) 
+						isTest = true;  
+					if ( (bDef) && (CurrentState[0] < 0x04) )       
+						isTest = false;   
 					
-					FuncClearCharLCD(2,1,20);
-					FuncClearCharLCD(3,1,20);
-					
-					uchar i;
-					for(i = 0; i < sMenuTest.num; i++)
-					{	// выведем сигналы , на передачу
-						if (i < sMenuTest.numTr)
-						{
-							LCDprintf(2, i * 10 + 1, 2, sMenuTest.sT[i].name, 1);
-							LCDprintf(2, i * 10 + 6, 2, sMenuTest.sT[i].sp[sMenuTest.sT[i].val], 1);
-						}
-						else
-							break;
-					}
-					
-					if (Test == 0)
+					if (!isTest)
 					{
-						LCDprintf(3, 1, 2, MenuInputData, 1);
-						LCDprintf(3,7,2,Menu20line3[sMenuTest.sT[ShiftMenu].type - 1],1);	
+						Menu_Setup();
+						break;
 					}
-					else
-					{	//выведем сигналы на прием, если еще остались
-						for(uchar j = 2; i < sMenuTest.num; i++)
-						{
-							j = (i < 2) ? 2 : 3;
-							LCDprintf(j, (i % 2) * 10 + 1, 2, sMenuTest.sT[i].name, 1);
-							LCDprintf(j, (i % 2) * 10 + 6, 2, sMenuTest.sT[i].sp[sMenuTest.sT[i].val],1);
-						}
+					
+					// По одному из имеющихся устройств определим номер текущего теста
+					char Test=0xFF;
+					if (cNumComR > 0) 
+						Test = CurrentState[2] - 4;   
+					else if (cNumComT > 0) 
+						Test = CurrentState[4] - 4;  
+					else if (bDef) 
+						Test = CurrentState[0] - 4; 
+					
+					FuncClearCharLCD(2, 1, 20);
+					FuncClearCharLCD(3, 1, 20);
+					
+					// Пока не вводим значение
+					// В нижней строке выведем номер Теста
+					if (WorkRate == 0) 
+					{
+						LCDprintf(4, 1, 2, Menu20line4[Test], 1);
+						FuncClearCharLCD(4, 7, 13);
+					}
+					
+					// Выведем имеющиеся группы и соответствующие им сигналы
+					for(char i = 0; i < sMenuTest.gr_items_max; i++)
+					{
+						char group = sMenuTest.gr_items[i];
 						
+						if (group == 1)
+						{
+							LCDprintf(2, 1, 2, Menu20gr1n, 1);
+							LCDprintf(2, 6, 2, Menu20gr[sMenuTest.cf_val].name, 1);
+						}
+						else if (group == 2)
+						{
+							LCDprintf(2, 11, 2, Menu20gr2n, 1);
+							LCDprintf(2, 16, 2, Menu20gr[sMenuTest.def_val].name, 1);
+						}
 					}
 					
-					if (WorkRate==0) LCDprintf(4,1,2,Menu20line4[Test],1);
-					
-					LCD2new=0;
-				}break;
+					// В Тест1 выведем на экран текущую выбранную группу
+					if (Test == 0)
+						LCDprintf(3, 1, 2, Menu20grName[sMenuTest.gr_items[ShiftMenu] - 1].name, 1);		
+				}
+				break;
+				
 				case LVL_JRN_VIEW:		//журнал/ (соб, защб прм, прд)
 				{ 
 					LCDprintf(4,1,2,Menu21e[sArchive.Dev[sArchive.CurrDev]],1); // вывод устройства
@@ -3348,7 +3569,12 @@ static void LCDwork(void)
 			
 			//проверяем надоли обновить информацию дата/время  и измеряемых параметров
 			//если на данный момент есть авария, то надпись будет мигать
-			if ((AvarNoUsp==1)&&(LoopUART==5)) {LCDtimerNew=1; LCDparam=1; LCDprintf(1,1,2,LCDavarNoUSP,2);}
+			if ((AvarNoUsp==1)&&(LoopUART==5)) 
+			{
+				LCDtimerNew=1; 
+				LCDparam=1; 
+				LCDprintf(1,1,2,LCDavarNoUSP,2);
+			}
 			
 			if (LCDtimerNew==1)
 			{
@@ -3387,8 +3613,10 @@ static void LCDwork(void)
 			if (cTypeLine == 1)
 			{
 				//выводим на экран измеряемый параметр
-				if ((LCDparam==1)&&(PCready==0)){
-					if ((eNumberAskMeasuring[0]==0)||(eNumberAskMeasuring[0]>10)) eNumberAskMeasuring[0]=1;
+				if ( (LCDparam==1)&&(PCready==0) )
+				{
+					if ( (eNumberAskMeasuring[0] == 0) || (eNumberAskMeasuring[0] > 10) ) 
+						eNumberAskMeasuring[0] = 1;
 					NumberAskMeasuring=eNumberAskMeasuring[0];
 					if (((AvarNoUsp==1)&&(LoopUART==5))||(AvarNoUsp==0))
 						if (MenuLevel != LVL_DATA_TIME) 
@@ -3444,7 +3672,8 @@ static void LCDwork(void)
 			LCDprintf(2,4,2,PCconnect,1);
 			PCconn++;
 			if (PCconn>3) PCconn=1;
-			for (j1=0; j1<PCconn; j1++) LCDprintf(2,15+j1,2,Point,1);
+			for (j1=0; j1<PCconn; j1++) 
+				LCDprintf(2,15+j1,2,Point,1);
 		}
 	}
 	bLCDwork=false;
@@ -3499,6 +3728,8 @@ __C_task main(void)
 		
 		if (bUartTrReady1) 
 			FuncTr();
+		
+		LCDprintHEX(4, 19, MaxValue);
 	}
 }
 
@@ -3546,16 +3777,38 @@ __interrupt void Timer1ovf(void)
 	// вызываемм обработчик нажатой клавишы, примерно раз в 0.3с
 	if (bReadVers)
 	{
-		if (((LoopUART==0)||(LoopUART==3)||(LoopUART==6))&&(PCready==0)&&(TestDelay==0)){
-			switch(WorkRate){
-				case 0: FuncPressKey();break;
-				case 1: FuncInputData();break;
-				case 2: FuncSelectValue();break;
-				case 3: FuncInputDataTime();break;
-				case 4: FuncInpCorrParam();break;
+		if ( ((LoopUART == 0) || (LoopUART == 3) || (LoopUART == 6)) &&
+			 (PCready == 0) && 
+			 (TestDelay == 0) )
+		{
+			switch(WorkRate)
+			{
+				case 0: 				// обработка нажатий кнопок в меню
+				FuncPressKey();
+				break;
+				
+				case 1: 				// обработка нажатий кнопок при вводе 
+				FuncInputData();		// значения
+				break;
+				
+				case 2: 				// обработка нажатий кнопок при выборе 
+				FuncSelectValue();		// значения из списка
+				break;
+				
+				case 3: 				// ввод даты/времени
+				FuncInputDataTime();
+				break;
+				
+				case 4: 				// ввод коррекции тока/напряжения
+				FuncInpCorrParam();
+				break;
+				
+				case 5:					// обработка нажатий кнопок при выборе 				
+				FuncSelectValueList();	// значений из сиписка имя <-> значение		
+				break;
 			}
 		}
-	}//end if (bReadVers)
+	}
 	
 	//для мигания надписей, неисправность/предупреждение
 	if (LoopUART == 5) 

@@ -129,7 +129,8 @@ void MenuParamGlbCreate(void)
 				sMenuGlbParam.punkt[num] = 1; 	sMenuGlbParam.name[num++] = 1;	// Cинхронизация часов
 				sMenuGlbParam.punkt[num] = 4; 	sMenuGlbParam.name[num++] = 4;	// Сетевой адрес
 				sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;	// Номер аппарата
-				sMenuGlbParam.punkt[num] = 5;	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
+				if (cNumComR > 0)
+					sMenuGlbParam.punkt[num] = 5;	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
 				sMenuGlbParam.punkt[num] = 19;	sMenuGlbParam.name[num++] = 19;	// Резервирование
 			}			
 		}
@@ -139,14 +140,20 @@ void MenuParamGlbCreate(void)
 }
 
 /** Формирование списка параметров Защиты в зависимости от совместимости
-*	@param Нет
-*	@return Нет
-*/
+ *	В оптике совместимостей нет, поэтому устанавливаются пар-ры АВАНТа
+ *	@param Нет
+ *	@return Нет
+ */
 void MenuParamDefCreate(void)
 {
 	char num = 0;
+	char type = TypeUdDev;
 	
-	switch(TypeUdDev)
+	// В оптике нет совместимостей
+	if (cTypeLine == 2)
+		type = 0;
+	
+	switch(type)
 	{
 		case 1:		// ПВЗ-90 
 		case 2:		// АВЗК-80
@@ -389,88 +396,66 @@ void MenuAKCreate(void)
 */
 void MenuTestCreate(void)
 {	
-	switch(TypeUdDev)
-	{
-		case 1:		// ПВЗ-90
-		case 2:		// АВЗК-80
-		case 3:		// ПВЗУ-Е
-		case 4:		// ПВЗЛ
+	uint8_t num = 0;
+	
+	// сбросим кол-во имеющихся групп сигналов
+	sMenuTest.gr_items_max = 0;
+	
+	// Наличие сигналов группы 1 определяется:
+	// В оптике - только КЧ1
+	// В ВЧ чистый пост, совместимость не АВАНТ - нет сигналов
+	// В ВЧ 2-концевой совместимость АВАНТ Р400 - КЧ1, КЧ2
+	// В ВЧ 3-концевой совместимость АВАНТ Р400 - КЧ1, КЧ2, КЧ3, КЧ4
+	//
+	// Далее добавляются коды команд, при их наличии
+	// при этом могут быть только КЧ1, КЧ2
+	
+	sMenuTest.cf_val = SIGN_ERROR;
+	num = 0;
+	if ( (cNumComR != 0) || (cNumComT != 0) || (TypeUdDev == 0) )
+	{		
+		uint8_t num_com = (cNumComR > cNumComR) ? cNumComR : cNumComT;
+		
+		// Добавим Группу 1
+		sMenuTest.gr_items[sMenuTest.gr_items_max++] = 1;
+		
+		sMenuTest.cf_items[num++] = SIGN_OFF;
+		sMenuTest.cf_items[num++] = SIGN_CF1;
+		
+		// в оптике есть только КЧ1
+		// в 2-х концевой ВЧ КЧ1, КЧ2
+		// в 3-х концевой ВЧ КЧ1, КЧ2, КЧ3, КЧ4
+		if (cTypeLine != 2)
 		{
-			sMenuTest.num = 1;
-			sMenuTest.numTr = 1; // передача КЧ и РЗ
-			sMenuTest.sT[0].type = 2;	// РЗ
-			sMenuTest.sT[0].name = Menu20line2test12;
-			sMenuTest.sT[0].sp = Menu20gr2;
-			sMenuTest.sT[0].val = sNumGrRZ;
-			sMenuTest.sT[0].num = 0;
-			sMenuTest.sT[0].punkt[sMenuTest.sT[0].num++] = 0;
-			sMenuTest.sT[0].punkt[sMenuTest.sT[0].num++] = 1;
-		}
-		break;
-		default:	// АВАНТ
-		{	
+			sMenuTest.cf_items[num++] = SIGN_CF2;
+			
 			if (cNumLine == 3)
-			{	//трехконцевая версия пост
-				sMenuTest.num = 4;
-				sMenuTest.numTr = 2;	//передача КЧ и РЗ
-				sMenuTest.sT[0].type = 1;	// 1 КЧ
-				sMenuTest.sT[0].sp = Menu20gr1;
-				sMenuTest.sT[0].name = Menu20line2test13;
-				sMenuTest.sT[0].val = dNumGrCH;
-				sMenuTest.sT[0].num = 0;
-				sMenuTest.sT[0].punkt[sMenuTest.sT[0].num++] = 0;
-				sMenuTest.sT[0].punkt[sMenuTest.sT[0].num++] = 1;
-				sMenuTest.sT[0].punkt[sMenuTest.sT[0].num++] = 2;
-				
-				sMenuTest.sT[1].type = 2;	// 1 РЗ
-				sMenuTest.sT[1].name = Menu20line2test15;
-				sMenuTest.sT[1].sp = Menu20gr2;
-				sMenuTest.sT[1].val = sNumGrRZ;
-				sMenuTest.sT[1].num = 0;
-				sMenuTest.sT[1].punkt[sMenuTest.sT[1].num++] = 0;
-				sMenuTest.sT[1].punkt[sMenuTest.sT[1].num++] = 1;
-				
-				sMenuTest.sT[2].type = 3;	// 2 КЧ
-				sMenuTest.sT[2].sp = Menu20gr1;
-				sMenuTest.sT[2].name = Menu20line2test14;
-				sMenuTest.sT[2].val = dNumGrCH;
-				sMenuTest.sT[2].num = 0;
-				sMenuTest.sT[2].punkt[sMenuTest.sT[2].num++] = 0;
-				sMenuTest.sT[2].punkt[sMenuTest.sT[2].num++] = 1;
-				sMenuTest.sT[2].punkt[sMenuTest.sT[2].num++] = 2;
-				
-				sMenuTest.sT[3].type = 4;	// 1 РЗ
-				sMenuTest.sT[3].name = Menu20line2test16;
-				sMenuTest.sT[3].sp = Menu20gr2;
-				sMenuTest.sT[3].val = sNumGrRZ;
-				sMenuTest.sT[3].num = 0;
-				sMenuTest.sT[3].punkt[sMenuTest.sT[3].num++] = 0;
-				sMenuTest.sT[3].punkt[sMenuTest.sT[3].num++] = 1;
-				
+			{
+				sMenuTest.cf_items[num++] = SIGN_CF3;
+				sMenuTest.cf_items[num++] = SIGN_CF4;
 			}
-			else
-			{	//двухконцевая версия
-				sMenuTest.num = 2;
-				sMenuTest.numTr = 2;	//передача КЧ и РЗ
-				sMenuTest.sT[0].type = 1;	// КЧ
-				sMenuTest.sT[0].num = 0;
-				sMenuTest.sT[0].sp = Menu20gr1;
-				sMenuTest.sT[0].name = Menu20line2test11;
-				sMenuTest.sT[0].val = dNumGrCH;
-				sMenuTest.sT[0].punkt[sMenuTest.sT[0].num++] = 0;
-				sMenuTest.sT[0].punkt[sMenuTest.sT[0].num++] = 1;
-				sMenuTest.sT[0].punkt[sMenuTest.sT[0].num++] = 2;
-				
-				sMenuTest.sT[1].type = 2;	// РЗ
-				sMenuTest.sT[1].name = Menu20line2test12;
-				sMenuTest.sT[1].sp = Menu20gr2;
-				sMenuTest.sT[1].val = sNumGrRZ;
-				sMenuTest.sT[1].num = 0;
-				sMenuTest.sT[1].punkt[sMenuTest.sT[1].num++] = 0;
-				sMenuTest.sT[1].punkt[sMenuTest.sT[1].num++] = 1;
-			}
+		}
+		
+		// добление команд, при их наличии
+		for(char i = 0 ; i < num_com; i++)
+		{
+			sMenuTest.cf_items[num++] = SIGN_COM1 + i;
 		}
 	}
+	sMenuTest.cf_items_max = num;
+	
+	// Наличие сигнала защиты, определяется только наличием поста
+	sMenuTest.def_val = SIGN_ERROR;
+	num = 0;
+	if (bDef)
+	{
+		// добавим Группу 2
+		sMenuTest.gr_items[sMenuTest.gr_items_max++] = 2;
+		
+		sMenuTest.def_items[num++] = SIGN_OFF;
+		sMenuTest.def_items[num++] = SIGN_DEF;	
+	}
+	sMenuTest.def_items_max = num;
 }
 
 
@@ -640,7 +625,7 @@ static void Menu_Setup_Test(void)
    	LCDbufClMenu();
    	ShiftMenu = 0;
 	MaxDisplayLine = 3;
-	MaxShiftMenu = sMenuTest.numTr - 1;
+	MaxShiftMenu = sMenuTest.gr_items_max - 1;
 	
    	if ((cNumComR>0)&&(CurrentState[2]==5)) MaxShiftMenu=0;   //если есть приемник, и он в Тест2
    	if ((cNumComT>0)&&(CurrentState[4]==5)) MaxShiftMenu=0;  //если есть передатчик, и он в Тест2
@@ -693,7 +678,7 @@ static void PressInMenuDataTime(char Key)
 */
 static void PressInMenuReset(char key)
 {  
-	if (key > sMenuUpr.num)
+	if (key >= sMenuUpr.num)
 		return;
 	
 	char value = sMenuUpr.punkt[key];

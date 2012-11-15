@@ -194,37 +194,46 @@ __interrupt void Timer0_overflowed_interrupt(void){
 }//end_Timer0_overflowed_interrupt
 
 //разрешение передачи по UART, с указанием ко-ва передаваемых байтов
-void StartTrans(char SizeMessage){
-#if ((DEB)&&(PK))
-  if ((ALT)||(Tr_buf_data_uart[2]==CT1)||(Tr_buf_data_uart[2]==CT2)||(Tr_buf_data_uart[2]==CT3)||(Tr_buf_data_uart[2]==CT4)||((Tr_buf_data_uart[2]&0xF0)==MST)){
-    for(uchar i=0; i<SizeMessage; i++) Tr_buf_data_uart1[i]=Tr_buf_data_uart[i];
-    NumberTransByte1=SizeMessage;
-    GoTrans1;
-  }else{
-    NumberTransByte=SizeMessage;
-    GoTrans;
-  }
-#else
-  NumberTransByte=SizeMessage;
-  GoTrans;
+void StartTrans(char SizeMessage)
+{
+#if ( (DEB) && (PK) )	// пересылка сообщений для БСП на ПК
+	#warning Включена пересылка сообщений для БСП на ПК!!!  
+	if ((ALT) ||
+	   	(Tr_buf_data_uart[2] == CT1) || 
+		(Tr_buf_data_uart[2] == CT2) || 
+		(Tr_buf_data_uart[2] == CT3) || 
+		(Tr_buf_data_uart[2] == CT4) || 
+		((Tr_buf_data_uart[2] & 0xF0) == MST)
+		)
+	{
+    	for(uchar i = 0; i < SizeMessage; i++) 
+			Tr_buf_data_uart1[i] = Tr_buf_data_uart[i];
+    	NumberTransByte1 = SizeMessage;
+    	GoTrans1;
+	}
 #endif
+    
+	NumberTransByte = SizeMessage;
+    GoTrans;
 }
 
 //опрос состояния порта UART
 char GetSostPort(void)
 {
-  char temp;
-
-  temp=Sost; //прочитать регистр ошибок
-  if (TestReceive) temp|=EnRead;  //разрешение приема
-  if (TestTrans) temp|=EnWrite;   //разрешение передачи
-  return(temp);
+	char temp = Sost;  //прочитать регистр ошибок
+	
+	if (TestReceive) 
+		temp |= EnRead;  //разрешение приема
+	if (TestTrans) 
+		temp |= EnWrite;   //разрешение передачи
+	
+	return temp;
 }
 
 //сброс состояния UART
 void ClearPortError(void)
 {
-  Sost=0;
+	Sost=0;
 }
 
 ///*******************888
