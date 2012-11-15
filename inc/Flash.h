@@ -819,7 +819,8 @@ __flash unsigned __flash char *Menu1PrmErrorT[] =
 };
 
 //предупреждения Приемника
-__flash unsigned char Menu1PrmWarning1[] = "Сниж. уровня ПРМ";
+__flash unsigned char Menu1PrmWarning1[] = 	"Сниж. уровня ПРМ";
+__flash unsigned char Menu1PrmWarning1o[] = "Нет КЧ          ";
 
 //ошибки Передатчика
 __flash unsigned char Menu1PrdError1[]	= "Нет блока БСК   ";

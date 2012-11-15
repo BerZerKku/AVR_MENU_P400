@@ -77,50 +77,36 @@
 //*100мс , время ожидания запроса с ПК
 #define PC_wait 15
 
-#define uchar unsigned char
-#define schar signed char
-#define uint  unsigned int
-#define sint signed int
+#define uchar 	unsigned char
+#define schar 	signed char
+#define uint  	unsigned int
+#define sint 	signed int
 
-struct strArchive{
-  unsigned char NumDev; //кол-во устройств
-  unsigned char CurrDev;  //выбранное устройство
-  unsigned char Dev[5]; //массив номеров устройств: 0 байт нужен для выода инфы на дисплей =0х00 всегда!
-                       //значния: 0 - события , 1 - прд, 2- прм, 3- защ
-  int RecCount; //кол-во записей в текущем архиве
-  char CurCount;  //адрес самой старой записи архива
-  unsigned char Data[16];
+struct strArchive
+{
+	unsigned char NumDev; 		// кол-во устройств
+	unsigned char CurrDev;  	// выбранное устройство
+	unsigned char Dev[5]; 		// массив номеров устройств: 
+								// 0 байт нужен для выода инфы на дисплей =0х00 всегда!
+								// значния: 0 - события , 1 - прд, 2- прм, 3- защ
+	int RecCount; 				// кол-во записей в текущем архиве
+	char CurCount;  			// адрес самой старой записи архива
+	unsigned char Data[16];
 };
 
-struct strCorrParam{
-  unsigned char Print[7]; //массив для выода коррекции на экран
-  signed int Corr;  //текущая коррекция
+struct strCorrParam
+{
+	unsigned char Print[7]; 	// массив для выода коррекции на экран
+	signed int Corr;  			// текущая коррекция
 };
 
 struct strMenuGlbParam
 {
-	uchar dev;			// тип удаленного аппарата
-	uchar num;			// кол-во пунктов
-	uchar punkt[20];	// номера пунктов, по номерам совпадают с порядком массива во flash
-	uchar name[20];		// номер названия , из списка во флэш
+	uchar dev;					// тип удаленного аппарата
+	uchar num;					// кол-во пунктов
+	uchar punkt[20];			// номера пунктов, по номерам совпадают с порядком массива во flash
+	uchar name[20];				// номер названия , из списка во флэш
 };
-
-//struct strTest
-//{
-//	uchar type;					//тип
-//	uchar val;					//значение
-//	uchar __flash* __flash* sp;	//перечень
-//	uchar __flash* name;		//имя пункта
-//	uchar num;					//кол-во записей в группе
-//	uchar punkt[3];				//номера пунктов
-//};
-//
-//struct strMenuTest
-//{
-//	strTest sT[2];		//структуры групп
-//	uchar num;			//кол-во групп на прием
-//	uchar numTr;		//кол-во групп на передачу
-//};
 
 struct strNameToVal
 {
@@ -133,7 +119,6 @@ struct strMenuTest
 	uchar gr_items[2];			// имеющиеся группы сигналов
 	uchar gr_items_max;			// кол-во групп сишналов
 			
-	
 	uchar def_items[2];			// массив имя сигнала защиты <-> значение 
 	uchar def_items_max;		// максимальное кол-во эл-ов защиты
 	uchar def_val;				// текущее значение сигнала защиты		
@@ -145,16 +130,16 @@ struct strMenuTest
 
 struct strParamPVZUE
 {
-	uchar protocol;		// протокол обмена
-	uchar parity;		// признак четности
-	uchar proval[10];	// допустимые провалы
-	uchar porog[10];	// порог по помехе
-	uchar noise[10];	// допустимая помеха
-	uchar autocontrol;	// тип автоконтроля
+	uchar protocol;				// протокол обмена
+	uchar parity;				// признак четности
+	uchar proval[10];			// допустимые провалы
+	uchar porog[10];			// порог по помехе
+	uchar noise[10];			// допустимая помеха
+	uchar autocontrol;			// тип автоконтроля
 };
 
 struct strParamOpt
 {
-	uchar reserv;		// резервирование (вкл = 1/выкл = 0)
+	uchar reserv;				// резервирование (вкл = 1/выкл = 0)
 };
 #endif

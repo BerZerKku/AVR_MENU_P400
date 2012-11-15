@@ -2808,7 +2808,12 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 						//  в приемниках 1-о предупреждение
 						//	если код не 1, выводим код на экран
 						if (temp == 1)
-							LCDprintf(NumString, 5, 2,  Menu1PrmWarning1, 1);
+						{
+							if (cTypeLine == 2)
+								LCDprintf(NumString, 5, 2,  Menu1PrmWarning1o, 1);
+							else
+								LCDprintf(NumString, 5, 2,  Menu1PrmWarning1, 1);
+						}
 						else 
 							temp = 0;
 					}
