@@ -213,6 +213,7 @@ __flash unsigned __flash char *Menu9paramPRD[] =
 __flash unsigned char Menu100[] =	"Совместимость";
 __flash unsigned char Menu101[] =	"Cинхронизация часов";
 __flash unsigned char Menu102[] =	"Uвых номинальное";		
+__flash unsigned char Menu102_1[]= 	"Удержание реле ПРМ";
 __flash unsigned char Menu103[] =	"Удержание реле ПРД";
 __flash unsigned char Menu104[] =	"Сетевой адрес";
 __flash unsigned char Menu105[] =	"Время перезапуска";
@@ -220,10 +221,10 @@ __flash unsigned char Menu106[] =	"Частота";
 __flash unsigned char Menu107[]	=	"Номер аппарата";
 __flash unsigned char Menu108[] =	"Контроль вых.сигнала";
 __flash unsigned char Menu109[]	=	"Порог ПРЕДУПР по КЧ ";
+__flash unsigned char Menu109_1[]=	"Порог ПРЕДУПР по РЗ ";	// номер NumParamGlb
 __flash unsigned char Menu1010[] =	"Загр чувствит по  КЧ";
 __flash unsigned char Menu1011[] =	"Коррекция напряжения";
 __flash unsigned char Menu1012[] =	"Коррекция тока";
-__flash unsigned char Menu109_1[]=	"Порог ПРЕДУПР по РЗ ";	// номер NumParamGlb
 __flash unsigned char Menu1013[] =	"Протокол обмена";		// ПВЗУ-Е
 __flash unsigned char Menu1014[] =	"Признак четности"; 	// ПВЗУ-Е
 __flash unsigned char Menu1015[] =	"Допустимые провалы"; 	// ПВЗУ-Е 
@@ -255,8 +256,11 @@ __flash unsigned __flash char *Menu10paramAll[] =
 	Menu1018,	
 	Menu1019,
 	Menu1020,
+	Menu102_1,
 	Menu109_1
 };
+
+
 // кол-во общих параметров
 // - 1 , т.к. 109_1 - просто подбена текста
 #define NumParamGlb ( (sizeof(Menu10paramAll) / sizeof(Menu10paramAll[0])) - 1)
@@ -570,8 +574,8 @@ __flash uint RangGlb[NumParamGlb] [3] =
 {	
 	0,	4,		1,		// тип уд.аппарата	
 	0,	1,    	1,		// синхронизация часов  
-	8, 50,    	1,  	// Uвых номинальное 
-	0,  2,    	1,  	// удержание реле ПРД 
+	8, 	50,    	1,  	// Uвых номинальное 
+	0,  1,    	1,  	// удержание реле ПРД 
 	0,  255,  	1,  	// сетевой адрес 
 	0,  5,    	1,  	// время перезапуска  
 	16, 998,  	1,  	// частота  
@@ -588,7 +592,8 @@ __flash uint RangGlb[NumParamGlb] [3] =
 	18,	90,		1,		// допустимая помеха	
 	1,	3,		1,		// тип автоконтроля	
 	0,	1,		1,		// Резервирование (оптика)
-	0, 20, 		1		// снижение ответа АК (пвзл)
+	0, 	20,		1,		// снижение ответа АК (пвзл)
+	0,	1,		1		// удержание реле ПРМ
 };		
 
 __flash unsigned char Menu16Shift10[] = "0.0..99.9";

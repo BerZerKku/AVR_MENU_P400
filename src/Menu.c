@@ -38,8 +38,13 @@ static void PressInMenuReset		(char key);
 void MenuParamGlbCreate(void)
 {
 	char num = 0;
+	char type = TypeUdDev;
 	
-	switch(TypeUdDev)
+	// В командном варианте совместимость не учитывается
+	if ( (cNumComR > 0) || (cNumComT > 0) )
+		type = 0;
+	
+	switch(type)
 	{
 		
 		case 1:		// ПВЗ-90
@@ -116,7 +121,7 @@ void MenuParamGlbCreate(void)
 				sMenuGlbParam.punkt[num] = 1;	sMenuGlbParam.name[num++] = 1;	// Cинхронизация часов
 				sMenuGlbParam.punkt[num] = 2;	sMenuGlbParam.name[num++] = 2;	// Uвых номинальное
 				sMenuGlbParam.punkt[num] = 4;	sMenuGlbParam.name[num++] = 4;	// Сетевой адрес
-				//				sMenuGlbParam.punkt[num] = 5; 	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
+				//sMenuGlbParam.punkt[num] = 5; 	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
 				sMenuGlbParam.punkt[num] = 6;	sMenuGlbParam.name[num++] = 6;	// Частота
 				sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;	// Номер аппарата
 				sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;	// Контроль вых.сигнала
@@ -127,10 +132,23 @@ void MenuParamGlbCreate(void)
 			else
 			{
 				sMenuGlbParam.punkt[num] = 1; 	sMenuGlbParam.name[num++] = 1;	// Cинхронизация часов
+				if (cNumComR > 0)
+				{
+					sMenuGlbParam.punkt[num] = 21; 								// Удержание реле ПРМ
+					sMenuGlbParam.name[num++] = NumParamGlb - 1;				// В оптике вместо "Uвых номинальное"
+				}
+				if (cNumComT > 0)												
+				{
+					sMenuGlbParam.punkt[num] = 3;								// Удержание реле ПРД
+					sMenuGlbParam.name[num++] = 3;
+				}	
 				sMenuGlbParam.punkt[num] = 4; 	sMenuGlbParam.name[num++] = 4;	// Сетевой адрес
 				sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;	// Номер аппарата
 				if (cNumComR > 0)
-					sMenuGlbParam.punkt[num] = 5;	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
+				{
+					sMenuGlbParam.punkt[num] = 5;								// Время перезапуска
+					sMenuGlbParam.name[num++] = 5;	
+				}
 				sMenuGlbParam.punkt[num] = 19;	sMenuGlbParam.name[num++] = 19;	// Резервирование
 			}			
 		}
@@ -457,7 +475,6 @@ void MenuTestCreate(void)
 	}
 	sMenuTest.def_items_max = num;
 }
-
 
 static void Menu_Start(void)
 {

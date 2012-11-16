@@ -216,56 +216,61 @@ void LCDprintChar (unsigned char Line, unsigned char AddressInLine, unsigned int
 }
 
 void LCDptinrArchCount(unsigned char AddressInLine, unsigned int Count, unsigned char Shift){
-  unsigned char tt, cc, ii;
-  AddressInLine+=59;  //четвертая строка
-  cc=AddressInLine;
-  LCDbuf[AddressInLine++]='(';
-  if ((Count==0)||(Count>256)){
-    LCDbuf[AddressInLine++]=0x30;
-  }else{
-    tt=0;
-    if (Shift==255){
-      LCDbuf[AddressInLine++]='2';
-      LCDbuf[AddressInLine++]='5';
-      LCDbuf[AddressInLine++]='6';
-    }else{
-      Shift++;  //т.к. сдвиг у нас считался с 0, увеличим значение на 1
-      if (Shift>99){
-          tt=Shift/100;
-          LCDbuf[AddressInLine++]=tt+0x30;
-      }
-      if (Shift>9){
-        tt=Shift/10 - tt*10 ;
-        LCDbuf[AddressInLine++]=tt+0x30;
-      }
-      LCDbuf[AddressInLine++]=Shift%10+0x30;
-    }
-  }
-
-  LCDbuf[AddressInLine++]='/';
-  if (Count==256){
-    LCDbuf[AddressInLine++]='2';
-    LCDbuf[AddressInLine++]='5';
-    LCDbuf[AddressInLine++]='6';
-  }else
-    if (Count<256){
-      tt=0;
-      ii=(unsigned char) Count;
-      if (ii>99){
-        tt=ii/100;
-        LCDbuf[AddressInLine++]=tt+0x30;
-      }
-      if (ii>9){
-        tt=(ii/10) - (tt*10);
-        LCDbuf[AddressInLine++]=tt+0x30;
-      }
-      LCDbuf[AddressInLine++]=ii%10+0x30;
-    }else LCDbuf[AddressInLine++]='?';  //ошибочное значение
-
-
-  LCDbuf[AddressInLine]=')';
-
-  for(cc=(AddressInLine-cc); cc<8; cc++) LCDbuf[++AddressInLine]=' '; //сотрем незадействованные ячейки
+	unsigned char tt, cc, ii;
+	AddressInLine+=59;  //четвертая строка
+	cc=AddressInLine;
+	LCDbuf[AddressInLine++]='(';
+	if ((Count==0)||(Count>256)){
+		LCDbuf[AddressInLine++]=0x30;
+	}
+	else
+	{
+		tt=0;
+		if (Shift==255)
+		{
+			LCDbuf[AddressInLine++]='2';
+			LCDbuf[AddressInLine++]='5';
+			LCDbuf[AddressInLine++]='6';
+		}
+		else
+		{
+			Shift++;  //т.к. сдвиг у нас считался с 0, увеличим значение на 1
+			if (Shift>99){
+				tt=Shift/100;
+				LCDbuf[AddressInLine++]=tt+0x30;
+			}
+			if (Shift>9){
+				tt=Shift/10 - tt*10 ;
+				LCDbuf[AddressInLine++]=tt+0x30;
+			}
+			LCDbuf[AddressInLine++]=Shift%10+0x30;
+		}
+	}
+	
+	LCDbuf[AddressInLine++]='/';
+	if (Count==256){
+		LCDbuf[AddressInLine++]='2';
+		LCDbuf[AddressInLine++]='5';
+		LCDbuf[AddressInLine++]='6';
+	}else
+		if (Count<256){
+			tt=0;
+			ii=(unsigned char) Count;
+			if (ii>99){
+				tt=ii/100;
+				LCDbuf[AddressInLine++]=tt+0x30;
+			}
+			if (ii>9){
+				tt=(ii/10) - (tt*10);
+				LCDbuf[AddressInLine++]=tt+0x30;
+			}
+			LCDbuf[AddressInLine++]=ii%10+0x30;
+		}else LCDbuf[AddressInLine++]='?';  //ошибочное значение
+	
+	
+	LCDbuf[AddressInLine]=')';
+	
+	for(cc=(AddressInLine-cc); cc<8; cc++) LCDbuf[++AddressInLine]=' '; //сотрем незадействованные ячейки
 }
 
 void LCDprintData(unsigned char Adr, unsigned char* Mass){

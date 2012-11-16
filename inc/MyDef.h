@@ -84,6 +84,7 @@
 
 struct strArchive
 {
+	unsigned char typeDev;		// Р400 - 1, командный вариант 2
 	unsigned char NumDev; 		// кол-во устройств
 	unsigned char CurrDev;  	// выбранное устройство
 	unsigned char Dev[5]; 		// массив номеров устройств: 

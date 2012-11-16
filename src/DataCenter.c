@@ -72,8 +72,9 @@ extern __flash uint RangPrd[] [3];
 //Параметры Общие
 extern unsigned char MenuAllSynchrTimer;
 extern unsigned char MenuAllLanAddress[];
-extern unsigned char MenuAllKeepComPRM[];
+extern unsigned char MenuAllUoutNominal[];
 extern unsigned char MenuAllKeepComPRD;
+extern unsigned char MenuAllKeepComPRM;
 extern unsigned char MenuAllTimeRerun[];
 extern unsigned char MenuAllFreq[];
 extern unsigned char MenuAllNumDevice[];
@@ -975,24 +976,51 @@ void FParamGlobal(unsigned char command)
 {
 	switch(command)
 	{
-		case 0x35:{  //синхронизация часов (общие)
-			if (Rec_buf_data_uart[4]>RangGlb[1] [1]) MenuAllSynchrTimer=0x02;
-			else MenuAllSynchrTimer=Rec_buf_data_uart[4];
+		case 0x35:		// синхронизация часов (общие)
+		{  
+			if (Rec_buf_data_uart[4] > RangGlb[1] [1]) 
+				MenuAllSynchrTimer=0x02;
+			else 
+				MenuAllSynchrTimer=Rec_buf_data_uart[4];
 		}break;
-		case 0x36:{ //удержание реле команд приемника (общие)
+		case 0x36:		
+		{ 
+			// удержание реле ПРМ ---  ОПТИКА С КОМАНДАМИ
+			if (cNumComR > 0)
+			{
+				if (Rec_buf_data_uart[4] > 1)
+					MenuAllKeepComPRM = 2;
+				else
+					MenuAllKeepComPRM = Rec_buf_data_uart[4];
+				break;
+			}
+			
+			// U выхода номинальное --  Р400
 			if ( (Rec_buf_data_uart[4]<RangGlb[2] [0]) || (Rec_buf_data_uart[4]>RangGlb[2] [1]) )
 			{
-				MenuAllKeepComPRM[0] = '?';
-				MenuAllKeepComPRM[1] = '?';
+				MenuAllUoutNominal[0] = '?';
+				MenuAllUoutNominal[1] = '?';
 			}
 			else
 			{
-				MenuAllKeepComPRM[0] = (Rec_buf_data_uart[4] / 10) + '0';
-				MenuAllKeepComPRM[1] = (Rec_buf_data_uart[4] % 10) + '0';
+				MenuAllUoutNominal[0] = (Rec_buf_data_uart[4] / 10) + '0';
+				MenuAllUoutNominal[1] = (Rec_buf_data_uart[4] % 10) + '0';
 			}
 		}break;
-		case 0x37:
-		{ //тип удаленного аппарата
+		case 0x37:		
+		{ 
+			// удержание реле ПРД ---  ОПТИКА С КОМАНДАМИ
+			if (cNumComT > 0)
+			{
+				if (Rec_buf_data_uart[4] > 1)
+					MenuAllKeepComPRD = 2;
+				else
+					MenuAllKeepComPRD = Rec_buf_data_uart[4];
+				break;
+			}
+			
+			
+			// тип удаленного аппарата
 			if (Rec_buf_data_uart[4] > RangGlb[0] [1])
 			{
 				TypeUdDev = RangGlb[0] [1] + 1;
@@ -1031,8 +1059,8 @@ void FParamGlobal(unsigned char command)
 			}
 		}
 		break;
-		case 0x38:
-		{ //адрес аппарата в локальной сети (общие)
+		case 0x38:		// адрес аппарата в локальной сети (общие)
+		{ 
 			MenuAllLanAddress[2]=Rec_buf_data_uart[4]%10 + 0x30;
 			Rec_buf_data_uart[4]=Rec_buf_data_uart[4]/10;
 			MenuAllLanAddress[1]=Rec_buf_data_uart[4]%10 + 0x30;
@@ -1204,7 +1232,8 @@ void FParamGlobal(unsigned char command)
 	LCD2new=1;
 };
 
-void FReadArchEvent(void){
+void FReadArchEvent(void)
+{
 	
 	NumberRec--; //уменьшаем кол-во считываемых записей
 	NumRecStart++;  //выставляем следующий считываемый номер события архива
@@ -1219,34 +1248,57 @@ void FReadArchEvent(void){
 	RecivVar=1;
 }
 
-void FArchive(void){
-	bool er=false;
+void FArchive(void)
+{
+	uint8_t com = Rec_buf_data_uart[2];
 	
 	RecivVar=1;
 	LCD2new=1;
 	
-	//проверка на соответствие принятой команды, текущему пункту меню
-	if ((0x0F - (Rec_buf_data_uart[2]>>4)) == sArchive.Dev[sArchive.CurrDev])  er=true;
+	// Проверка на соответствие команды и текущего журнала
+	if ( (0x0F - (com >> 4)) != sArchive.Dev[sArchive.CurrDev])  
+		return;
 	
-	if ((Rec_buf_data_uart[2]&0x0F)==0x01){ //кол-во записей архива
-		if (er){  //если получена команда этого архива
-			if (Rec_buf_data_uart[5]) {
-				sArchive.RecCount=256;
-				sArchive.CurCount=Rec_buf_data_uart[4];
-			}else{
-				sArchive.RecCount = Rec_buf_data_uart[4];
-				sArchive.CurCount = 0;
+	//кол-во записей архива
+	if ( (com & 0x0F) == 0x01 )
+	{ 
+		// Проверка на переполнение архива
+		if (Rec_buf_data_uart[5] & 0x80) 
+		{
+			// Определение устройства
+			// 1 - АВАНТ Р400
+			// 2 - командная аппаратура
+			if (sArchive.typeDev == 1)
+			{
+				// Для нового архива устанавливается флаг в 6 бите
+				// и в нем 1024 записи
+				if (Rec_buf_data_uart[5] & 0x40)
+					sArchive.RecCount = 1024;
+				else
+					sArchive.RecCount = 256;
 			}
+			else if (sArchive.typeDev == 2)
+			{				
+				// в журнале защиты может быть до 2048 записей
+				// в остальных не более 256
+				if ( (com & 0xF0) == 0xC0 )
+					sArchive.RecCount = 2048;
+				else
+					sArchive.RecCount = 256;
+			}
+		}
+		else
+		{
+			sArchive.RecCount = (Rec_buf_data_uart[5] << 8) + Rec_buf_data_uart[4];
+			sArchive.CurCount = 0;
 		}
 	}
 	
-	if ((Rec_buf_data_uart[2]&0x0F)==0x02){ //записи архива
-		unsigned char i;
-		if(er){ //если получена команда этого архива
-			for(i=0; i<16; i++) sArchive.Data[i]=Rec_buf_data_uart[4+i];
-		}else{
-			for(i=0; i<16; i++) sArchive.Data[i]=0x00;
-		}
+	//записи архива	
+	if ( (com & 0x0F) == 0x02 )
+	{ 
+		for(uint8_t i = 0; i < 16; i++) 
+			sArchive.Data[i] = Rec_buf_data_uart[4+i];
 	}
 }
 
@@ -1381,6 +1433,7 @@ void VersDevice(void)
 		bDef = true;
 		bViewParam[5] = true; 
 		sArchive.Dev[++sArchive.NumDev] = 3;
+		sArchive.typeDev = 1;	
 	}
 	else 
 	{
@@ -1465,11 +1518,17 @@ void VersDevice(void)
 	
 	// Архив приемника
 	if (cNumComR != 0) 
+	{
 		sArchive.Dev[++sArchive.NumDev] = 2; //приемник
+		sArchive.typeDev = 2;
+	}
 	
 	// Архив передатчика
 	if (cNumComT != 0) 
+	{
 		sArchive.Dev[++sArchive.NumDev] = 1; //передатчик
+		sArchive.typeDev = 2;
+	}
 	
 	// Тип линии
 	// 1 - ВЧ
