@@ -39,7 +39,6 @@ extern unsigned int iTimeToAK, iTimeToAKnow;
 extern unsigned char MenuAKdecrease;
 extern uchar MenuFreqPRD, MenuFreqPRM;
 
-extern __flash uint RangPost[] [3];
 //параметры ПРМ-ка
 extern unsigned char MenuPrmTimeOn[];
 extern unsigned char MenuPrmTimeCom[];
@@ -59,7 +58,6 @@ extern unsigned char ValuePrmLongCom2[];
 extern unsigned char MenuVoltageLimitPRM12[];
 extern unsigned char MenuVoltageLimitPRM22[];
 
-extern __flash uint RangPrm[] [3];
 //параметры ПРД-ка
 extern unsigned char MenuPrdTimeOn[];
 extern unsigned char MenuPrdTimeCom[];
@@ -68,7 +66,7 @@ extern unsigned char MenuPrdBlockCom[];
 extern unsigned char MenuPrdLongCom[];
 extern unsigned char ValuePrdBlockCom[];
 extern unsigned char ValuePrdLongCom[];
-extern __flash uint RangPrd[] [3];
+
 //Параметры Общие
 extern unsigned char MenuAllSynchrTimer;
 extern unsigned char MenuAllLanAddress[];
@@ -82,7 +80,6 @@ extern unsigned char MenuAllControlUout;
 extern unsigned char MenuAllCF[];
 extern unsigned char MenuAllLowCF[];
 extern unsigned int MyInsertion[];
-extern __flash uint RangGlb[] [3];
 extern uchar TypeUdDev;
 ///// ПВЗУ-Е
 extern strParamPVZUE sParamPVZE;	
@@ -155,6 +152,11 @@ extern void MenuAKCreate(void);
 extern void MenuTestCreate(void);
 extern unsigned char MaxShiftMenu, ShiftMenu;
 
+extern __flash strParam paramDef[];
+extern __flash strParam paramPrm[];
+extern __flash strParam paramPrd[];
+extern __flash strParam paramGlb[];
+
 //функция вычисляет код CRC-16
 //на входе указатель на начало буфера
 //и количество байт сообщения (без принятого кода CRC-16)
@@ -217,8 +219,8 @@ void FParamDef(unsigned char command)
 	{
 		case 0x01:
 		{  //принято значение типа защиты (пост)
-			if ((tmp < RangPost[0] [0]) || (tmp > RangPost[0] [1])) 
-				MenuTypeDefend = RangPost[0] [1] + 1;
+			if ((tmp < paramDef[0].min) || (tmp > paramDef[0].max)) 
+				MenuTypeDefend = paramDef[0].max + 1;
 			else 
 				MenuTypeDefend = tmp;
 		}break;
@@ -230,7 +232,7 @@ void FParamDef(unsigned char command)
 			// настроим пункты меню с учетом выбранного значения
 			
 			tmp += 1;
-			if ((tmp < RangPost[1] [0]) || (tmp > RangPost[1] [1])) 
+			if ((tmp < paramDef[1].min) || (tmp > paramDef[1].max)) 
 				MenuTypeLine[0] = '?'; 
 			else 
 			{
@@ -251,7 +253,7 @@ void FParamDef(unsigned char command)
 		}break;
 		case 0x03:
 		{//принято значение допустимого времени без манипуляции (пост)
-			if ((tmp < RangPost[2] [0]) || (tmp > RangPost[2] [1])) 
+			if ((tmp < paramDef[2].min) || (tmp > paramDef[2].max)) 
 			{
 				MenuPossibleTimeNoMan[0] = '?';
 				MenuPossibleTimeNoMan[1] = '?';
@@ -264,16 +266,8 @@ void FParamDef(unsigned char command)
 		}break;
 		case 0x04:
 		{//принято значение допустимых провалов в сигнале приема (пост)
-			if (cTypeLine == 1)
-			{
-				min = RangPost[3] [0];
-				max = RangPost[3] [1];
-			}
-			else
-			{
-				min = 0;
-				max = 54;
-			}
+			min = paramDef[3].min;
+			max = paramDef[3].max;
 			
 			if ( (tmp < min) || (tmp > max)) 
 			{
@@ -302,16 +296,8 @@ void FParamDef(unsigned char command)
 			}
 		}break;
 		case 0x05:{//принято значение перекрытия импульсов (пост)
-			if (cTypeLine == 1)
-			{
-				min = RangPost[4] [0];
-				max = RangPost[4] [1];
-			}
-			else
-			{
-				min = 0;
-				max = 54;
-			}
+			min = paramDef[4].min;
+			max = paramDef[4].max;
 			
 			if ((tmp < min) || (tmp > max)) 
 			{
@@ -341,7 +327,10 @@ void FParamDef(unsigned char command)
 		}break;
 		case 0x06:
 		{//принято значение напряжения порога (пост)
-			if ( (tmp < RangPost[5] [0]) || (tmp > RangPost[5] [1]) ) 
+			min = paramDef[5].min;
+			max = paramDef[5].max;
+			
+			if ( (tmp < min) || (tmp > max) ) 
 			{
 				MenuVoltageLimit1[0] = '?';
 				MenuVoltageLimit1[1] = '?';
@@ -351,10 +340,11 @@ void FParamDef(unsigned char command)
 				MenuVoltageLimit1[0] = tmp/10 + '0';
 				MenuVoltageLimit1[1] = tmp%10 + '0';
 			}
+			
 			if (cNumLine == 3)
 			{
 				tmp = Rec_buf_data_uart[5];
-				if ( (tmp < RangPost[5] [0]) || (tmp > RangPost[5] [1]) ) 
+				if ( (tmp < min) || (tmp > max) ) 
 				{
 					MenuVoltageLimit2[0] = '?';
 					MenuVoltageLimit2[1] = '?';
@@ -368,30 +358,30 @@ void FParamDef(unsigned char command)
 		}break;
 		case 0x07:
 		{
-			if ( (tmp < RangPost[6] [0]) || (tmp > RangPost[6] [1]) ) 
+			if ( (tmp < paramDef[6].min) || (tmp > paramDef[6].min) ) 
 				MenuAKdecrease = 2;
 			else 
 				MenuAKdecrease = tmp;
 		}break;
 		case 0x08:
 		{
-			if (tmp > RangPost[7] [1])
-				MenuFreqPRD = RangPost[7] [1] + 1;
+			if (tmp > paramDef[7].min)
+				MenuFreqPRD = paramDef[7].max + 1;
 			else
 				MenuFreqPRD = tmp;
 		}
 		break;
 		case 0x09:
 		{
-			if (tmp > RangPost[8] [1])
-				MenuFreqPRM = RangPost[8] [1] + 1;
+			if (tmp > paramDef[8].max)
+				MenuFreqPRM = paramDef[8].max + 1;
 			else
 				MenuFreqPRM = tmp;
 		}
 		break;
 		case 0x0A:
 		{
-			if ( (tmp < RangPost[9] [0]) || (tmp > RangPost[9] [1]) )
+			if ( (tmp < paramDef[9].min) || (tmp > paramDef[9].max) )
 			{
 				cAutoControl = 0;
 			}
@@ -493,119 +483,212 @@ void FParamDef(unsigned char command)
 void FParamPrm(unsigned char command)
 {
 	unsigned char *TmpMass;
+	uint8_t min, max;
 	
 	switch(command){
 		case 0x11:
 		case 0x18:{ //Время включения (приемник)
-			if (command==0x11) TmpMass=MenuPrmTimeOn;
-			else TmpMass=MenuPrmTimeOn2;
+			if (command==0x11) 
+				TmpMass=MenuPrmTimeOn;
+			else 
+				TmpMass=MenuPrmTimeOn2;
 			
-			if ((Rec_buf_data_uart[4]<RangPrm[0] [0])||(Rec_buf_data_uart[4]>RangPrm[0] [1])) {TmpMass[0]='?';TmpMass[1]='?';}
-			else{
+			min = paramPrm[0].min;
+			max = paramPrm[0].max;
+			
+			if ( (Rec_buf_data_uart[4] < min) || (Rec_buf_data_uart[4] > max) ) 
+			{
+				TmpMass[0]='?';
+				TmpMass[1]='?';
+			}
+			else
+			{
 				TmpMass[0]=Rec_buf_data_uart[4]/10+0x30;
 				TmpMass[1]=Rec_buf_data_uart[4]%10+0x30;
 			}
-		}break;
+		}
+		break;
+		
 		case 0x12:
 		case 0x19:{ //длительность команды (приемник)
-			if (command==0x12) TmpMass=MenuPrmTimeCom;
-			else TmpMass=MenuPrmTimeCom2;
+			if (command==0x12) 
+				TmpMass=MenuPrmTimeCom;
+			else 
+				TmpMass=MenuPrmTimeCom2;
 			
-			if ((Rec_buf_data_uart[4]<RangPrm[1] [0])||(Rec_buf_data_uart[4]>RangPrm[1] [1])) {TmpMass[0]='?';TmpMass[1]='?';TmpMass[2]='?';}
-			else{
-				if (Rec_buf_data_uart[4]<10){
+			
+			min = paramPrm[1].min;
+			max = paramPrm[1].max;
+			
+			if ((Rec_buf_data_uart[4] < min) || (Rec_buf_data_uart[4] > max)) 
+			{
+				TmpMass[0]='?';
+				TmpMass[1]='?';
+				TmpMass[2]='?';
+			}
+			else
+			{
+				if (Rec_buf_data_uart[4]<10)
+				{
 					TmpMass[0]=Rec_buf_data_uart[4]+0x30;
 					TmpMass[1]='0';
 					TmpMass[2]=' ';
-				}else{
+				}
+				else
+				{
 					TmpMass[0]=Rec_buf_data_uart[4]/10+0x30;
 					TmpMass[1]=Rec_buf_data_uart[4]%10+0x30;
 					TmpMass[2]='0';
 				}
 			}
-		}break;
+		}
+		break;
+				 
 		case 0x13:
 		case 0x1A:{ //задержка на выключение (приемник)
-			if (command==0x13) TmpMass=ValuePrmTimeOff;
-			else TmpMass=ValuePrmTimeOff2;
+			if (command==0x13) 
+				TmpMass=ValuePrmTimeOff;
+			else 
+				TmpMass=ValuePrmTimeOff2;
 			
-			for (l=0; l<Rec_buf_data_uart[3]; l++){
-				if ((Rec_buf_data_uart[4+l]<RangPrm[2] [0])||(Rec_buf_data_uart[4+l]>RangPrm[2] [1])) TmpMass[l]=0xFF;
-				else TmpMass[l]=Rec_buf_data_uart[4+l];
+			min = paramPrm[2].min;
+			max = paramPrm[2].max;
+			
+			for (l=0; l<Rec_buf_data_uart[3]; l++)
+			{
+				if ( (Rec_buf_data_uart[4+l] < min) || (Rec_buf_data_uart[4+l] > max) ) 
+					TmpMass[l]=0xFF;
+				else 
+					TmpMass[l]=Rec_buf_data_uart[4+l];
 			}
-		}break;
+		}
+		break;
+		
 		case 0x14:
 		case 0x1B: { //блокировка команд на приеме
-			if (command==0x14) TmpMass=ValuePrmBlockCom;
-			else TmpMass=ValuePrmBlockCom2;
+			if (command==0x14) 
+				TmpMass=ValuePrmBlockCom;
+			else 
+				TmpMass=ValuePrmBlockCom2;
 			
-			for(l=0; l<Rec_buf_data_uart[3]; l++) TmpMass[l]=Rec_buf_data_uart[4+l];
+			for(l=0; l<Rec_buf_data_uart[3]; l++) 
+				TmpMass[l]=Rec_buf_data_uart[4+l];
 		}break;
 		case 0x15:
 		case 0x1C:{ //длительные команды
-			if (command==0x15) TmpMass=ValuePrmLongCom;
-			else TmpMass=ValuePrmLongCom2;
+			if (command==0x15) 
+				TmpMass=ValuePrmLongCom;
+			else 
+				TmpMass=ValuePrmLongCom2;
 			
-			for(l=0; l<Rec_buf_data_uart[3]; l++) TmpMass[l]=Rec_buf_data_uart[4+l];
-		}break;
+			for(l=0; l<Rec_buf_data_uart[3]; l++) 
+				TmpMass[l]=Rec_buf_data_uart[4+l];
+		}
+		break;
 	}
+				 
 	RecivVar=1;
   	LCD2new=1;
 };
 
 
-void FParamPrd(unsigned char command){
-	switch(command){
+void FParamPrd(unsigned char command)
+{
+	uint8_t min, max;
+	uint8_t tmp = Rec_buf_data_uart[4];
+	
+	switch(command)
+	{
 		case 0x21:
-		{ //время включения (передатчик)
-			if (Rec_buf_data_uart[4]>RangPrd[0] [1]){
-				MenuPrdTimeOn[0]='?';MenuPrdTimeOn[1]='?';
-			}else{
-				MenuPrdTimeOn[0]=Rec_buf_data_uart[4]/10+0x30;
-				MenuPrdTimeOn[1]=Rec_buf_data_uart[4]%10+0x30;
+		{ //время включения (передатчик)			
+			min = paramPrd[0].min;
+			max = paramPrd[0].max;
+			
+			if ( (tmp < min) || (tmp > max) )
+			{
+				MenuPrdTimeOn[0]='?';
+				MenuPrdTimeOn[1]='?';
 			}
-		}break;
-		case 0x22:{//длительность команды (передатчик)
-			if ((Rec_buf_data_uart[4]<RangPrd[1] [0])||(Rec_buf_data_uart[4]>RangPrd[1] [1])){
+			else
+			{
+				MenuPrdTimeOn[0] = tmp/10 + '0';
+				MenuPrdTimeOn[1] = tmp%10 + '0';
+			}
+		}
+		break;
+		
+		case 0x22:
+		{//длительность команды (передатчик)
+			min = paramPrd[1].min;
+			max = paramPrd[1].max;
+			
+			if ( (tmp < min) || (tmp > max) )
+			{
 				MenuPrdTimeCom[0]='?';
 				MenuPrdTimeCom[1]='?';
 				MenuPrdTimeCom[2]='?';
-			}else{
-				if (Rec_buf_data_uart[4]<10){
-					MenuPrdTimeCom[0]=Rec_buf_data_uart[4]+0x30;
+			}
+			else
+			{
+				if (tmp < 10)
+				{
+					MenuPrdTimeCom[0]=tmp + '0';
 					MenuPrdTimeCom[1]='0';
 					MenuPrdTimeCom[2]=' ';
-				}else{
-					MenuPrdTimeCom[0]=Rec_buf_data_uart[4]/10+0x30;
-					MenuPrdTimeCom[1]=Rec_buf_data_uart[4]%10+0x30;
-					MenuPrdTimeCom[2]='0';
+				}
+				else
+				{
+					MenuPrdTimeCom[0] = tmp/10 + '0';
+					MenuPrdTimeCom[1] = tmp%10 + '0';
+					MenuPrdTimeCom[2] = '0';
 				}
 			}
-		}break;
+		}
+		break;
+		
 		case 0x23:{ //время на повторное формирование команды (передатчик)
-			if ((Rec_buf_data_uart[4]<RangPrd[2] [0])||(Rec_buf_data_uart[4]>RangPrd[2] [1])){
+			min = paramPrd[2].min;
+			max = paramPrd[2].max;
+			
+			if ( (tmp < min) || (tmp > max) )
+			{
 				MenuPrdTimeRep[0]='?';
 				MenuPrdTimeRep[1]='?';
 				MenuPrdTimeRep[2]='?';
-			}else{
-				if (Rec_buf_data_uart[4]<10){
-					MenuPrdTimeRep[0]=Rec_buf_data_uart[4]+0x30;
-					MenuPrdTimeRep[1]='0';
-					MenuPrdTimeRep[2]=' ';
-				}else{
-					MenuPrdTimeRep[0]=Rec_buf_data_uart[4]/10+0x30;
-					MenuPrdTimeRep[1]=Rec_buf_data_uart[4]%10+0x30;
-					MenuPrdTimeRep[2]='0';
+			}
+			else
+			{
+				if (tmp < 10)
+				{
+					MenuPrdTimeRep[0] = tmp + '0';
+					MenuPrdTimeRep[1] = '0';
+					MenuPrdTimeRep[2] = ' ';
+				}
+				else
+				{
+					MenuPrdTimeRep[0] = tmp/10 + '0';
+					MenuPrdTimeRep[1] = tmp%10 + '0';
+					MenuPrdTimeRep[2] = '0';
 				}
 			}
-		}break;
-		case 0x24:{//блокировка команд (передатчик)
-			for(l=0; l<Rec_buf_data_uart[3]; l++) ValuePrdBlockCom[l]=Rec_buf_data_uart[4+l];
-		}break;
-		case 0x25:{
-			for(l=0; l<Rec_buf_data_uart[3]; l++) ValuePrdLongCom[l]=Rec_buf_data_uart[4+l];
-		}break;
+		}
+		break;
+		
+		case 0x24:
+		{	//блокировка команд (передатчик)
+			for(l=0; l<Rec_buf_data_uart[3]; l++) 
+				ValuePrdBlockCom[l] = Rec_buf_data_uart[4+l];
+		}
+		break;
+		
+		case 0x25:
+		{
+			for(l=0; l<Rec_buf_data_uart[3]; l++) 
+				ValuePrdLongCom[l] = Rec_buf_data_uart[4+l];
+		}
+		break;
 	}
+	
 	RecivVar=1;
 	LCD2new=1;
 };
@@ -902,8 +985,9 @@ void vfOptParam(void)
 	// протокол обмена
 	
 	tmp = Rec_buf_data_uart[4];
-	if ( (tmp < RangGlb[19] [0]) || (tmp > RangGlb[19] [1]) )
-		tmp = RangGlb[19] [1] + 1;
+	if ( (tmp < paramGlb[19].min) || (tmp > paramGlb[19].max) )
+		tmp = paramGlb[19].max + 1;
+	
 	sParamOpt.reserv = tmp;
 }
 
@@ -974,260 +1058,97 @@ void FMeasureParam(void)
 
 void FParamGlobal(unsigned char command)
 {
+	uint8_t min, max;
+	uint8_t tmp = Rec_buf_data_uart[4];
+	
+	
 	switch(command)
 	{
 		case 0x35:		// синхронизация часов (общие)
 		{  
-			if (Rec_buf_data_uart[4] > RangGlb[1] [1]) 
-				MenuAllSynchrTimer=0x02;
+			min = paramGlb[1].min;
+			max = paramGlb[1].max;
+			
+			if ( (tmp < min) || (tmp > max) ) 
+				MenuAllSynchrTimer = max + 1;
 			else 
-				MenuAllSynchrTimer=Rec_buf_data_uart[4];
-		}break;
+				MenuAllSynchrTimer = tmp;
+		}
+		break;
+		
 		case 0x36:		
 		{ 
 			// удержание реле ПРМ ---  ОПТИКА С КОМАНДАМИ
-			if (cNumComR > 0)
-			{
-				if (Rec_buf_data_uart[4] > 1)
-					MenuAllKeepComPRM = 2;
-				else
-					MenuAllKeepComPRM = Rec_buf_data_uart[4];
-				break;
-			}
+			min = paramGlb[21].min;
+			max = paramGlb[21].max;
 			
-			// U выхода номинальное --  Р400
-			if ( (Rec_buf_data_uart[4]<RangGlb[2] [0]) || (Rec_buf_data_uart[4]>RangGlb[2] [1]) )
-			{
-				MenuAllUoutNominal[0] = '?';
-				MenuAllUoutNominal[1] = '?';
-			}
+			if ( (tmp < min) || (tmp > max) ) 
+				MenuAllKeepComPRM = max + 1;
 			else
-			{
-				MenuAllUoutNominal[0] = (Rec_buf_data_uart[4] / 10) + '0';
-				MenuAllUoutNominal[1] = (Rec_buf_data_uart[4] % 10) + '0';
-			}
-		}break;
-		case 0x37:		
-		{ 
-			// удержание реле ПРД ---  ОПТИКА С КОМАНДАМИ
-			if (cNumComT > 0)
-			{
-				if (Rec_buf_data_uart[4] > 1)
-					MenuAllKeepComPRD = 2;
-				else
-					MenuAllKeepComPRD = Rec_buf_data_uart[4];
-				break;
-			}
-			
-			
-			// тип удаленного аппарата
-			if (Rec_buf_data_uart[4] > RangGlb[0] [1])
-			{
-				TypeUdDev = RangGlb[0] [1] + 1;
-				sMenuGlbParam.dev = 0xFF;
-			}
-			else
-			{
-				TypeUdDev = Rec_buf_data_uart[4];
-				if (TypeUdDev != sMenuGlbParam.dev)
-				{			
-					sMenuGlbParam.dev = TypeUdDev;
-					MenuParamGlbCreate();
-					MenuParamDefCreate();
-					MenuUprCreate(1);
-					MenuAKCreate();
-					MenuTestCreate();
-					if ( (MenuLevel == LVL_GLB_VIEW) || (MenuLevel == LVL_GLB_SETUP) )
-					{
-						MaxShiftMenu = sMenuGlbParam.num - 1;
-						if (ShiftMenu > MaxShiftMenu)
-							ShiftMenu = MaxShiftMenu;
-					}
-					else if ( (MenuLevel == LVL_DEF_VIEW) || (MenuLevel == LVL_DEF_SETUP) )
-					{
-						MaxShiftMenu = sMenuDefParam.num - 1;
-						if (ShiftMenu > MaxShiftMenu)
-							ShiftMenu = MaxShiftMenu;
-					}
-					else if (MenuLevel == LVL_UPR)
-					{
-						MaxShiftMenu = sMenuUpr.num - 3;
-						if (ShiftMenu > MaxShiftMenu)
-							ShiftMenu = MaxShiftMenu;
-					}
-				}
-			}
+				MenuAllKeepComPRM = tmp;
 		}
 		break;
-		case 0x38:		// адрес аппарата в локальной сети (общие)
+	
+		case 0x37:		
 		{ 
-			MenuAllLanAddress[2]=Rec_buf_data_uart[4]%10 + 0x30;
-			Rec_buf_data_uart[4]=Rec_buf_data_uart[4]/10;
-			MenuAllLanAddress[1]=Rec_buf_data_uart[4]%10 + 0x30;
-			MenuAllLanAddress[0]=Rec_buf_data_uart[4]/10 + 0x30;
+			min = paramGlb[3].min;
+			max = paramGlb[3].max;
+			
+			// удержание реле ПРД ---  ОПТИКА С КОМАНДАМИ
+			if ( (tmp < min) || (tmp > max) )
+				MenuAllKeepComPRD = max + 1;
+			else
+				MenuAllKeepComPRD = tmp;
+		}
+		break;
+		
+		case 0x38:		// адрес аппарата в локальной сети (общие)
+		{ 	
+			min = paramGlb[4].min;
+			max = paramGlb[4].max;
+			
+			if ( (tmp < min) || (tmp > max) )
+				tmp = 0;
+			
+			MenuAllLanAddress[2] = tmp%10 + '0';
+			tmp /= 10;
+			MenuAllLanAddress[1] = tmp%10 + '0';
+			MenuAllLanAddress[0] = tmp/10 + '0';
 		}break;
+		
 		case 0x39:
 		{ 	// Оптика - "Время перезапуска"
 			// ВЧ - параметры ПВЗУ-Е
-			uchar tmp;
+			min = paramGlb[5].min;
+			max = paramGlb[5].max;
 			
-			if (cTypeLine == 2)
-			{
-				tmp = Rec_buf_data_uart[4];
-				MenuAllTimeRerun[0] = (tmp > RangGlb[5] [1]) ? '0' : tmp + '0';
-					
-				return;
-			}
-			
-			// В ПВЗЛ используется первый параметр
-			// остальные в ПВЗУ-Е
-			if (TypeUdDev == 4)
-			{
-				//снижение уровня АК
-				tmp = Rec_buf_data_uart[4];
-				if ( (tmp < RangGlb[20] [0] || (tmp > RangGlb[20] [1]) ) )
-				{
-					MenuAllLowCF[0] = '?';
-					MenuAllLowCF[1] = '?';
-				}
-				else
-				{
-					MenuAllLowCF[0] = (tmp / 10) + '0';
-					MenuAllLowCF[1] = (tmp % 10) + '0';
-				}
-			}
-			else
-			{
-				// протокол обмена
-				tmp = Rec_buf_data_uart[4];
-				if ( (tmp < RangGlb[13] [0]) || (tmp > RangGlb[13] [1]) )
-					tmp = RangGlb[13] [1] + 1;
-				sParamPVZE.protocol = tmp;
-				
-				// признак четности
-				tmp = Rec_buf_data_uart[5];
-				if ( (tmp < RangGlb[14] [0]) || (tmp > RangGlb[14] [1]) )
-					tmp = RangGlb[14] [1] + 1;
-				sParamPVZE.parity = tmp;
-				
-				// допустимые провалы
-				tmp = Rec_buf_data_uart[6];
-				if ( (tmp < RangGlb[15] [0]) || (tmp > RangGlb[15] [1]) )
-				{
-					sParamPVZE.proval[0] = '?';
-					sParamPVZE.proval[1] = '?';
-					sParamPVZE.proval[2] = '?';
-				}
-				else
-				{
-					sParamPVZE.proval[2] = (tmp % 10) + '0';
-					tmp = tmp / 10;
-					sParamPVZE.proval[1] = (tmp % 10) + '0';
-					sParamPVZE.proval[0] = (tmp / 10) + '0'; 
-				}
-				
-				// порог по помехе
-				tmp = Rec_buf_data_uart[7];
-				sParamPVZE.porog[2] = (tmp % 10) + '0';
-				tmp = tmp / 10;
-				sParamPVZE.porog[1] = (tmp % 10) + '0';
-				sParamPVZE.porog[0] = (tmp / 10) + '0';
-				
-				// допустимая помеха
-				tmp = Rec_buf_data_uart[8];
-				if ( (tmp < RangGlb[17] [0]) || (tmp > RangGlb[17] [1]) )
-				{
-					sParamPVZE.noise[0] = '?';
-					sParamPVZE.noise[1] = '?';
-				}
-				else
-				{
-					sParamPVZE.noise[0] = (tmp / 10) + '0';
-					sParamPVZE.noise[1] = (tmp % 10) + '0';
-				}
-				
-				// тип автоконтроля
-				tmp = Rec_buf_data_uart[9];
-				if ( (tmp < RangGlb[18] [0]) || (tmp > RangGlb[18] [1]) )
-					tmp = RangGlb[18] [1] + 1;
-				sParamPVZE.autocontrol = tmp;
-			}
-			
+			if ( (tmp < min) || (tmp > max) )
+				tmp = 0;
+
+			MenuAllTimeRerun[0] = tmp + '0';	
 		}
 		break;
-		case 0x3A:{ //частота (общие)
-			Pk_temp = (Rec_buf_data_uart[4]<<8) + Rec_buf_data_uart[5];
-			Rec_buf_data_uart[4]=0;
+		
+		case 0x3B:
+		{ //номер аппарата (общие)
+			min = paramGlb[7].min;
+			max = paramGlb[7].max;
 			
-			if (Pk_temp<RangGlb[6] [0]) Rec_buf_data_uart[4]=1;
-			else
-				if (Pk_temp>RangGlb[6] [1]) Rec_buf_data_uart[4]=1;
-			
-			if (Rec_buf_data_uart[4]){
-				MenuAllFreq[0] = '?';MenuAllFreq[1] = '?';MenuAllFreq[2] = '?';MenuAllFreq[3] = ' ';
-				MenuAllFreq[4] = 'к';MenuAllFreq[5] = 'Г';MenuAllFreq[6] = 'ц';
-				
-				FreqNum[0]='?';FreqNum[1]='?';FreqNum[2]='?';
-			}else{
-				if (Pk_temp<100){
-					MenuAllFreq[0] = Pk_temp/10+0x30;
-					MenuAllFreq[1] = Pk_temp%10+0x30;
-					MenuAllFreq[2] = ' ';
-					MenuAllFreq[3] = 'к';
-					MenuAllFreq[4] = 'Г';
-					MenuAllFreq[5] = 'ц';
-					MenuAllFreq[6] = ' ';
-				}else{
-					MenuAllFreq[0] = Pk_temp/100+0x30; Pk_temp=Pk_temp - (MenuAllFreq[0]-0x30)*100;
-					MenuAllFreq[1] = Pk_temp/10+0x30;
-					MenuAllFreq[2] = Pk_temp%10+0x30;
-					MenuAllFreq[3] = ' ';
-					MenuAllFreq[4] = 'к';
-					MenuAllFreq[5] = 'Г';
-					MenuAllFreq[6] = 'ц';
-				}
-				FreqNum[0]=MenuAllFreq[0];
-				FreqNum[1]=MenuAllFreq[1];
-				FreqNum[2]=MenuAllFreq[2];
-			}//end else if (Rec_buf_data_uart[4])
-			LCDtimerNew=1;
-		}break;
-		case 0x3B:{ //номер аппарата (общие)
-			if ((Rec_buf_data_uart[4]<RangGlb[7] [0])||(Rec_buf_data_uart[4]>RangGlb[7] [1])){
+			if ( (tmp < min) || (tmp > max) )
+			{
 				MenuAllNumDevice[0] = '?';
 				FreqNum[7]='?';
 			}
 			else
 			{
-				MenuAllNumDevice[0] = Rec_buf_data_uart[4]+0x30;
+				MenuAllNumDevice[0] = tmp + '0';
 				FreqNum[7] = MenuAllNumDevice[0];
 			}
 			LCDtimerNew=1;
-		}break;
-		case 0x3C:{ //пороги КЧ
-			//Попрог предупреждения по КЧ
-			if (Rec_buf_data_uart[4]>RangGlb[9] [1]) {MenuAllCF[0]=0x3F;MenuAllCF[1]=0x3F;}
-			else{
-				MenuAllCF[0]=Rec_buf_data_uart[4]/10+0x30;
-				MenuAllCF[1]=Rec_buf_data_uart[4]%10+0x30;
-			}
-			//снижение чувствительности по КЧ
-			if (Rec_buf_data_uart[5]>RangGlb[10] [1]){MenuVoltageLimitPRM1[0]=0x3F;MenuVoltageLimitPRM1[1]=0x3F;}
-			else{
-				MenuVoltageLimitPRM1[0]=Rec_buf_data_uart[5]/10+0x30;MenuVoltageLimitPRM1[1]=(Rec_buf_data_uart[5]-(MenuVoltageLimitPRM1[0]-0x30)*10)+0x30;
-			}
-			if (cNumLine==3){
-				if (Rec_buf_data_uart[6]>RangGlb[9] [1]){MenuVoltageLimitPRM2[0]=0x3F;MenuVoltageLimitPRM2[1]=0x3F;}
-				else{
-					MenuVoltageLimitPRM2[0]=Rec_buf_data_uart[6]/10+0x30;MenuVoltageLimitPRM2[1]=(Rec_buf_data_uart[6]-(MenuVoltageLimitPRM2[0]-0x30)*10)+0x30;
-				}
-			}
-		}break;
-		case 0x3D:{ //контроль выходного сигнала
-			if (Rec_buf_data_uart[4]>RangGlb[8] [1]) MenuAllControlUout=2;
-			else MenuAllControlUout=Rec_buf_data_uart[4];
 		}
+		break;
 	}
+
 	RecivVar=1;
 	LCD2new=1;
 };

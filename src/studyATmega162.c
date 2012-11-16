@@ -347,105 +347,33 @@ static void FuncViewValue(uint8_t numparam)
 	num = numparam & 0x1F;
 	numparam = numparam & 0xE0;
 	
-	switch(numparam){
-		case 0x20:
-		{ //параметры Защиты
-			if ( (num == 0) || (num == 6) || (num == 7) || (num == 8) )
-			{
-				var=1;  //тип защиты из списка
-			}
-			else
-			{
-				if (num < NumParamDef)
-				{
-					var=2;
-					min = RangPost[num] [0] * RangPost[num] [2];
-					max = RangPost[num] [1] * RangPost[num] [2];
-					
-					if (cTypeLine == 2)
-					{
-						if ( (num == 3) || (num == 4) )
-						{
-							min = 0;
-							max = 54;
-						}
-					}
-				}
-				else 
-					var=0;
-			}
+	switch(numparam)
+	{
+		case 0x20:	//параметры Защиты
+		{ 
+			min = paramDef[num].min;
+			max = paramDef[num].max;
+			var = paramDef[num].var;
 		}break;
 		case 0x40:
 		{
-			if ((num==3)||(num==4)) var=0;  //там где вводятся значения битовые 0-ками и 1-ами
-			else
-				if (num < NumParamPrm){
-					var=2;
-					min = RangPrm[num] [0] * RangPrm[num] [2];
-					max = RangPrm[num] [1] * RangPrm[num] [2];
-				}else var=0;
+			min = paramPrm[num].min;
+			max = paramPrm[num].max;
+			var = paramPrm[num].var;
 		}break;
 		case 0x60:
 		{
-			if ((num==3)||(num==4)) var=0;  //там где вводятся значения битовые 0-ками и 1-ами
-			else
-				if (num<NumParamPrd){
-					var=2;
-					min = RangPrd[num] [0] * RangPrd[num] [2];
-					max = RangPrd[num] [1] * RangPrd[num] [2];
-				}else var=0;
+			min = paramPrd[num].min;
+			max = paramPrd[num].max;
+			var = paramPrd[num].var;
 		}break;
 		case 0x80:
 		{
-			switch(num)
-			{
-				case 0:	// параметры выбираемые из списка
-				case 1:
-				case 3:
-				case 8:
-				case 13:
-				case 14:
-				case 18:
-				case 19:
-				var = 1;
-				break;
-				case 2:	// параметры вводимые с клавиатуры
-				case 4:
-				case 5:
-				case 6:
-				case 7:
-				case 9:
-				case 10:
-				case 12:	// коррекция тока
-				case 15:
-				case 16:
-				case 17:
-				case 20:	// снижение уровня ответа (ПВЗЛ)
-				{
-					var=2;
-					min = RangGlb[num] [0] * RangGlb[num] [2];
-					max = RangGlb[num] [1] * RangGlb[num] [2];
-					
-					// в ПВЗЛ только 2-х концевая версия, т.е. 3-его аппарата нет
-					if (TypeUdDev == 4)
-					{
-						if (num == 7)
-							max = 2;
-					}
-				}
-				break;
-				case 11:	//корркция напряжения
-				{
-					min=0;
-					max = 0x6309;
-					var=3;
-				}
-				break;
-				default:
-				var = 0;			 
-			}
+			min = paramGlb[num].min;
+			max = paramGlb[num].max;
+			var = paramGlb[num].var;
 		}break;
-	}//end switch(numparam)
+	}
 	
 	switch(var)
 	{
@@ -1828,9 +1756,11 @@ static void FuncPressKey(void)
 				
 				case LVL_DEF_SETUP:
 				{  //ввод параметров в меню Установить\Параметры\Пост
+					uint8_t param = sMenuDefParam.punkt[ShiftMenu];
+					
 					if (CurrentState[0]==0x00)
 					{
-						switch(sMenuDefParam.punkt[ShiftMenu])
+						switch(param)
 						{
 							case 0: {WorkRate=2;SelectValue=1;InputSelectValue=0;MassSelectValue=MenuTypeDefendNum;} break;
 							case 1: {WorkRate=0x01;MaxNumberInputChar=1;ByteShift=0;InputParameter=7;Discret=1;} break;
@@ -1843,29 +1773,19 @@ static void FuncPressKey(void)
 							case 8: {WorkRate=2;SelectValue=9;InputSelectValue=0;MassSelectValue=fmMenuAllFreq;}break;
 						}
 						
-						if (sMenuDefParam.punkt[ShiftMenu] < NumParamDef)
-						{
-							MinValue=RangPost[sMenuDefParam.punkt[ShiftMenu]] [0] * RangPost[sMenuDefParam.punkt[ShiftMenu]] [2];
-							MaxValue=RangPost[sMenuDefParam.punkt[ShiftMenu]] [1] * RangPost[sMenuDefParam.punkt[ShiftMenu]] [2];
-							
-							if (cTypeLine == 2)
-							{
-								if ((sMenuDefParam.punkt[ShiftMenu] == 3) || (sMenuDefParam.punkt[ShiftMenu] == 4))
-								{
-									MinValue = 0;
-									MaxValue = 54;
-									Discret = 1;
-								}
-							}
-						}
+						MinValue = paramDef[param].min * paramDef[param].div;
+						MaxValue = paramDef[param].max * paramDef[param].div;
+						Discret = paramDef[param].dis;
 					}
 				}
 				break;
 				
 				case LVL_PRM_SETUP:
 				{  //ввод параметров в меню Установить\Параметры\Приемник
-					if (CurrentState[2]==0x00){
-						switch(ShiftMenu){
+					if (CurrentState[2]==0x00)
+					{
+						switch(ShiftMenu)
+						{
 							case 0: {WorkRate=0x01; MaxNumberInputChar=2; ByteShift=0; /*MaxValue=10;MinValue=0;*/ InputParameter=11; Discret=1;} break;
 							case 1: {WorkRate=0x01; MaxNumberInputChar=3; ByteShift=0; /*MaxValue=500;MinValue=10;*/ InputParameter=12; Discret=10;} break;
 							case 2: {WorkRate=0x01; MaxNumberInputChar=4; ByteShift=0; /*MaxValue=1000;MinValue=0;*/ InputParameter=13; Discret=10; NumberTransCom=NumberCom;} break;
@@ -1890,10 +1810,10 @@ static void FuncPressKey(void)
 										if (cNumComR2>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
 							} break;
 						}
-						if (ShiftMenu < NumParamPrm) {
-							MinValue=RangPrm[ShiftMenu] [0] * RangPrm[ShiftMenu] [2];
-							MaxValue=RangPrm[ShiftMenu] [1] * RangPrm[ShiftMenu] [2];
-						}
+						
+						MinValue = paramPrm[ShiftMenu].min * paramPrm[ShiftMenu].div;
+						MaxValue = paramPrm[ShiftMenu].max * paramPrm[ShiftMenu].div;
+						Discret = paramPrm[ShiftMenu].dis;
 					}
 					
 				}break;
@@ -1909,24 +1829,32 @@ static void FuncPressKey(void)
 							case 3: {WorkRate=0x01; if (cNumComT!=4) MaxNumberInputChar=8; else MaxNumberInputChar=4;ByteShift=0;/*MaxValue=9999;MinValue=0;*/InputParameter=20;Discret=1; NumberTransCom=NumberCom;} break;
 							case 4: {WorkRate=0x01; if (cNumComT!=4) MaxNumberInputChar=8; else MaxNumberInputChar=4;ByteShift=0;/*MaxValue=9999;MinValue=0;*/InputParameter=21;Discret=1; NumberTransCom=NumberCom;} break;
 						}
-						if (ShiftMenu<NumParamPrd) {
-							MinValue=RangPrd[ShiftMenu] [0] * RangPrd[ShiftMenu] [2];
-							MaxValue=RangPrd[ShiftMenu] [1] * RangPrd[ShiftMenu] [2];
-						}
+						
+						MinValue = paramPrd[ShiftMenu].min * paramPrd[ShiftMenu].div;
+						MaxValue = paramPrd[ShiftMenu].max * paramPrd[ShiftMenu].div;
+						Discret = paramPrd[ShiftMenu].dis;
 					}
 				}break;
 				
 				case LVL_GLB_SETUP:
 				{ //меню/установить/параметры/общие
 					bInpVal=true; //разрешим изменение параметра
-					if ((bDef)&&(CurrentState[0]!=0x00)) bInpVal=false;
-					if ((cNumComR>0)&&(CurrentState[2]!=0x00)) bInpVal=false;
-					if ((cNumComT>0)&&(CurrentState[4]!=0x00)) bInpVal=false;
+					if ( (bDef) && (CurrentState[0]!=0x00) ) 
+						bInpVal=false;
+					if ( (cNumComR>0)&&(CurrentState[2]!=0x00) ) 
+						bInpVal=false;
+					if ( (cNumComT>0)&&(CurrentState[4]!=0x00) ) 
+						bInpVal=false;
+					
 					// если это параметры коррекции, то разрешим ввод параметра
 					if ( (sMenuGlbParam.punkt[ShiftMenu] == 11) || (sMenuGlbParam.punkt[ShiftMenu] == 12) )
 						bInpVal = true;
-					if (bInpVal){
-						switch(sMenuGlbParam.punkt[ShiftMenu])
+					
+					uint8_t param = sMenuGlbParam.punkt[ShiftMenu];
+					
+					if (bInpVal)
+					{
+						switch(param)
 						{
 							case 0:
 							{
@@ -2045,20 +1973,9 @@ static void FuncPressKey(void)
 						bInpVal=false;
 					}
 					
-					if (ShiftMenu < NumParamGlb)
-					{
-						MinValue = 	RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [0] * 
-									RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
-						MaxValue = 	RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [1] * 
-									RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
-						
-						if ( (TypeUdDev == 4) && (sMenuGlbParam.punkt[ShiftMenu] == 7) )
-						{
-							// ПВЗЛ только двух концевая, поэтому макс. номер аппарата 2
-							MaxValue = 2;
-						}
-							
-					}
+					MinValue = paramGlb[param].min * paramGlb[param].div;
+					MaxValue = paramGlb[param].max * paramGlb[param].div;
+					Discret = paramGlb[param].dis;
 					
 				}
 				break;
