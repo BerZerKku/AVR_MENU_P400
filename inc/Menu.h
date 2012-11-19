@@ -169,5 +169,13 @@ enum eMENUglbParam
 	// ÏÂÇË
 	PARAM_GLB_AC_LOW
 };
+
+enum eMENUarchDevices
+{
+	ARCH_DEF = 0xC0,
+	ARCH_PRM = 0xD0,
+	ARCH_PRD = 0xE0,
+	ARCH_EVT = 0xF0
+};
 #endif
 

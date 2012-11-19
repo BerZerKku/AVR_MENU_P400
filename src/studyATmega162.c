@@ -258,7 +258,12 @@ unsigned char NumberRec;
 unsigned char ReadArch = 0; // 1 - означает идет чтение архива, 2 - чтение закончено, 0 - архив не нужен
 extern unsigned int NumRecStart;
 unsigned char ComArch; //номер команды для считывания необходимого архива
-strArchive sArchive;  //структура архива
+
+strArchiveDevice 	sArchiveDef(ARCH_DEF, 2048), 
+					sArchivePrm(ARCH_PRM, 256), 
+					sArchivePrd(ARCH_PRD, 256), 
+					sArchiveEvt(ARCH_EVT, 256);
+strArchives sArchives;  //структура архива
 
 //для единой версии
 bool bDef; //false - нет, true-есть Защита.

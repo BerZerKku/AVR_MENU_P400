@@ -104,7 +104,8 @@ extern unsigned char ReadArch;
 extern unsigned int AddressStartRegister;
 extern unsigned char NumberRegister;
 extern unsigned char StRegister;
-extern strArchive sArchive;
+
+extern strArchives sArchives;
 
 //Тесты
 extern unsigned char gr1, gr2, gr21, gr22;
@@ -150,6 +151,7 @@ extern void MenuParamDefCreate(void);
 extern void MenuUprCreate(uint8_t act);
 extern void MenuAKCreate(void);
 extern void MenuTestCreate(void);
+extern void Menu_Archive_Create(void);
 extern unsigned char MaxShiftMenu, ShiftMenu;
 
 extern __flash strParam paramDef[];
@@ -1153,22 +1155,6 @@ void FParamGlobal(unsigned char command)
 	LCD2new=1;
 };
 
-void FReadArchEvent(void)
-{
-	
-	NumberRec--; //уменьшаем кол-во считываемых записей
-	NumRecStart++;  //выставляем следующий считываемый номер события архива
-	if ((NumberRec==0)&&(ReadArch==1)){  //если считали всю необходимую информацию, то отправим ответ на ПК
-		for (i_dc=StRegister; i_dc<(NumberRegister+StRegister); i_dc++){
-			ModBusBaza->readarchive(Tr_buf_data_uart1, 3+(i_dc-StRegister)*2, i_dc);
-		}
-		TransDataInf1(0x03, NumberRegister*2);
-		ReadArch=0;
-		ModBusBaza->ClearJournalMass();
-	}
-	RecivVar=1;
-}
-
 void FArchive(void)
 {
 	uint8_t com = Rec_buf_data_uart[2];
@@ -1176,50 +1162,28 @@ void FArchive(void)
 	RecivVar=1;
 	LCD2new=1;
 	
-	// Проверка на соответствие команды и текущего журнала
-	if ( (0x0F - (com >> 4)) != sArchive.Dev[sArchive.CurrDev])  
+	// проверка на соответствие пришедшей записи текущему архиву
+	if ( (com & 0xF0) != sArchives.curArchives)
 		return;
+	
 	
 	//кол-во записей архива
 	if ( (com & 0x0F) == 0x01 )
 	{ 
 		// Проверка на переполнение архива
 		if (Rec_buf_data_uart[5] & 0x80) 
-		{
-			// Определение устройства
-			// 1 - АВАНТ Р400
-			// 2 - командная аппаратура
-			if (sArchive.typeDev == 1)
-			{
-				// Для нового архива устанавливается флаг в 6 бите
-				// и в нем 1024 записи
-				if (Rec_buf_data_uart[5] & 0x40)
-					sArchive.RecCount = 1024;
-				else
-					sArchive.RecCount = 256;
-			}
-			else if (sArchive.typeDev == 2)
-			{				
-				// в журнале защиты может быть до 2048 записей
-				// в остальных не более 256
-				if ( (com & 0xF0) == 0xC0 )
-					sArchive.RecCount = 2048;
-				else
-					sArchive.RecCount = 256;
-			}
-		}
+			sArchives.ovf = true;	
 		else
-		{
-			sArchive.RecCount = (Rec_buf_data_uart[5] << 8) + Rec_buf_data_uart[4];
-			sArchive.CurCount = 0;
-		}
+			sArchives.ovf = false;
+		
+		sArchives.oldestEntry = (Rec_buf_data_uart[5] << 8) + Rec_buf_data_uart[6];
 	}
 	
 	//записи архива	
 	if ( (com & 0x0F) == 0x02 )
 	{ 
-		for(uint8_t i = 0; i < 16; i++) 
-			sArchive.Data[i] = Rec_buf_data_uart[4+i];
+		for(uint8_t i = 0; i < Rec_buf_data_uart[3]; i++) 
+			sArchives.data[i] = Rec_buf_data_uart[4 + i];
 	}
 }
 
@@ -1335,8 +1299,8 @@ void VersDevice(void)
 {
 	bool CorrectVers = true;
 	//происходит формирование пунтка меню: журнал
-	sArchive.NumDev=0;  //изначально кол-во устройств=0:
-	sArchive.Dev[0]=0;  //для вывода в архиве "события", всегда должно быть 0
+	//sArchive.NumDev=0;  //изначально кол-во устройств=0:
+	//sArchive.Dev[0]=0;  //для вывода в архиве "события", всегда должно быть 0
 	
 #if ( (DEB) && (!AUT) ) // принудительная установка типа аппарата
 	#warning Включена принудительная установка типа аппарата!!!
@@ -1353,8 +1317,8 @@ void VersDevice(void)
 	{
 		bDef = true;
 		bViewParam[5] = true; 
-		sArchive.Dev[++sArchive.NumDev] = 3;
-		sArchive.typeDev = 1;	
+//		sArchive.Dev[++sArchive.NumDev] = 3;
+//		sArchive.typeDev = 1;	
 	}
 	else 
 	{
@@ -1423,9 +1387,9 @@ void VersDevice(void)
 		
 		cNumComR = cNumComR1 + cNumComR2;
 		
-		// архив для второго приемника. при необходимости
-		if (cNumComR2 != 0)
-			sArchive.Dev[++sArchive.NumDev] = 4;  
+//		// архив для второго приемника. при необходимости
+//		if (cNumComR2 != 0)
+//			sArchive.Dev[++sArchive.NumDev] = 4;  
 	}
 	else
 	{
@@ -1437,19 +1401,19 @@ void VersDevice(void)
 			CorrectVers = false;
 	}
 	
-	// Архив приемника
-	if (cNumComR != 0) 
-	{
-		sArchive.Dev[++sArchive.NumDev] = 2; //приемник
-		sArchive.typeDev = 2;
-	}
-	
-	// Архив передатчика
-	if (cNumComT != 0) 
-	{
-		sArchive.Dev[++sArchive.NumDev] = 1; //передатчик
-		sArchive.typeDev = 2;
-	}
+//	// Архив приемника
+//	if (cNumComR != 0) 
+//	{
+//		sArchive.Dev[++sArchive.NumDev] = 2; //приемник
+//		sArchive.typeDev = 2;
+//	}
+//	
+//	// Архив передатчика
+//	if (cNumComT != 0) 
+//	{
+//		sArchive.Dev[++sArchive.NumDev] = 1; //передатчик
+//		sArchive.typeDev = 2;
+//	}
 	
 	// Тип линии
 	// 1 - ВЧ
@@ -1533,6 +1497,7 @@ void VersDevice(void)
 	MenuUprCreate(1);
 	MenuAKCreate();
 	MenuTestCreate();
+	Menu_Archive_Create();
 	
 	bReadVers = true;
 }

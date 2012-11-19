@@ -82,17 +82,39 @@
 #define uint  	unsigned int
 #define sint 	signed int
 
-struct strArchive
+
+struct strArchiveDevice
 {
-	unsigned char typeDev;		// Р400 - 1, командный вариант 2
-	unsigned char NumDev; 		// кол-во устройств
-	unsigned char CurrDev;  	// выбранное устройство
-	unsigned char Dev[5]; 		// массив номеров устройств: 
-								// 0 байт нужен для выода инфы на дисплей =0х00 всегда!
-								// значния: 0 - события , 1 - прд, 2- прм, 3- защ
-	int RecCount; 				// кол-во записей в текущем архиве
-	char CurCount;  			// адрес самой старой записи архива
-	unsigned char Data[16];
+	unsigned char typeDev;			// eMENUarchDevices
+	int maxNumEntries;				// максимальное кол-во записей в архиве
+	
+	strArchiveDevice(uchar type, int max = 256)
+	{
+		typeDev = type;
+		maxNumEntries = max;
+	}
+	
+};
+
+struct strArchives
+{
+	unsigned char numArchives;				// кол-во архивов устройств
+	unsigned char curArchives;				// eMENUarchDevices
+	strArchiveDevice *listArchives[4];		// указатели на архивы устройств
+	
+	bool ovf;								// флаг переполнения архива
+	unsigned int oldestEntry;				// номер самой старой записи при переполнении
+											// и макс. записей без переполнения
+	unsigned int curEntry;					// номер текущей записи
+	unsigned char data[13];					// данные
+	
+	strArchives()
+	{
+		numArchives = 0;
+		oldestEntry = 0;
+		curEntry = 0;
+		ovf = false;
+	}
 };
 
 struct strCorrParam

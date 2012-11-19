@@ -10,6 +10,7 @@ void MenuParamDefCreate	(void);
 void MenuUprCreate 		(uint8_t act);
 void MenuAKCreate		(void);
 void MenuTestCreate		(void);
+void Menu_Archive_Create(void);
 
 static void Menu_Start				(void);
 static void Menu_Second				(void);
@@ -476,6 +477,28 @@ void MenuTestCreate(void)
 	sMenuTest.def_items_max = num;
 }
 
+/** Создание меню архивов в соответствии с имеющимися утсройствами
+ *	@param Нет
+ *	@return Нет
+ */
+void Menu_Archive_Create(void)
+{
+	uint8_t num = 0;
+	
+	sArchives.listArchives[num++] = &sArchiveEvt;
+	
+	if (bDef)
+		sArchives.listArchives[num++] = &sArchiveDef;
+	
+	if (cNumComR > 0)
+		sArchives.listArchives[num++] = &sArchivePrm;
+	
+	if (cNumComT > 0)
+		sArchives.listArchives[num++] = &sArchivePrd;
+	
+	sArchives.numArchives = num;
+}
+
 static void Menu_Start(void)
 {
 	MenuLevel = LVL_START;
@@ -513,11 +536,12 @@ static void Menu_Journal(void)
 	LCDbufClMenu();
 	ShiftMenu=0;
 	MaxDisplayLine=3;
-	if (sArchive.NumDev>2) MaxShiftMenu=1;
-	else MaxShiftMenu=0;
-	sArchive.Data[12]=0;
+	if (sArchives.numArchives > 3) 
+		MaxShiftMenu = 1;
+	else 
+		MaxShiftMenu=0;
 	FuncClearCharLCD(2,1,40);
-	sArchive.RecCount=0;
+	sArchives.curEntry = 0;
 	LCD2new=1;
 }
 
