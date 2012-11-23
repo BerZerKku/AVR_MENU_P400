@@ -8,7 +8,7 @@
 // константные измеряемые параметры
 //#define EXHIBITION
 
-#define DEB true/*работа(false)/отладка(true)*/
+#define DEB false /*работа(false)/отладка(true)*/
 #if DEB // подключение файла "debug.h" 
 	#warning "DEBUG MODE ON!!!"
 	#include "debug.h"
