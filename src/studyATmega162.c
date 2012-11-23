@@ -136,10 +136,7 @@ unsigned char MenuPrmBlockCom[]="        ";
 unsigned char MenuPrmLongCom[]= "        ";
 unsigned char* MenuParamPRM[]={MenuPrmTimeOn, MenuPrmTimeCom, MenuPrmTimeOff, MenuPrmBlockCom, MenuPrmLongCom};
 unsigned char NumberTransCom; //байт в котором хранится номер передоваемой "команды на приеме"
-unsigned char ValuePrmTimeOff[]={0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0};
+unsigned char ValuePrmTimeOff[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 unsigned char ValuePrmBlockCom[4]={'?','?','?','?'};
 unsigned char ValuePrmLongCom[4]={'?','?','?','?'};
 unsigned char MenuVoltageLimitPRM1[]="?? дБ";
@@ -259,10 +256,10 @@ unsigned char ReadArch = 0; // 1 - означает идет чтение архива, 2 - чтение закон
 extern unsigned int NumRecStart;
 unsigned char ComArch; //номер команды для считывания необходимого архива
 
-strArchiveDevice 	sArchiveDef(ARCH_DEF, 2048), 
-					sArchivePrm(ARCH_PRM, 256), 
-					sArchivePrd(ARCH_PRD, 256), 
-					sArchiveEvt(ARCH_EVT, 256);
+strArchiveDevice 	sArchiveDef(ARCH_DEF, ArchiveDef, 	ArchDef, 2048), 
+					sArchivePrm(ARCH_PRM, ArchivePrm, 	ArchPrm), 
+					sArchivePrd(ARCH_PRD, ArchivePrd, 	ArchPrd), 
+					sArchiveEvt(ARCH_EVT, ArchiveEvent,	ArchEvt);
 strArchives sArchives;  //структура архива
 
 //для единой версии
@@ -356,26 +353,26 @@ static void FuncViewValue(uint8_t numparam)
 	{
 		case 0x20:	//параметры Защиты
 		{ 
-			min = paramDef[num].min;
-			max = paramDef[num].max;
+			min = paramDef[num].min * paramDef[num].div;
+			max = paramDef[num].max * paramDef[num].div;
 			var = paramDef[num].var;
 		}break;
 		case 0x40:
 		{
-			min = paramPrm[num].min;
-			max = paramPrm[num].max;
+			min = paramPrm[num].min * paramPrm[num].div;
+			max = paramPrm[num].max * paramPrm[num].div;
 			var = paramPrm[num].var;
 		}break;
 		case 0x60:
 		{
-			min = paramPrd[num].min;
-			max = paramPrd[num].max;
+			min = paramPrd[num].min * paramPrd[num].div;
+			max = paramPrd[num].max * paramPrd[num].div;
 			var = paramPrd[num].var;
 		}break;
 		case 0x80:
 		{
-			min = paramGlb[num].min;
-			max = paramGlb[num].max;
+			min = paramGlb[num].min * paramGlb[num].div;
+			max = paramGlb[num].max * paramGlb[num].div;
 			var = paramGlb[num].var;
 		}break;
 	}
@@ -1632,13 +1629,16 @@ static void FuncPressKey(void)
 				
 				case LVL_JRN_VIEW:
 				{
-					if (sArchive.RecCount>1)
+					strArchives *ptr = &sArchives;
+					
+					if (ptr->curEntry > 0)
+						ptr->curEntry--;
+					else
 					{
-						if (ShiftMenu>0) ShiftMenu--;
-						else ShiftMenu=sArchive.RecCount-1;
-						sArchive.Data[12]=0;
-						FuncClearCharLCD(2,1,40); //очистка инф-ы
-						FuncClearCharLCD(4,13,8); //очистка даты записи
+						if (ptr->ovf)
+							ptr->curEntry = ptr->curArchive->maxNumEntries - 1;
+						else
+							ptr->curEntry = ptr->oldestEntry - 1;
 					}
 				}
 				break;
@@ -1695,15 +1695,28 @@ static void FuncPressKey(void)
 				
 				case LVL_JRN_VIEW:
 				{
-					if (sArchive.RecCount>1)
+					strArchives *ptr = &sArchives;
+					
+					if (ptr->ovf)
 					{
-						if (ShiftMenu<(sArchive.RecCount-1)) ShiftMenu++;
-						else ShiftMenu=0;
-						sArchive.Data[12]=0;
-						FuncClearCharLCD(2,1,40); //очистка инф-ы
-						FuncClearCharLCD(4,13,8); //очистка даты записи
+						if (ptr->curEntry < ptr->curArchive->maxNumEntries - 1)
+							ptr->curEntry++;
+						else
+							ptr->curEntry = 0;
+						
 					}
-				}break;
+					else
+					{
+						if (ptr->curEntry < ptr->oldestEntry - 1)
+							ptr->curEntry++;
+						else
+							ptr->curEntry = 0;
+					}
+					
+					FuncClearCharLCD(2,1,40); //очистка инф-ы
+					FuncClearCharLCD(4,13,8); //очистка даты записи
+				}
+				break;
 			}
         }break;
 		
@@ -2159,7 +2172,7 @@ void FuncTr(void)
 				else															//посылаем запрос дата/время либо частота/номер аппарата
 				{
 					
-					if ( (bDef) && (sArchive.NumDev == 1) )  					//если только пост, будем постоянно опрашивать время. Остальные параметры и так опрашиваются достаточно часто
+					if ( (bDef) && (cNumComR == 0) && (cNumComT == 0) )  					//если только пост, будем постоянно опрашивать время. Остальные параметры и так опрашиваются достаточно часто
 						TransDataInf(0x32,0x00);
 					else
 					{
@@ -2187,7 +2200,7 @@ void FuncTr(void)
 				if (MenuLevel == LVL_JRN_VIEW)
 				{  	
 					//если находимся в архивах, пошлем команду опроса кол-ва записей
-					TransDataInf(0xF1-(sArchive.Dev[sArchive.CurrDev]<<4),0);
+					TransDataInf(sArchives.curArchive->typeDev + 1,0);
 				}
 				else
 				{	
@@ -2317,14 +2330,18 @@ void FuncTr(void)
 
 						case LVL_JRN_VIEW:		// подпункты Журнала
 						{  
-							if (sArchive.RecCount>0){
-								if (ShiftMenu>sArchive.RecCount){ //в случае если указатель превышает кол-во записей массива
-									sArchive.Data[12]=0;
-									ShiftMenu=0;
-								}
-								Tr_buf_data_uart[5]=0;
-								Tr_buf_data_uart[4]=sArchive.CurCount + ShiftMenu;
-								TransDataInf(0xF2-(sArchive.Dev[sArchive.CurrDev]<<4), 0x02);
+							strArchives *ptr = &sArchives;
+							
+							// если журнал не пустой, считаем запись
+							if ( (ptr->ovf) || (ptr->oldestEntry != 0) )
+							{
+								if (ptr->curEntry >= ptr->curArchive->maxNumEntries)
+									ptr->curEntry = 0;
+								
+								/// TDO - разобраться с номером запрашиваемой записи
+								Tr_buf_data_uart[5] = 0;
+								Tr_buf_data_uart[4] = sArchives.curEntry;
+								TransDataInf(ptr->curArchive->typeDev + 2, 0x02);
 							}
 						}break;
 						
@@ -2553,7 +2570,8 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 		DevAvar=bDefAvar;
 		DevWarn=bDefWarn;
 	}else
-		if ((Device==2)||(Device==5)){  //приемники
+		if ((Device==2)||(Device==5))
+		{  //приемники
 			if (Device==2){  //приемник 1 в 3-х концевой, или просто приемник в 2-х
 				if (cNumLine==2) Title=Menu1Rec;
 				else Title=Menu1Rec1;
@@ -2588,31 +2606,23 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 		}
 		j = (j > 1) ? 1 : 0;
 		
-		
-		if ((Device==1)&&(GlobalCurrentState[12]==0)&&(GlobalCurrentState[13]==0x20)&&(sArchive.NumDev==1))
-		{
-			LCDprintf(NumString,5,2,Menu1GLobalError20_1,1);
+		if ( (!TimeWink) && (j) )
+		{ //режим мигания, раз в секунду
+			LCDprintf(NumString,5,2,Menu1disrepair,1);
+			FuncClearCharLCD(NumString,13,8);
+			LCDprintf(NumString,13,2,GlobalAvar,0);
+			LCDprintHEX(NumString,15,GlobalCurrentState[12]);
+			LCDprintHEX(NumString,17,GlobalCurrentState[13]);
 		}
 		else
 		{
-			if ( (!TimeWink) && (j) )
-			{ //режим мигания, раз в секунду
-				LCDprintf(NumString,5,2,Menu1disrepair,1);
-				FuncClearCharLCD(NumString,13,8);
-				LCDprintf(NumString,13,2,GlobalAvar,0);
-				LCDprintHEX(NumString,15,GlobalCurrentState[12]);
-				LCDprintHEX(NumString,17,GlobalCurrentState[13]);
-			}
-			else
+			tglobal = (GlobalCurrentState[12]<<8) + (GlobalCurrentState[13]);
+			for(i=0, temp=1; i<16; i++, temp=temp<<1)
 			{
-				tglobal = (GlobalCurrentState[12]<<8) + (GlobalCurrentState[13]);
-				for(i=0, temp=1; i<16; i++, temp=temp<<1)
+				if (tglobal&temp)
 				{
-					if (tglobal&temp)
-					{
-						LCDprintf(NumString,5,2,Menu1GlobalErrorT[i],1);
-						break;
-					}
+					LCDprintf(NumString,5,2,Menu1GlobalErrorT[i],1);
+					break;
 				}
 			}
 		}
@@ -2641,16 +2651,7 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 			for(i=0, temp = 1; i < 16; i++, temp *= 2)
 			{
 				if (tglobal & temp)
-				{
-					// в чистой защите, одна неисправность меняет название
-					if ( (Device == 1) && (sArchive.NumDev == 1) && (tglobal == 0x0010) )
-					{
-						LCDprintf(NumString, 5, 2, Menu1PostError10_1, 1);
-					}
-					else
-						LCDprintf(NumString, 5, 2, MassError[i], 1);
-					break;
-				}
+					LCDprintf(NumString, 5, 2, MassError[i], 1);
 			}
 		}
 	}
@@ -2854,7 +2855,7 @@ static void LCDwork(void)
 						// ВЧ
 						if (cTypeLine == 1)
 						{
-							if ( (bDef) && (sArchive.NumDev == 1) )	// если у нас только Пост 
+							if ( (bDef) && (cNumComR == 0) && (cNumComT == 0) )	// если у нас только Пост 
 							{	
 								LCDprintf(3 , 1 , 2 , fAk , 1);
 								LCDprintf(3 , 4 , 2 , flAutoContorl1[param4[cAutoControl]], 1);
@@ -2905,20 +2906,24 @@ static void LCDwork(void)
 				case LVL_DATA_TIME:{ //третий уровень меню, ввоод дата/время
 					if (LCD2new==1){LCDprintf(2,1,2,Menu31,1);LCDprintf(3,1,2,Menu32,1);LCD2new=0;}
 				}break;
-				case LVL_JOURNAL:{  //меню/журнал
+				
+				case LVL_JOURNAL:	//меню/журнал
+				{  
 					if (LCD2new==1)
 					{
 						LCD2new = ShiftMenu;
-						for(uint8_t i = 2; (LCD2new<=sArchive.NumDev)&&(i<5) ; i++)
+						for(uint8_t i = 2; (LCD2new < sArchives.numArchives) && (i < 5); i++, LCD2new++)
 						{
-							LCDprintChar(i, 1, LCD2new+0x31);
+							LCDprintChar(i, 1, LCD2new + '1');
 							LCDprintChar(i, 2, '.');
-							LCDprintf(i,3,2, Archive,1);
-							LCDprintf(i,10,2,Menu4point[sArchive.Dev[LCD2new++]],1);
+							LCDprintf(i, 3, 2, Archive, 1);
+							LCDprintf(i, 10, 2, sArchives.listArchives[LCD2new]->name,1);
 						}
 						LCD2new=0;
 					}
-				}break;
+				}
+				break;
+				
 				case LVL_SETUP: //меню/установить
 				{
 					if (LCD2new==1)
@@ -3267,10 +3272,13 @@ static void LCDwork(void)
 					}
 				}
 				break;
+				
 				case LVL_PROTOCOL: 	//меню Протоколы
 				{
 					LCDprintf(2,1,2,Menu18,1);LCDprintf(3,1,2,MenuValue,1);LCDprintf(3,11,2,Menu18Param[Protocol],1);
-				} break; 
+				} 
+				break;
+				
 				case LVL_INFO: 		//Меню прошивки
 				{
 					LCDprintf(2,1,2,Menu19Param[ShiftMenu],1);LCDprintf(3,1,2,MenuValue,1);
@@ -3351,132 +3359,168 @@ static void LCDwork(void)
 				
 				case LVL_JRN_VIEW:		//журнал/ (соб, защб прм, прд)
 				{ 
-					LCDprintf(4,1,2,Menu21e[sArchive.Dev[sArchive.CurrDev]],1); // вывод устройства
-					LCDptinrArchCount(3, sArchive.RecCount, ShiftMenu);
+					if (LCD2new == 0)
+						break;
 					
-					// Выведем архивы в зависимости от типа аппарата
-					// 1 - Р400
-					// 2 - командный вариант
-					if (sArchive.typeDev == 2)
+					LCD2new = 0;
+					
+					FuncClearCharLCD(2, 1, 20); 
+					FuncClearCharLCD(3, 1, 20); 
+					FuncClearCharLCD(4, 1, 20); 
+					
+					// вывод имени журнала
+					LCDprintf(2, 1, 2, sArchives.curArchive->nameJrn,1); 
+					
+					// вывод (текущей записи / максимального кол-ва записей)
+					uint16_t max = (sArchives.ovf) ? sArchives.curArchive->maxNumEntries : sArchives.oldestEntry; 
+					LCDptinrArchCount(max, sArchives.curEntry + 1);
+					
+					
+					if ( (sArchives.ovf) || (sArchives.oldestEntry != 0) )
 					{
+						strArchiveDevice *ptr = sArchives.curArchive;
+						LCDprintTime(28, sArchives.data);
+						LCDprintData(72, sArchives.data);
+												
+						if (ptr->typeDev == 0xC0)
+						{
+							
+						}
+						else if (ptr->typeDev == 0xD0)
+						{
+							
+						}
+						else if (ptr->typeDev == 0xE0)
+						{
+							
+						}
+						else if (ptr->typeDev == 0xF0)
+						{
+							
+						}
+						
+//					// Выведем архивы в зависимости от типа аппарата
+//					// 1 - Р400
+//					// 2 - командный вариант
+//					if (sArchive.typeDev == 2)
+//					{
+//						
+//					}
+//					else if (sArchive.typeDev == 1)
+//					{
+//						if (sArchive.RecCount)
+//						{  //если в архиве что-то есть, будем выводить записи
+//							if (sArchive.Data[12]){  //если данные уже получены
+//								//for(char i=0; i<4; i++) LCDprintHEX(3,i*2+1, sArchive.Data[i]);
+//								//вывод инф-ии на экран
+//								unsigned __flash char* mm= 0;
+//								
+//								switch(sArchive.Data[0]){ //устройство
+//									case 0: mm= Menu11d; break; //пост
+//									case 1: if (cNumLine==2) mm=Menu11r; else mm=Menu11r1; break;  //прм / пм1
+//									case 2: mm=Menu11r2; break;  //пм2
+//									case 3: mm=Menu11t; break; //прд
+//									case 4: mm=Menu21g; break; //общ
+//								}
+//								
+//								if (mm==0)
+//								{
+//									LCDprintHEX(2,1,sArchive.Data[0]);
+//									LCDprintChar(2,3,'?');
+//								}
+//								else 
+//									LCDprintf(2,1,2,mm,1);
+//								
+//								FuncClearCharLCD(2,4,4);  //очистим 4 клетки между устрйством и временем
+//								
+//								switch(sArchive.Dev[sArchive.CurrDev])
+//								{
+//									case 0:{  //журнал событий
+//										if ((sArchive.Data[1] > 0) && (sArchive.Data[1] <= dNumSob) )
+//										{
+//											LCDprintf(3,1,2,ArchSob[sArchive.Data[1] - 1],1);
+//										}
+//										else
+//										{//если неизвестный код записи
+//											FuncClearCharLCD(3,1,10);
+//											LCDprintHEX(3,2,sArchive.Data[1]);
+//											LCDprintHEX(3,5,sArchive.Data[3]);
+//										}
+//										FuncClearCharLCD(3,11,1);
+//										FuncClearCharLCD(3,19,2);
+//										
+//										if (sArchive.Data[2]<0x04){ //значение события
+//											LCDprintf(3,12,2,Menu1regime[sArchive.Data[2]],1);
+//										}else
+//											if (sArchive.Data[2]==0x0A){
+//												LCDprintf(3,12,2,ArchEvV,1);
+//											}else{
+//												LCDprintHEX(3,12,sArchive.Data[1]);
+//											}
+//									}break; //конец вывода ждурнала событий
+//									case 1: //передатчик
+//									case 2:
+//									{  //приемник
+//										uint8_t i;
+//										
+//										mm=0;
+//										if (sArchive.Data[2]==0) {mm=ArchEvEnd; i=7;}
+//										else
+//											if (sArchive.Data[2]==1) {mm=ArchEvStart; i=8;}
+//										
+//										if (mm==0){
+//											LCDprintHEX(3,1,sArchive.Data[0]);
+//											FuncClearCharLCD(3,3,i-3);
+//										}else LCDprintf(3,1,2,mm,1);
+//										
+//										if ((sArchive.Data[1]==0)||(sArchive.Data[1]>32)){  //ошибочное значение команды
+//											LCDprintHEX(3,i,sArchive.Data[1]); i+=2;
+//										}else{
+//											LCDprintDEC(3,i,sArchive.Data[1]);
+//											if (sArchive.Data[1]<10) i+=1;
+//											else i+=2;
+//										}
+//										FuncClearCharLCD(3,i++,1);
+//										LCDprintf(3,i,2,ArchEvCom,1);
+//									}break; //конец вывода ждурнала передатчика/приемника
+//									case 3:{  //защита
+//										mm=0;
+//										//состояние защиты
+//										if (sArchive.Data[2]==0) mm=ArchEvV1; //перезапуск
+//										else
+//											if (sArchive.Data[2]<11) mm=Menu1condPOST[sArchive.Data[2]];
+//										
+//										if (mm==0){
+//											FuncClearCharLCD(3,1,10);
+//											LCDprintHEX(3,2,sArchive.Data[1]);
+//										}else LCDprintf(3,1,2,mm,1);
+//										
+//										FuncClearCharLCD(3,9,10);
+//										(sArchive.Data[1]&0x01) ? LCDprintChar(3,10,'1') : LCDprintChar(3,10,'0');  //пуск
+//										(sArchive.Data[1]&0x02) ? LCDprintChar(3,11,'1') : LCDprintChar(3,11,'0');  //стоп
+//										(sArchive.Data[1]&0x04) ? LCDprintChar(3,12,'1') : LCDprintChar(3,12,'0');  //ман
+//										//LCDprintBitMask(49, sArchive.Data[1],0x07);
+//										//FuncClearCharLCD(3,13,1);
+//										(sArchive.Data[3]&0x02) ? LCDprintChar(3,14,'1') : LCDprintChar(3,14,'0');  //прд
+//										(sArchive.Data[3]&0x01) ? LCDprintChar(3,15,'1') : LCDprintChar(3,15,'0');  //прм
+//										(sArchive.Data[3]&0x03) ? LCDprintChar(3,16,'1') : LCDprintChar(3,16,'0'); //рз (если есть прм или прд)
+//									} break; //конец вывода ждурнала защиты
+//								}// end switch(sArchive.Dev[sArchive.CurrDev])
+//								
+//								//for(char i=0; i<9; i++) LCDprintHEX(3,i*2+1, sArchive.Data[i+7]);
+//								LCDprintData(72, sArchive.Data);
+//								LCDprintTime(28, sArchive.Data);
+//								
+//							}else{
+//								FuncClearCharLCD(2,1,40); //очистка инф-ы
+//								LCDprintf(3,1,2,Menu2xRdArch,1);
+//							}
+					}
+					else
+					{  //архив пустой
 						
 					}
-					else if (sArchive.typeDev == 1)
-					{
-						if (sArchive.RecCount)
-						{  //если в архиве что-то есть, будем выводить записи
-							if (sArchive.Data[12]){  //если данные уже получены
-								//for(char i=0; i<4; i++) LCDprintHEX(3,i*2+1, sArchive.Data[i]);
-								//вывод инф-ии на экран
-								unsigned __flash char* mm= 0;
-								
-								switch(sArchive.Data[0]){ //устройство
-									case 0: mm= Menu11d; break; //пост
-									case 1: if (cNumLine==2) mm=Menu11r; else mm=Menu11r1; break;  //прм / пм1
-									case 2: mm=Menu11r2; break;  //пм2
-									case 3: mm=Menu11t; break; //прд
-									case 4: mm=Menu21g; break; //общ
-								}
-								
-								if (mm==0)
-								{
-									LCDprintHEX(2,1,sArchive.Data[0]);
-									LCDprintChar(2,3,'?');
-								}
-								else 
-									LCDprintf(2,1,2,mm,1);
-								
-								FuncClearCharLCD(2,4,4);  //очистим 4 клетки между устрйством и временем
-								
-								switch(sArchive.Dev[sArchive.CurrDev])
-								{
-									case 0:{  //журнал событий
-										if ((sArchive.Data[1] > 0) && (sArchive.Data[1] <= dNumSob) )
-										{
-											LCDprintf(3,1,2,ArchSob[sArchive.Data[1] - 1],1);
-										}
-										else
-										{//если неизвестный код записи
-											FuncClearCharLCD(3,1,10);
-											LCDprintHEX(3,2,sArchive.Data[1]);
-											LCDprintHEX(3,5,sArchive.Data[3]);
-										}
-										FuncClearCharLCD(3,11,1);
-										FuncClearCharLCD(3,19,2);
-										
-										if (sArchive.Data[2]<0x04){ //значение события
-											LCDprintf(3,12,2,Menu1regime[sArchive.Data[2]],1);
-										}else
-											if (sArchive.Data[2]==0x0A){
-												LCDprintf(3,12,2,ArchEvV,1);
-											}else{
-												LCDprintHEX(3,12,sArchive.Data[1]);
-											}
-									}break; //конец вывода ждурнала событий
-									case 1: //передатчик
-									case 2:
-									{  //приемник
-										uint8_t i;
-										
-										mm=0;
-										if (sArchive.Data[2]==0) {mm=ArchEvEnd; i=7;}
-										else
-											if (sArchive.Data[2]==1) {mm=ArchEvStart; i=8;}
-										
-										if (mm==0){
-											LCDprintHEX(3,1,sArchive.Data[0]);
-											FuncClearCharLCD(3,3,i-3);
-										}else LCDprintf(3,1,2,mm,1);
-										
-										if ((sArchive.Data[1]==0)||(sArchive.Data[1]>32)){  //ошибочное значение команды
-											LCDprintHEX(3,i,sArchive.Data[1]); i+=2;
-										}else{
-											LCDprintDEC(3,i,sArchive.Data[1]);
-											if (sArchive.Data[1]<10) i+=1;
-											else i+=2;
-										}
-										FuncClearCharLCD(3,i++,1);
-										LCDprintf(3,i,2,ArchEvCom,1);
-									}break; //конец вывода ждурнала передатчика/приемника
-									case 3:{  //защита
-										mm=0;
-										//состояние защиты
-										if (sArchive.Data[2]==0) mm=ArchEvV1; //перезапуск
-										else
-											if (sArchive.Data[2]<11) mm=Menu1condPOST[sArchive.Data[2]];
-										
-										if (mm==0){
-											FuncClearCharLCD(3,1,10);
-											LCDprintHEX(3,2,sArchive.Data[1]);
-										}else LCDprintf(3,1,2,mm,1);
-										
-										FuncClearCharLCD(3,9,10);
-										(sArchive.Data[1]&0x01) ? LCDprintChar(3,10,'1') : LCDprintChar(3,10,'0');  //пуск
-										(sArchive.Data[1]&0x02) ? LCDprintChar(3,11,'1') : LCDprintChar(3,11,'0');  //стоп
-										(sArchive.Data[1]&0x04) ? LCDprintChar(3,12,'1') : LCDprintChar(3,12,'0');  //ман
-										//LCDprintBitMask(49, sArchive.Data[1],0x07);
-										//FuncClearCharLCD(3,13,1);
-										(sArchive.Data[3]&0x02) ? LCDprintChar(3,14,'1') : LCDprintChar(3,14,'0');  //прд
-										(sArchive.Data[3]&0x01) ? LCDprintChar(3,15,'1') : LCDprintChar(3,15,'0');  //прм
-										(sArchive.Data[3]&0x03) ? LCDprintChar(3,16,'1') : LCDprintChar(3,16,'0'); //рз (если есть прм или прд)
-									} break; //конец вывода ждурнала защиты
-								}// end switch(sArchive.Dev[sArchive.CurrDev])
-								
-								//for(char i=0; i<9; i++) LCDprintHEX(3,i*2+1, sArchive.Data[i+7]);
-								LCDprintData(72, sArchive.Data);
-								LCDprintTime(28, sArchive.Data);
-								
-							}else{
-								FuncClearCharLCD(2,1,40); //очистка инф-ы
-								LCDprintf(3,1,2,Menu2xRdArch,1);
-							}
-						}
-						else
-						{  //архив пустой
-							FuncClearCharLCD(2,1,40); //очистка инф-ы
-							FuncClearCharLCD(4,13,8); //очистка даты записи
-						}
-					}
+					
 					LCD2new=0;
 				}break;
 				case LVL_UPR:		//меню/управление

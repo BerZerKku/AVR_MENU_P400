@@ -1,7 +1,7 @@
 #ifndef __MY_DEF
 #define __MY_DEF
 //версия прошивки, если первый ноль - то убираем
-#define Insertion 0x0752
+#define Insertion 0x0852
 
 // выставочный вариант
 // отключение неисправностей, отключение контроля версии
@@ -87,11 +87,18 @@ struct strArchiveDevice
 {
 	unsigned char typeDev;			// eMENUarchDevices
 	int maxNumEntries;				// максимальное кол-во записей в архиве
+	unsigned char __flash *name;	// имя пункта журнала
+	unsigned char __flash *nameJrn;	// имя текущего журнала
 	
-	strArchiveDevice(uchar type, int max = 256)
+	strArchiveDevice(	uchar type,  
+					 	unsigned char __flash *punkt,
+						unsigned char __flash *title,
+						int max = 256)
 	{
 		typeDev = type;
 		maxNumEntries = max;
+		name = punkt;
+		nameJrn = title;
 	}
 	
 };
@@ -99,7 +106,7 @@ struct strArchiveDevice
 struct strArchives
 {
 	unsigned char numArchives;				// кол-во архивов устройств
-	unsigned char curArchives;				// eMENUarchDevices
+	strArchiveDevice *curArchive;				// номер в listArchives
 	strArchiveDevice *listArchives[4];		// указатели на архивы устройств
 	
 	bool ovf;								// флаг переполнения архива

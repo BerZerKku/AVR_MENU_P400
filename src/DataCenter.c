@@ -1163,7 +1163,7 @@ void FArchive(void)
 	LCD2new=1;
 	
 	// проверка на соответствие пришедшей записи текущему архиву
-	if ( (com & 0xF0) != sArchives.curArchives)
+	if ( (com & 0xF0) != sArchives.curArchive->typeDev)
 		return;
 	
 	

@@ -674,20 +674,25 @@ static void Menu_Setup_Test(void)
    	LCD2new=1;
 }
 
-static void PressInMenuJournal(char Key)
-{  //нажатие в меню Журна -> переход в подпункты журнала
-	Key-=0x31;
-	if (sArchive.NumDev>=Key)
-	{ //если есть устройство
-		MenuLevel = LVL_JRN_VIEW;
-		LCDbufClMenu();
-		ShiftMenu=0;
-		MaxDisplayLine=2;
-		sArchive.CurrDev=Key;
-		sArchive.RecCount=0;  //для начала сбросим кол-во данных
-		
-		LCD2new=1;
-	}
+static void PressInMenuJournal(char key)
+{  
+	// если такого пункта точно нет
+	if ( (key < '1') || (key > '4') )
+		return;
+			
+	key -= '1';
+	
+	// если такого пункта нет
+	if (key >= sArchives.numArchives)
+		return;
+	
+	MenuLevel = LVL_JRN_VIEW;
+	LCDbufClMenu();
+	ShiftMenu=0;
+	MaxDisplayLine=2;
+	sArchives.curArchive = sArchives.listArchives[key];
+	sArchives.curEntry = 0;  
+	LCD2new = 1;
 }
 
 static void Menu_Upr(void)

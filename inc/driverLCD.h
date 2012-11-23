@@ -33,7 +33,7 @@ extern void LCDprintBits(unsigned char Line, unsigned char AddressLine, unsigned
 extern void LCDprintInsertion(unsigned char Line, unsigned char AddressInLine, unsigned int CodePrint);
 extern void LCDprintTetr(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
 extern void LCDprintChar (unsigned char Line, unsigned char AddressInLine, unsigned int CodePrint); //вывод на экран 1 символа
-extern void LCDptinrArchCount(unsigned char AddressInLine, unsigned int Count, unsigned char Shift);
+extern void LCDptinrArchCount(unsigned int max, unsigned int now);
 extern void LCDprintData(unsigned char Adr, unsigned char* Mass);
 extern void LCDprintTime(unsigned char Adr, unsigned char* Mass);
 extern void LCDprintBitMask(unsigned char Adr, unsigned char Val, unsigned char Mask);
