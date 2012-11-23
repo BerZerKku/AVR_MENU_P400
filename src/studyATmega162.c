@@ -2563,7 +2563,6 @@ void FuncTr(void)
 						{ 
 							//сброс аппаратов
 							TransDataByte(TrValue, TrParam);
-							TransDataByte1(TrValue, TrParam);
 						}
 						break;
 					}
