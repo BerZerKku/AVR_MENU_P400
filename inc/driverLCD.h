@@ -13,6 +13,7 @@
 //используется таймер 2
 #define LCDclear; FuncCommandLCD(0x01); //очистка экрана LCD
 #define LCDinit;  FuncInitLCD;  //начальная
+#include <stdint.h>
 
 
 extern unsigned char LCDstat;
@@ -34,8 +35,11 @@ extern void LCDprintInsertion(unsigned char Line, unsigned char AddressInLine, u
 extern void LCDprintTetr(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
 extern void LCDprintChar (unsigned char Line, unsigned char AddressInLine, unsigned int CodePrint); //вывод на экран 1 символа
 extern void LCDptinrArchCount(unsigned int max, unsigned int now);
-extern void LCDprintData(unsigned char Adr, unsigned char* Mass);
-extern void LCDprintTime(unsigned char Adr, unsigned char* Mass);
+//extern void LCDprintData(unsigned char Adr, unsigned char* Mass);
+//extern void LCDprintTime(unsigned char Adr, unsigned char* Mass);
 extern void LCDprintBitMask(unsigned char Adr, unsigned char Val, unsigned char Mask);
 extern void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned char* Time);
 extern void LCDprintUkDef(unsigned char AKdecrease);
+
+extern void LCDprintTime(uint8_t adr, uint8_t h, uint8_t m, uint8_t s, uint16_t ms);
+extern void LCDprintData(uint8_t adr, uint8_t day, uint8_t month, uint8_t year);

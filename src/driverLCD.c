@@ -279,133 +279,57 @@ void LCDptinrArchCount(uint16_t max, uint16_t now)
 		charInNow--;
 	}
 	LCDbuf[poz] = '(';
-		
-
-//	cc = AddressInLine;
-//	LCDbuf[AddressInLine++]='(';
-//	if ((Count==0)||(Count>256))
-//	{
-//		LCDbuf[AddressInLine++]=0x30;
-//	}
-//	else
-//	{
-//		tt=0;
-//		if (Shift==255)
-//		{
-//			LCDbuf[AddressInLine++]='2';
-//			LCDbuf[AddressInLine++]='5';
-//			LCDbuf[AddressInLine++]='6';
-//		}
-//		else
-//		{
-//			Shift++;  //т.к. сдвиг у нас считался с 0, увеличим значение на 1
-//			if (Shift>99){
-//				tt=Shift/100;
-//				LCDbuf[AddressInLine++]=tt+0x30;
-//			}
-//			if (Shift>9){
-//				tt=Shift/10 - tt*10 ;
-//				LCDbuf[AddressInLine++]=tt+0x30;
-//			}
-//			LCDbuf[AddressInLine++]=Shift%10+0x30;
-//		}
-//	}
-//	
-//	LCDbuf[AddressInLine++]='/';
-//	if (Count==256){
-//		LCDbuf[AddressInLine++]='2';
-//		LCDbuf[AddressInLine++]='5';
-//		LCDbuf[AddressInLine++]='6';
-//	}else
-//		if (Count<256){
-//			tt=0;
-//			ii=(unsigned char) Count;
-//			if (ii>99){
-//				tt=ii/100;
-//				LCDbuf[AddressInLine++]=tt+0x30;
-//			}
-//			if (ii>9){
-//				tt=(ii/10) - (tt*10);
-//				LCDbuf[AddressInLine++]=tt+0x30;
-//			}
-//			LCDbuf[AddressInLine++]=ii%10+0x30;
-//		}else LCDbuf[AddressInLine++]='?';  //ошибочное значение
-//	
-//	
-//	LCDbuf[AddressInLine]=')';
-//	
-//	for(cc=(AddressInLine-cc); cc<8; cc++) LCDbuf[++AddressInLine]=' '; //сотрем незадействованные ячейки
 }
 
-void LCDprintData(unsigned char Adr, unsigned char* Mass){
-  char i, CodePrint;
-
-  for(i=0; i<3; i++){
-    if (i==0) CodePrint=Mass[13];
-    else
-      if (i==1) CodePrint=Mass[14];
-      else CodePrint=Mass[15];
-
-    LCDbuf[Adr]=CodePrint>>4;
-    if (LCDbuf[Adr]>9) LCDbuf[Adr]+=0x37;
-    else  LCDbuf[Adr]+=0x30;
-    LCDbuf[++Adr]=CodePrint&0x0F;
-    if (LCDbuf[Adr]>9) LCDbuf[Adr]+=0x37;
-    else  LCDbuf[Adr]+=0x30;
-
-    if (i<2) LCDbuf[++Adr]='.';
-    Adr++;
-  }
-}
-
-void LCDprintTime(unsigned char Adr, unsigned char* Mass)
+void LCDprintData(uint8_t adr, uint8_t day, uint8_t month, uint8_t year)
 {
-	char i, CodePrint;
-	unsigned int ms;
+	uint8_t *ptr = (uint8_t *) &LCDbuf[adr];
 	
-	for(i = 0; i < 3; i++)
-	{
-		if (i == 0) 
-			CodePrint = Mass[11];
-		else
-			if (i == 1) 
-				CodePrint=Mass[10];
-			else 
-				CodePrint=Mass[9];
-			
-			LCDbuf[Adr] = CodePrint>>4;
-			if (LCDbuf[Adr] > 9) 
-				LCDbuf[Adr]+=0x37;
-			else  
-				LCDbuf[Adr]+=0x30;
-			
-			LCDbuf[++Adr] = CodePrint&0x0F;
-			
-			if (LCDbuf[Adr] > 9) 
-				LCDbuf[Adr]+=0x37;
-			else  
-				LCDbuf[Adr]+=0x30;
-			
-			if (i < 2) 
-				LCDbuf[++Adr] = ':';
-			else 
-				LCDbuf[++Adr] = '.';
-			Adr++;
-	}
+	// day
+	*ptr++ = (day >> 4)  + '0';
+	*ptr++ = (day & 0x0F) + '0';
 	
-	ms = Mass[7] + (Mass[8] << 8);
-	if (ms > 999)
-	{  //ошибочное значение.
-		for(i = 0; i < 3; i++) 
-			LCDbuf[Adr++] = '?';
-	}
-	else
-	{
-		LCDbuf[Adr + 2] = ms%10 + '0';
-		ms = ms / 10;
-		LCDbuf[Adr + 1] = ms%10 + '0';
-		LCDbuf[Adr] = ms/10 + '0';
-	}
+	*ptr++ = '.';
+	
+	// month
+	*ptr++ = (month >> 4) + '0';
+	*ptr++ = (month & 0x0F) + '0';
+	
+	*ptr++ = '.';
+	
+	// year
+	*ptr++ = (year >> 4) + '0';
+	*ptr++ = (year & 0x0F) + '0';
+}
+
+void LCDprintTime(uint8_t adr, uint8_t h, uint8_t m, uint8_t s, uint16_t ms)
+{
+	uint8_t *ptr = (uint8_t *) &LCDbuf[adr];
+	
+	// hours	
+	*ptr++ = (h >> 4) + '0';
+	*ptr++ = (h & 0x0F) + '0';
+	
+	*ptr++ = ':';
+	
+	// minutes
+	*ptr++ = (m >> 4) + '0';
+	*ptr++ = (m & 0x0F) + '0';
+	
+	*ptr++ = ':';
+	
+	// seconds
+	*ptr++ = (s >> 4) + '0';
+	*ptr++ = (s & 0x0F) + '0';
+	
+	*ptr++ = '.';
+	
+	// milliseconds
+	ptr += 2;
+	*ptr-- = ms%10 + '0';
+	ms /= 10;
+	*ptr-- = ms%10 + '0';
+	*ptr = ms/10 + '0';
 }
 
 void LCDprintBitMask(unsigned char Adr, unsigned char Val, unsigned char Mask){

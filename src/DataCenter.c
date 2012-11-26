@@ -159,6 +159,8 @@ extern __flash strParam paramPrm[];
 extern __flash strParam paramPrd[];
 extern __flash strParam paramGlb[];
 
+extern strMenuTest sMenuTest;
+
 //функци€ вычисл€ет код CRC-16
 //на входе указатель на начало буфера
 //и количество байт сообщени€ (без прин€того кода CRC-16)
@@ -1159,16 +1161,11 @@ void FArchive(void)
 {
 	uint8_t com = Rec_buf_data_uart[2];
 	
-	RecivVar=1;
-	LCD2new=1;
-	
 	// проверка на соответствие пришедшей записи текущему архиву
 	if ( (com & 0xF0) != sArchives.curArchive->typeDev)
 		return;
 	
-	
-	//кол-во записей архива
-	if ( (com & 0x0F) == 0x01 )
+	if ( (com & 0x0F) == 0x01)			//кол-во записей архива
 	{ 
 		// ѕроверка на переполнение архива
 		if (Rec_buf_data_uart[5] & 0x80) 
@@ -1176,18 +1173,36 @@ void FArchive(void)
 		else
 			sArchives.ovf = false;
 		
-		sArchives.oldestEntry = (Rec_buf_data_uart[5] << 8) + Rec_buf_data_uart[6];
+		sArchives.oldestEntry = (Rec_buf_data_uart[5] << 8) + Rec_buf_data_uart[4];
 	}
-	
-	//записи архива	
-	if ( (com & 0x0F) == 0x02 )
+	else if ( (com & 0x0F) == 0x02)		//записи архива
 	{ 
 		for(uint8_t i = 0; i < Rec_buf_data_uart[3]; i++) 
 			sArchives.data[i] = Rec_buf_data_uart[4 + i];
+		
+		uint8_t *ptr = (uint8_t *) Rec_buf_data_uart;
+		
+		// ¬ архивах приемника/передатчика запись дата/верм€ начинаетс€ с 8 байта
+		// ¬ архивах защиты/событий запись дата/врем€ начинаетс€ с 9 байта
+		if ( ((com & 0xF0) == 0xE0) || ((com & 0xF0) == 0xD0))
+			ptr += 8;
+		else
+			ptr += 9;
+		
+		sArchives.day = *ptr++;
+		sArchives.month = *ptr++;
+		sArchives.year = *ptr++;
+		
+		sArchives.hours = *ptr++;
+		sArchives.minutes = *ptr++;
+		sArchives.seconds = *ptr++;
+		sArchives.milliseconds = *((uint16_t *) ptr);
 	}
+	
+	RecivVar=1;
+	LCD2new=1;
 }
 
-extern strMenuTest sMenuTest;
 
 /** ќпределение сигналов в тестовых режимах
  *	ќпредел€ет первый выставленный сигнал в каждой из групп

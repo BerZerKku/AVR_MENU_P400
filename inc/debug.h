@@ -14,12 +14,12 @@
   	#endif 
 
   	/********** ПЕРЕСЫЛКА КОМАНД НА ПК *********/
-	#define PK false		// Включена (true)/ отключена (false) 
+	#define PK true		// Включена (true)/ отключена (false) 
 
   	#define ALT false 		// персесылка всех команд (true) / избранных (false)
   	#if !ALT 				// в CM1-CM4 заносим нужные команды
-    	#define CT1 0x7E
-    	#define CT2 0x00
+    	#define CT1 0xF1
+    	#define CT2 0xF2
     	#define CT3 0x00
     	#define CT4 0x00
     	#define MST 0xFF    	// маска  (команда & 0xF0) == MST , если надо убрать пишем 0xFF 
@@ -27,8 +27,8 @@
 
   	#define ALR false 		// пересылка всех ответов БСП (true) / избранных (false)
   	#if !ALR 				// в CM1-CM4 заносим нужные команды 
-    	#define CR1 0x3E
-    	#define CR2 0x00
+    	#define CR1 0xF1
+    	#define CR2 0xF2
     	#define CR3 0x00
     	#define CR4 0x00
     	#define MSR 0xFF    	// маска (команда & 0xF0) == MSR , если надо убрать пишем 0xFF

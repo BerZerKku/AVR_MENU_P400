@@ -3378,8 +3378,11 @@ static void LCDwork(void)
 					if ( (sArchives.ovf) || (sArchives.oldestEntry != 0) )
 					{
 						strArchiveDevice *ptr = sArchives.curArchive;
-						LCDprintTime(28, sArchives.data);
-						LCDprintData(72, sArchives.data);
+						
+						LCDprintTime(28, sArchives.hours, sArchives.minutes,
+									 	 sArchives.seconds, sArchives.milliseconds);
+						
+						LCDprintData(72, sArchives.day, sArchives.month, sArchives.year);
 												
 						if (ptr->typeDev == 0xC0)
 						{
@@ -3715,8 +3718,6 @@ __C_task main(void)
 		
 		if (bUartTrReady1) 
 			FuncTr();
-		
-		LCDprintHEX(4, 19, MaxValue);
 	}
 }
 

@@ -1,5 +1,8 @@
 #ifndef __MY_DEF
 #define __MY_DEF
+
+#include <stdint.h>
+
 //версия прошивки, если первый ноль - то убираем
 #define Insertion 0x0852
 
@@ -8,7 +11,7 @@
 // константные измеряемые параметры
 //#define EXHIBITION
 
-#define DEB false /*работа(false)/отладка(true)*/
+#define DEB true /*работа(false)/отладка(true)*/
 #if DEB // подключение файла "debug.h" 
 	#warning "DEBUG MODE ON!!!"
 	#include "debug.h"
@@ -113,7 +116,19 @@ struct strArchives
 	unsigned int oldestEntry;				// номер самой старой записи при переполнении
 											// и макс. записей без переполнения
 	unsigned int curEntry;					// номер текущей записи
-	unsigned char data[13];					// данные
+	
+	uint8_t data[13];						// данные
+	
+	// время события
+	uint8_t hours;
+	uint8_t minutes;
+	uint8_t seconds;
+	uint16_t milliseconds;
+	
+	// дата события
+	uint8_t day;
+	uint8_t month;
+	uint8_t year;
 	
 	strArchives()
 	{
