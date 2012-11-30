@@ -61,8 +61,10 @@ __interrupt void Timer2_ovf(void){
   }
 }
 
-void LCDprint(unsigned char Line, unsigned char AddressInLine, unsigned char LCDstatus, unsigned char* bufer, unsigned char convers){
+void LCDprint(unsigned char Line, unsigned char AddressInLine, unsigned char* bufer, unsigned char convers)
+{
   unsigned char StartChar, i2=0;
+  
   StartChar=(Line-1)*20+AddressInLine-1;
   while(bufer[i2]!=0x00){
     if (convers==1){
@@ -108,12 +110,22 @@ void LCDprintHEX(unsigned char Line, unsigned char AddressInLine, unsigned char 
   if (LCDbuf[StartChar+1]>9) LCDbuf[StartChar+1]+=0x37;
   else  LCDbuf[StartChar+1]+=0x30;
 }
+
 //вывод на экран числа в десятичном виде, со сдвигом влево
-void LCDprintDEC(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint){
-  unsigned char StartChar;
-  StartChar=(Line-1)*20+AddressInLine-1;
-  if (CodePrint>9) LCDbuf[StartChar++]=(CodePrint/10)+0x30;
-  LCDbuf[StartChar]=(CodePrint%10)+0x30;
+uint8_t LCDprintDEC(uint8_t Line, uint8_t AddressInLine, uint8_t CodePrint)
+{
+  uint8_t pos;
+  uint8_t numChar = 1;
+  
+  pos = (Line - 1)*20 + AddressInLine - 1;
+  if (CodePrint > 9) 
+  {
+	  LCDbuf[pos++] = (CodePrint / 10) + '0';
+	  numChar++;
+  }
+  LCDbuf[pos] = (CodePrint % 10) + '0';
+  
+  return numChar;
 }
 
 //вывод на экран числа в десятичном виде, со сдвигом вправо
@@ -190,7 +202,7 @@ void LCDprintTetr(unsigned char Line, unsigned char AddressInLine, unsigned char
   }while(temp!=0);
 }
 
-void LCDprintf(unsigned char Line, unsigned char AddressInLine, unsigned char LCDstatus, unsigned __flash char* buferf, unsigned char convers)
+void LCDprintf(unsigned char Line, unsigned char AddressInLine, unsigned __flash char* buferf, unsigned char convers)
 {
   unsigned char StartChar, i2=0;
   StartChar=(Line-1)*20+AddressInLine-1;
@@ -212,7 +224,6 @@ void LCDprintf(unsigned char Line, unsigned char AddressInLine, unsigned char LC
           }
       i2++;
     }
- // LCDstat=LCDstatus;
 }
 
 void LCDprintInsertion(unsigned char Line, unsigned char AddressInLine, unsigned int CodePrint){

@@ -5,7 +5,7 @@
 #include "InterfaceS.h"
 #include "modbus.h"
 
-extern BazaModBus* ModBusBaza;
+extern BazaModBus ModBusBaza;
 
 unsigned int CRCSum1, CRCread;
 unsigned char i_dc1;
@@ -326,13 +326,13 @@ void DataModBus1(unsigned char NumberByte)
                               Tr_buf_data_uart1[2]=NumberRegister*2;
                               if (AddressStartRegister<250){ //все кроме архивов
                                 for (i_dc1=0; i_dc1<NumberRegister; i_dc1++){
-                                    ModBusBaza->readregister(Tr_buf_data_uart1, 3+i_dc1*2, AddressStartRegister+i_dc1);
+                                    ModBusBaza.readregister(Tr_buf_data_uart1, 3+i_dc1*2, AddressStartRegister+i_dc1);
                                 }
                                 TransDataInf1(0x03, NumberRegister*2);
                               }else
                                 if ((AddressStartRegister>=0x400)&&(AddressStartRegister<0x2200)){  //архив событий
                                   ReadArch = 1;
-                                  ModBusBaza->NumberRecordingArchive(0); //
+                                  ModBusBaza.NumberRecordingArchive(0); //
                                   NumberRec = NumberRegister/15;
                                   if (NumberRec==0) NumberRec++;
                                   if ((15-(AddressStartRegister-1024)%15)<NumberRegister) NumberRec++;
@@ -342,7 +342,7 @@ void DataModBus1(unsigned char NumberByte)
                                 }else
                                   if ((AddressStartRegister>=0x2400)&&(AddressStartRegister<0x4200)){  //архив Поста
                                     ReadArch = 1;
-                                    ModBusBaza->NumberRecordingArchive(0); //
+                                    ModBusBaza.NumberRecordingArchive(0); //
                                     NumberRec = NumberRegister/15;
                                     if (NumberRec==0) NumberRec++;
                                     StRegister=(AddressStartRegister - 0x2400)%15;
@@ -352,7 +352,7 @@ void DataModBus1(unsigned char NumberByte)
                                   }else
                                     if ((AddressStartRegister>=0x4400)&&(AddressStartRegister<0x6200)){  //архив ПРМ
                                        ReadArch = 1;
-                                      ModBusBaza->NumberRecordingArchive(0); //
+                                      ModBusBaza.NumberRecordingArchive(0); //
                                       NumberRec = NumberRegister/15;
                                       if (NumberRec==0) NumberRec++;
                                       StRegister=(AddressStartRegister - 0x4400)%15;
@@ -362,7 +362,7 @@ void DataModBus1(unsigned char NumberByte)
                                     }else
                                       if ((AddressStartRegister>=0x6400)&&(AddressStartRegister<0x8200)){  //архив ПРД
                                         ReadArch = 1;
-                                        ModBusBaza->NumberRecordingArchive(0); //
+                                        ModBusBaza.NumberRecordingArchive(0); //
                                         NumberRec = NumberRegister/15;
                                         if (NumberRec==0) NumberRec++;
                                         StRegister=(AddressStartRegister - 0x6400)%15;
@@ -374,7 +374,7 @@ void DataModBus1(unsigned char NumberByte)
                           }
                       }break;
                       case 0x06:{
-                        ModBusBaza->writetoAT(AddressStartRegister,(Rec_buf_data_uart1[4]<<8) + Rec_buf_data_uart1[5]);
+                        ModBusBaza.writetoAT(AddressStartRegister,(Rec_buf_data_uart1[4]<<8) + Rec_buf_data_uart1[5]);
                         for (i_dc1=0; i_dc1<6; i_dc1++) Tr_buf_data_uart1[i_dc1]=Rec_buf_data_uart1[i_dc1];
                         TransDataInf1(0x06, 4-1);
                       }break;

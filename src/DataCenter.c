@@ -7,7 +7,7 @@
 #include "DataCenter1.h"
 #include "Menu.h"
 
-extern BazaModBus* ModBusBaza;
+extern BazaModBus ModBusBaza;
 extern strMenuGlbParam sMenuGlbParam, sMenuDefParam, sMenuUpr;
 int CRCSum;
 
@@ -1157,17 +1157,22 @@ void FParamGlobal(unsigned char command)
 	LCD2new=1;
 };
 
+
+/** Обработка посылки с информацией по журналам
+ * 	@param Нет
+ *	@return Нет
+ */
 void FArchive(void)
 {
 	uint8_t com = Rec_buf_data_uart[2];
 	
-	// проверка на соответствие пришедшей записи текущему архиву
+	// is command of the current log?
 	if ( (com & 0xF0) != sArchives.curArchive->typeDev)
 		return;
 	
-	if ( (com & 0x0F) == 0x01)			//кол-во записей архива
+	if ( (com & 0x0F) == 0x01)			// read number of log entries
 	{ 
-		// Проверка на переполнение архива
+		
 		if (Rec_buf_data_uart[5] & 0x80) 
 			sArchives.ovf = true;	
 		else
@@ -1175,32 +1180,52 @@ void FArchive(void)
 		
 		sArchives.oldestEntry = (Rec_buf_data_uart[5] << 8) + Rec_buf_data_uart[4];
 	}
-	else if ( (com & 0x0F) == 0x02)		//записи архива
-	{ 
-		for(uint8_t i = 0; i < Rec_buf_data_uart[3]; i++) 
-			sArchives.data[i] = Rec_buf_data_uart[4 + i];
+	else if ( (com & 0x0F) == 0x02)		// read log entries
+	{ 	
+
+		uint8_t *ptr = (uint8_t *) &Rec_buf_data_uart[4];
 		
-		uint8_t *ptr = (uint8_t *) Rec_buf_data_uart;
+		com &= 0xF0;
 		
-		// В архивах приемника/передатчика запись дата/вермя начинается с 8 байта
-		// В архивах защиты/событий запись дата/время начинается с 9 байта
-		if ( ((com & 0xF0) == 0xE0) || ((com & 0xF0) == 0xD0))
-			ptr += 8;
+		// read data entry
+		if (com == 0xF0)
+		{
+			// event journal
+			sArchives.regime = *ptr++;
+			sArchives.bytes[3] = *ptr++;
+			sArchives.bytes[2] = *ptr++;
+			sArchives.bytes[1] = *ptr++;
+			sArchives.bytes[0] = *ptr++;
+		}
+		else if ( (com == 0xD0) || (com == 0xE0) )
+		{
+			// prm and prd journals
+			sArchives.bytes[3] = *ptr++;
+			sArchives.bytes[2] = *ptr++;
+			sArchives.bytes[1] = *ptr++;
+			sArchives.bytes[0] = *ptr++;
+		}
 		else
-			ptr += 9;
+		{
+			// def journal 
+			sArchives.bytes[1] = *ptr++;
+			sArchives.bytes[0] = *ptr++;
+		}
 		
-		sArchives.day = *ptr++;
-		sArchives.month = *ptr++;
+		// read date entry
 		sArchives.year = *ptr++;
+		sArchives.month = *ptr++;
+		sArchives.day = *ptr++;
 		
+		// read time entry
 		sArchives.hours = *ptr++;
 		sArchives.minutes = *ptr++;
 		sArchives.seconds = *ptr++;
-		sArchives.milliseconds = *((uint16_t *) ptr);
+		sArchives.milliseconds = (*ptr << 8) + *(ptr + 1);
 	}
 	
-	RecivVar=1;
-	LCD2new=1;
+	RecivVar = 1;
+	LCD2new = 1;
 }
 
 
@@ -1557,7 +1582,7 @@ void DataModBus(unsigned char NumberByte)
 		else if (PCready==0)
 		{
 			// идет работа с БСП
-			ModBusBaza->writeinf(Rec_buf_data_uart[2], Rec_buf_data_uart);
+			ModBusBaza.writeinf(Rec_buf_data_uart[2], Rec_buf_data_uart);
 			
 			switch(Rec_buf_data_uart[2] & 0xF0)
 			{

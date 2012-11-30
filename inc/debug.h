@@ -14,7 +14,7 @@
   	#endif 
 
   	/********** ПЕРЕСЫЛКА КОМАНД НА ПК *********/
-	#define PK true		// Включена (true)/ отключена (false) 
+	#define PK false		// Включена (true)/ отключена (false) 
 
   	#define ALT false 		// персесылка всех команд (true) / избранных (false)
   	#if !ALT 				// в CM1-CM4 заносим нужные команды

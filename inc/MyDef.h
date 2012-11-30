@@ -108,16 +108,19 @@ struct strArchiveDevice
 
 struct strArchives
 {
-	unsigned char numArchives;				// кол-во архивов устройств
+	uint8_t numArchives;				// кол-во архивов устройств
 	strArchiveDevice *curArchive;				// номер в listArchives
 	strArchiveDevice *listArchives[4];		// указатели на архивы устройств
 	
 	bool ovf;								// флаг переполнения архива
-	unsigned int oldestEntry;				// номер самой старой записи при переполнении
+	uint16_t oldestEntry;				// номер самой старой записи при переполнении
 											// и макс. записей без переполнения
-	unsigned int curEntry;					// номер текущей записи
+	uint16_t curEntry;					// номер текущей записи
+	uint8_t subNum;
 	
-	uint8_t data[13];						// данные
+	// данные
+	uint8_t regime;
+	uint8_t bytes[4];
 	
 	// время события
 	uint8_t hours;
@@ -135,6 +138,7 @@ struct strArchives
 		numArchives = 0;
 		oldestEntry = 0;
 		curEntry = 0;
+		subNum = 0;
 		ovf = false;
 	}
 };

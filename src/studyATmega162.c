@@ -64,7 +64,7 @@ bool TimeWink;
 
 unsigned char NumberCom=1;
 
-unsigned char j1,CodePrint1, PCconn, PassCen;
+unsigned char CodePrint1, PassCen;
 
 unsigned char InputDataTime[]="??.??.??";
 unsigned char DataLCD[]="??.??.??";
@@ -94,8 +94,6 @@ unsigned char CurrentState[]={0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x00};
 unsigned char Dop_byte[]={0x3F, 0x3F, 0x3F, 0x3F};
 
 unsigned char Protocol;
-//Тесты
-unsigned int TestDelay=0; //блок клаиватуры после входа в тестовый режим
 //задержка x*100мс
 #define Delay1 60
 //Тестовый режим №1
@@ -106,7 +104,6 @@ unsigned char TempCurrState; //переменная нужна для отображения режима в меню Ус
 //переменные необходимые для FuncInputData
 unsigned char NumberInputSymbol;
 unsigned char NewPass=0, EntPass=0;
-unsigned char TempLine;
 
 //параметры Поста
 unsigned char mErr[]="???";
@@ -223,18 +220,14 @@ unsigned char TempValueBCD;
 unsigned char InputParameter; //опеределяет какой параметр вводят с клавиатуры, по умолчанию = 0
 unsigned char ControlParameter; //определяет верно ли был введен параметр
 unsigned char Winking=0x00; //мигание курсора
-__flash unsigned char WinkingMass[]="_";
-
-__flash unsigned char PCconnect[]="Связь с ПК";
-__flash unsigned char Point[]=".";
 
 //массив хранения пароля
 unsigned char PressPassword = 2;
 __flash unsigned char Password[]={0x30,0x30,0x30,0x30,0x00};
 unsigned char ePassword[]={0x00,0x00,0x00,0x00,0x00};
 
-//переменные для запрса измеряемых параметров
-unsigned char NumberAskMeasuring=0x01;
+// переменные для запрса измеряемых параметров
+unsigned char NumberAskMeasuring = 0x01;
 
 //переменные выбора значения параметра из списка
 unsigned char InputSelectValue;
@@ -250,7 +243,6 @@ unsigned int TrValueD;
 unsigned char PosModBusInfill = 0, ModBusInfill = 0;
 
 //Архив
-unsigned int NumberRecording;
 unsigned char NumberRec;
 unsigned char ReadArch = 0; // 1 - означает идет чтение архива, 2 - чтение закончено, 0 - архив не нужен
 extern unsigned int NumRecStart;
@@ -269,16 +261,16 @@ bool bInpVal=false;  //разрешение на ввод нового значения параметра
 unsigned char cTypeLine;  //тип линии 1/2/3 = ВЛ/ВОЛС/Е1
 unsigned char cNumLine; //2-3 концевая линия
 bool bReadVers = false; //true - версия была считана, false - ответ не пришел, продолжаем опрос
-bool bParamView=false; //есть/нет вывод на экран дополнительных параметров
-bool bParamValue=false; //true - норм отображение, false - hex вид
+bool bParamView = false; //есть/нет вывод на экран дополнительных параметров
+bool bParamValue = false; //true - норм отображение, false - hex вид
 bool bLCDwork = true;  //разрешение обновления экрана
-bool bAllDevice=false; //если присутствуют все 4 утройства (Пост, 2 приемника, передатчик) , только для 3-х концевой
+bool bAllDevice = false; //если присутствуют все 4 утройства (Пост, 2 приемника, передатчик) , только для 3-х концевой
 //для вывода на эран статуса устройств, в меню 0
-bool bGlobalAvar=false, bGlobalWarn=false;
-bool bDefAvar=false, bDefWarn=false;
-bool bRec1Avar=false, bRec1Warn=false;
-bool bTrAvar=false, bTrWarn=false;
-bool bRec2Avar=false, bRec2Warn=false;
+bool bGlobalAvar = false, bGlobalWarn = false;
+bool bDefAvar = false, bDefWarn = false;
+bool bRec1Avar = false, bRec1Warn = false;
+bool bTrAvar = false, bTrWarn = false;
+bool bRec2Avar = false, bRec2Warn = false;
 unsigned char cNumPrm;  //выбор 1/2 приемника в 3-х концевой версии
 unsigned char LineInMenu6=0; //кол-во строк в меню просмотр параметров/ установить параметры
 unsigned __flash char  *mMenu6point[5]; //массив строк для меню просмотр параметров/ установить параметры
@@ -290,8 +282,7 @@ bool bUartTrReady1=false;
 strMenuTest sMenuTest;
 
 //создадим побъект работы с классом BazaModBus
-BazaModBus* ModBusBaza;
-
+BazaModBus ModBusBaza(DataM, JournalM, ePassword);
 
 uint8_t cViewParam[11]="          ";
 /*номер выводимого параметра
@@ -304,6 +295,82 @@ uint8_t cViewParam[11]="          ";
 младшая тетрада - номер параметра в группе
 */
 uchar cNumParam;
+
+
+/** Поиск необходимого подпункта в текущей записи журнала
+ *	@param *bytes Указатель на массив данных
+ *	@param numBytes Кол-во используемых байт данных в массиве данных
+ *	@param searchDir Направление поиска
+ *		@arg 0 Вправо начиная с 0
+ *		@arg 1 Вправо
+ *		@arg 2 Влево
+ *	@param curNum Номер текущего подпункта 
+ *	@return Номер нового подпункта
+ */
+static uint8_t findNextSubEntry(uint8_t *bytes, uint8_t numBytes, uint8_t searchDir, uint8_t curNum)
+{
+	bool find = false;
+	uint8_t cnt = numBytes;
+	int8_t pos = 0;
+	int8_t byte = 0;
+	
+	if (searchDir < 2)
+	{	
+		if (searchDir == 1)
+			curNum += 1;
+
+		do
+		{
+			curNum %= (numBytes * 8);
+			byte = curNum / 8;
+			pos = curNum % 8;
+
+			for(uint8_t i = 1 << pos; i > 0; i <<= 1, curNum++)
+			{
+				if ( *(bytes + byte) & i )
+				{
+					find = true;
+					break;
+				}
+			}
+			
+			if (!find)
+				curNum = (byte + 1) * 8;
+
+			cnt--;
+		}
+		while( (!find) and (cnt > 0) );
+	}
+	else if (searchDir == 2)
+	{
+		curNum -= 1;
+
+		do
+		{
+			curNum %= (numBytes * 8);
+			byte = curNum / 8;
+			pos = curNum % 8;
+
+			for(uint8_t i = 1 << pos; i > 0; i >>= 1, curNum--)
+			{
+				if ( *(bytes + byte) & i )
+				{
+					find = true;
+					break;
+				}
+			}
+
+			if (!find)
+				curNum = byte*8 - 1;
+
+			cnt--;
+		}
+		while( (!find) and (cnt > 0) );
+	}
+
+	return curNum;
+}
+
 
 /**	Преобразование целого числа в строку
  *	@param start Начальный адрес вывода в массиве
@@ -442,7 +509,7 @@ static void PressSharp(void)
 static void FuncInpCorrParam(void)
 {
 	signed int ii;
-	LCDprintf(4,1,2,MenuInputData,1); //выводим на экран "Ввод:"
+	LCDprintf(4, 1, MenuInputData, 1); //выводим на экран "Ввод:"
 	
 	FuncClearCharLCD(4,6,15); //очищаем 4-ую строку
 	
@@ -464,11 +531,11 @@ static void FuncInpCorrParam(void)
 	}
 	
 	//вывод на индикатор введенного значения
-	LCDprint(4,7,2,InputValue,1);
+	LCDprint(4, 7, InputValue,1);
 	//вывод мигающего курсора, пока не введено макс. кол-во символов
 	if (NumberInputChar<MaxNumberInputChar){
 		if (Winking==1){
-			LCDprintf(4,7+NumberInputChar,2,WinkingMass,0);
+			LCDprintf(4, 7 + NumberInputChar, WinkingMass, 0);
 			Winking=0;
 		}else Winking=1;
 	}
@@ -533,9 +600,9 @@ static void FuncInpCorrParam(void)
 //фунцкия выбора значения параметра из списка
 static void FuncSelectValue(void)
 {
-	LCDprintf(4, 1, 2, MenuInputData, 1); 	//выводим на экран "Ввод:"
+	LCDprintf(4, 1,  MenuInputData, 1); 	//выводим на экран "Ввод:"
 	FuncClearCharLCD(4, 6, 15); 			//очищаем 4-ую строку
-	LCDprintf(4, 7, 2, MassSelectValue[InputSelectValue], 1);
+	LCDprintf(4, 7, MassSelectValue[InputSelectValue], 1);
 	
 	switch(PressKey)
     {
@@ -634,8 +701,8 @@ static void FuncSelectValue(void)
 static void FuncSelectValueList(void)
 {
 	FuncClearCharLCD(4, 6, 15); 			// очищаем 4-ую строку
-	LCDprintf(4, 1, 2, MenuInputData, 1); 	// выводим на экран "Ввод:"
-	LCDprintf(4, 7, 2, MassSelectValueRam[MassItems[InputSelectValue]].name, 1);
+	LCDprintf(4, 1, MenuInputData, 1); 	// выводим на экран "Ввод:"
+	LCDprintf(4, 7, MassSelectValueRam[MassItems[InputSelectValue]].name, 1);
 	
 	switch(PressKey)
 	{
@@ -676,8 +743,8 @@ static void FuncSelectValueList(void)
 static void FuncInputDataTime(void)
 {
 	FuncClearCharLCD(4, 6, 15); //очищаем 4-ую строку
-	LCDprintf(4, 1, 2, MenuInputData, 1); //выводим на экран "Ввод:"
-	LCDprint(4, 7, 2, InputDataTime, 1);
+	LCDprintf(4, 1, MenuInputData, 1); //выводим на экран "Ввод:"
+	LCDprint(4, 7, InputDataTime, 1);
 	
 	if (NumberInputChar < 8)
 	{ //вывод мигающего курсора
@@ -685,15 +752,15 @@ static void FuncInputDataTime(void)
 		{
 			if (MenuLevel == LVL_SETUP)
 			{
-				if (PressPassword==2) LCDprintf(4,9+NumberInputChar,2,WinkingMass,0);
-				if (PressPassword==1) LCDprintf(4,15+NumberInputChar,2,WinkingMass,0);
+				if (PressPassword==2) LCDprintf(4, 9 + NumberInputChar, WinkingMass,0);
+				if (PressPassword==1) LCDprintf(4, 15 + NumberInputChar, WinkingMass,0);
 			}
 			else if ((MenuLevel == LVL_REGIME) && (PressPassword==2)) 
 			{
-				LCDprintf(4,9+NumberInputChar,2,WinkingMass,0);
+				LCDprintf(4, 9 + NumberInputChar, WinkingMass, 0);
 			}
 			else 
-				LCDprintf(4,7+NumberInputChar,2,WinkingMass,0);
+				LCDprintf(4, 7 + NumberInputChar, WinkingMass, 0);
 			Winking=0;
 		}
 		else 
@@ -794,16 +861,16 @@ static void FuncInputData(void)
   	if (MenuLevel == LVL_SETUP)
 	{
     	if (PressPassword == 2)
-			LCDprintf(4, 1, 2, MenuInputOldPassword, 1);
+			LCDprintf(4, 1, MenuInputOldPassword, 1);
     	if (PressPassword == 1)
-			LCDprintf(4, 1, 2, MenuInputNewPassword, 1);
+			LCDprintf(4, 1, MenuInputNewPassword, 1);
   	}
 	else if ( (MenuLevel == LVL_REGIME) && (PressPassword == 2) )
 	{
-		LCDprintf(4, 1, 2, MenuInputOldPassword, 1);
+		LCDprintf(4, 1, MenuInputOldPassword, 1);
 	}
     else
-		LCDprintf(4, 1, 2, MenuInputData, 1); //выводим на экран "Ввод:"
+		LCDprintf(4, 1, MenuInputData, 1); //выводим на экран "Ввод:"
 		
 	if (NumberInputChar<MaxNumberInputChar) //если кол-во введеных символов еще меньше максимальновозможного
 		if ( (InputParameter == 14) || (InputParameter == 15) || (InputParameter == 20) || (InputParameter == 21) )
@@ -832,16 +899,16 @@ static void FuncInputData(void)
 			if (MenuLevel == LVL_SETUP)
 			{
 				if (PressPassword == 2)
-					LCDprintf(4, 9 + NumberInputChar, 2, WinkingMass, 0);
+					LCDprintf(4, 9 + NumberInputChar, WinkingMass, 0);
 				if (PressPassword == 1)
-					LCDprintf(4, 15 + NumberInputChar, 2, WinkingMass, 0);
+					LCDprintf(4, 15 + NumberInputChar, WinkingMass, 0);
 			}
 			else if ( (MenuLevel == LVL_REGIME) && (PressPassword == 2) )
 			{
-				LCDprintf(4, 9 + NumberInputChar, 2, WinkingMass, 0);
+				LCDprintf(4, 9 + NumberInputChar, WinkingMass, 0);
 			}
 			else
-				LCDprintf(4, 7 + NumberInputChar, 2, WinkingMass, 0);
+				LCDprintf(4, 7 + NumberInputChar, WinkingMass, 0);
 			Winking=0;
 		}
 		else
@@ -859,16 +926,16 @@ static void FuncInputData(void)
 	if (MenuLevel == LVL_SETUP)
 	{
 		if (PressPassword == 2)
-			LCDprint(4, 9, 2, InputValue, 1);
+			LCDprint(4, 9, InputValue, 1);
 		if (PressPassword == 1)
-			LCDprint(4, 15, 2, InputValue, 1);
+			LCDprint(4, 15, InputValue, 1);
 	}
 	else if ( (MenuLevel == LVL_REGIME) && (PressPassword == 2) )
 	{
-		LCDprint(4, 9, 2, InputValue, 1);
+		LCDprint(4, 9, InputValue, 1);
 	}
 	else
-		LCDprint(4, 7, 2, InputValue, 1);
+		LCDprint(4, 7, InputValue, 1);
 			
 	//сброс введенного числа
 	if (PressKey=='C')
@@ -997,7 +1064,7 @@ static void FuncInputData(void)
 			//ввели новый пароль
 			if (PressPassword==1){
 				ePassword[0]=InputValue[0];ePassword[1]=InputValue[1];ePassword[2]=InputValue[2];ePassword[3]=InputValue[3];
-				ModBusBaza->NewPass(ePassword);
+				ModBusBaza.NewPass(ePassword);
 				//а теперь запишем пароль в EEPROM
 				eWrite=1;eAddressWrite=0;eMassiveWrite=ePassword;
 				PressPassword=2;
@@ -1369,6 +1436,10 @@ static void FuncPressKey(void)
 				case LVL_UPR: 
 				PressInMenuReset(4); 
 				break;
+				
+				case LVL_JRN_VIEW:
+				sArchives.subNum = findNextSubEntry(sArchives.bytes, 4, 2, sArchives.subNum);
+				break;
 			}
         }break;
         case '5':
@@ -1483,6 +1554,10 @@ static void FuncPressKey(void)
 				
 				case LVL_UPR: 
 				PressInMenuReset(6); 
+				break;
+				
+				case LVL_JRN_VIEW:
+				sArchives.subNum = findNextSubEntry(sArchives.bytes, 4, 1, sArchives.subNum);
 				break;
 			}
         }break;
@@ -1640,6 +1715,7 @@ static void FuncPressKey(void)
 						else
 							ptr->curEntry = ptr->oldestEntry - 1;
 					}
+					ptr->subNum = 0;
 				}
 				break;
 			}
@@ -1712,18 +1788,16 @@ static void FuncPressKey(void)
 						else
 							ptr->curEntry = 0;
 					}
-					
-					FuncClearCharLCD(2,1,40); //очистка инф-ы
-					FuncClearCharLCD(4,13,8); //очистка даты записи
+					ptr->subNum = 0;
 				}
 				break;
 			}
-        }break;
+        }
+		break;
 		
         case '#':
-		{
-			PressSharp();
-        }break;
+		PressSharp();
+		break;
 		
         case 'E':
 		{
@@ -2058,10 +2132,12 @@ static void FuncPressKey(void)
 //опрос параметров для заполнения массива ModBus
 static void ModBusOpros(void)
 {
-	if (ModBusBaza->status(0)!=2){
+	if (ModBusBaza.status(0)!=2)
+	{
 		if (ReadArch==0){ //проверяем идет ли считывание архива
 			PosModBusInfill++;
-			if(PosModBusInfill<0x10){ //Общие параметры
+			if(PosModBusInfill<0x10)
+			{ //Общие параметры
 				switch(PosModBusInfill)
 				{
 					case 1:
@@ -2146,9 +2222,9 @@ static void ModBusOpros(void)
 			TransDataInf(ComArch,0x02); //считываем архив
 		}
 	}else{
-		ModBusBaza->writeregister(Tr_buf_data_uart);
-		TransDataInf(ModBusBaza->trans(1), ModBusBaza->trans(2));
-		ModBusBaza->status(1);
+		ModBusBaza.writeregister(Tr_buf_data_uart);
+		TransDataInf(ModBusBaza.trans(1), ModBusBaza.trans(2));
+		ModBusBaza.status(1);
 	}
 }
 
@@ -2200,7 +2276,7 @@ void FuncTr(void)
 				if (MenuLevel == LVL_JRN_VIEW)
 				{  	
 					//если находимся в архивах, пошлем команду опроса кол-ва записей
-					TransDataInf(sArchives.curArchive->typeDev + 1,0);
+					TransDataInf(sArchives.curArchive->typeDev + 1, 0);
 				}
 				else
 				{	
@@ -2335,12 +2411,17 @@ void FuncTr(void)
 							// если журнал не пустой, считаем запись
 							if ( (ptr->ovf) || (ptr->oldestEntry != 0) )
 							{
-								if (ptr->curEntry >= ptr->curArchive->maxNumEntries)
-									ptr->curEntry = 0;
+								uint16_t adr = 0;
 								
-								/// TDO - разобраться с номером запрашиваемой записи
-								Tr_buf_data_uart[5] = 0;
-								Tr_buf_data_uart[4] = sArchives.curEntry;
+								// calculate the address of the desired entry
+								if (ptr->ovf)
+									adr = ptr->oldestEntry + 1;
+								adr += ptr->curEntry;
+								
+								adr = adr % ptr->curArchive->maxNumEntries;							
+								
+								Tr_buf_data_uart[5] = adr;
+								Tr_buf_data_uart[4] = adr >> 8;
 								TransDataInf(ptr->curArchive->typeDev + 2, 0x02);
 							}
 						}break;
@@ -2594,7 +2675,7 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 				DevWarn=bTrWarn;
 			}
 	
-	LCDprintf(NumString,1,2,Title,1);
+	LCDprintf(NumString, 1, Title, 1);
 	if (bGlobalAvar)
 	{ //общая авария
 		tglobal = (GlobalCurrentState[12]<<8) + (GlobalCurrentState[13]);
@@ -2607,9 +2688,9 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 		
 		if ( (!TimeWink) && (j) )
 		{ //режим мигания, раз в секунду
-			LCDprintf(NumString,5,2,Menu1disrepair,1);
+			LCDprintf(NumString, 5, Menu1disrepair, 1);
 			FuncClearCharLCD(NumString,13,8);
-			LCDprintf(NumString,13,2,GlobalAvar,0);
+			LCDprintf(NumString, 13, GlobalAvar, 0);
 			LCDprintHEX(NumString,15,GlobalCurrentState[12]);
 			LCDprintHEX(NumString,17,GlobalCurrentState[13]);
 		}
@@ -2620,7 +2701,7 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 			{
 				if (tglobal&temp)
 				{
-					LCDprintf(NumString,5,2,Menu1GlobalErrorT[i],1);
+					LCDprintf(NumString, 5, Menu1GlobalErrorT[i], 1);
 					break;
 				}
 			}
@@ -2638,9 +2719,9 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 		
 		if ( (!TimeWink) && (j) )
 		{ //режим мигания, раз в секунду
-			LCDprintf(NumString,5,2,Menu1disrepair,1);
+			LCDprintf(NumString, 5, Menu1disrepair, 1);
 			FuncClearCharLCD(NumString,13,8);
-			LCDprintf(NumString,13,2,LocalAvar,0);
+			LCDprintf(NumString, 13, LocalAvar, 0);
 			LCDprintHEX(NumString,15,GlobalCurrentState[(Device-1)*4]);
 			LCDprintHEX(NumString,17,GlobalCurrentState[(Device-1)*4 + 1]);
 		}
@@ -2650,7 +2731,7 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 			for(i=0, temp = 1; i < 16; i++, temp *= 2)
 			{
 				if (tglobal & temp)
-					LCDprintf(NumString, 5, 2, MassError[i], 1);
+					LCDprintf(NumString, 5, MassError[i], 1);
 			}
 		}
 	}
@@ -2684,13 +2765,13 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 				{
 					if ( (num_warn == 1) && (Menu1GlobalWarningT[cur_warn] != UnknownErrorT) )
 					{
-						LCDprintf(NumString, 5, 2, Menu1GlobalWarningT[cur_warn], 1);
+						LCDprintf(NumString, 5, Menu1GlobalWarningT[cur_warn], 1);
 					}
 					else
 					{
-						LCDprintf(NumString, 5, 2, Menu1warning,1);
+						LCDprintf(NumString, 5, Menu1warning,1);
 						FuncClearCharLCD(NumString, 13, 8);
-						LCDprintf(NumString, 13, 2, GlobalAvar,0);
+						LCDprintf(NumString, 13, GlobalAvar,0);
 						LCDprintHEX(NumString, 15, GlobalCurrentState[14]);
 						LCDprintHEX(NumString, 17, GlobalCurrentState[15]);
 					}
@@ -2707,16 +2788,16 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 						switch(temp)
 						{
 							case 1:
-							LCDprintf(NumString, 5, 2, Menu1PostWarning1, 1);
+							LCDprintf(NumString, 5, Menu1PostWarning1, 1);
 							break;
 							case 2:
-							LCDprintf(NumString, 5, 2, Menu1PostWarning2, 1);			
+							LCDprintf(NumString, 5, Menu1PostWarning2, 1);			
 							break;
 							case 4:
-							LCDprintf(NumString, 5, 2, Menu1PostWarning4, 1);
+							LCDprintf(NumString, 5, Menu1PostWarning4, 1);
 							break;
 							case 8:
-							LCDprintf(NumString, 5, 2, Menu1PostWarning8, 1);
+							LCDprintf(NumString, 5, Menu1PostWarning8, 1);
 							break;
 							default:
 							temp = 0;
@@ -2731,9 +2812,9 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 						if (temp == 1)
 						{
 							if (cTypeLine == 2)
-								LCDprintf(NumString, 5, 2,  Menu1PrmWarning1o, 1);
+								LCDprintf(NumString, 5, Menu1PrmWarning1o, 1);
 							else
-								LCDprintf(NumString, 5, 2,  Menu1PrmWarning1, 1);
+								LCDprintf(NumString, 5, Menu1PrmWarning1, 1);
 						}
 						else 
 							temp = 0;
@@ -2748,9 +2829,9 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 					// 	если это ошибочный код
 					// 	или предупреждений несколько
 					// 	выведем на экран код предупреждения
-					LCDprintf(NumString, 5, 2, Menu1warning, 1);
+					LCDprintf(NumString, 5, Menu1warning, 1);
 					FuncClearCharLCD(NumString, 13, 8);
-					LCDprintf(NumString, 13, 2, LocalAvar, 0);
+					LCDprintf(NumString, 13, LocalAvar, 0);
 					LCDprintHEX(NumString, 15, GlobalCurrentState[(Device - 1) * 4 + 2]);
 					LCDprintHEX(NumString, 17, GlobalCurrentState[(Device - 1) * 4 + 3]);
 				}
@@ -2767,16 +2848,16 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 			// если нам известен код режима, выводим сообщение на экран
 			// если же нам не извесен принятый код, выводим "????"
 			if (CurrentState[(Device - 1) * 2] != 0x4E) 
-				LCDprintf(NumString, 5, 2, Menu1regime[CurrentState[(Device - 1) * 2]], 1); 
+				LCDprintf(NumString, 5, Menu1regime[CurrentState[(Device - 1) * 2]], 1); 
 			else 
-				LCDprintf(NumString, 5, 2, Menu1Err, 0);  
+				LCDprintf(NumString, 5, Menu1Err, 0);  
 			
 			// выводим состояние устройства
 			// если же нам не извесен принятый код, выводим "????"
 			if (CurrentState[(Device - 1) * 2 + 1] != 0x4E) 
-				LCDprintf(NumString, 13, 2, MassStat[CurrentState[(Device - 1) * 2 + 1]], 1);
+				LCDprintf(NumString, 13, MassStat[CurrentState[(Device - 1) * 2 + 1]], 1);
 			else 
-				LCDprintf(NumString,13,2,Menu1Err,0);  
+				LCDprintf(NumString, 13, Menu1Err, 0);  
 			
 			//вывод на экран дополнительного байта
 			if( (Device == 2) || (Device == 4) )
@@ -2802,17 +2883,19 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 
 static void LCDwork(void)
 {
+	static uint8_t PCconn = 0;
+	
 	if (PCready==0){
 		//вывод надписи "Нет связи с БСП"
 		if (NumberLostLetter>4){ //если было не принято 5 посылок подряд, то выводим на экран аварию
 			AvarNoUsp=1;  //говорим что у нас сейчас нет связи с USP
-			if (LoopUART==1) LCDprintf(1,1,2,LCDavarNoUSP,1);  //выводим на экран сообщение "Нет связи с USP"
+			if (LoopUART==1) LCDprintf(1, 1, LCDavarNoUSP, 1);  //выводим на экран сообщение "Нет связи с USP"
 		}
 		else
 			if ((NumberLostLetter<5)&&(AvarNoUsp==1)){ //если же у нас наконец-то была получена посылка от USP
 				AvarNoUsp=0;  //говрим что связь с USP налажена
 				LCDtimerNew=1;
-				LCDprintf(1,1,2,LCDavarNoUSP,2);  //стираем с экрана сообщение "Нет связи с USP"
+				LCDprintf(1, 1, LCDavarNoUSP, 2);  //стираем с экрана сообщение "Нет связи с USP"
 			}
 		
 		
@@ -2856,8 +2939,8 @@ static void LCDwork(void)
 						{
 							if ( (bDef) && (cNumComR == 0) && (cNumComT == 0) )	// если у нас только Пост 
 							{	
-								LCDprintf(3 , 1 , 2 , fAk , 1);
-								LCDprintf(3 , 4 , 2 , flAutoContorl1[param4[cAutoControl]], 1);
+								LCDprintf(3, 1, fAk, 1);
+								LCDprintf(3, 4, flAutoContorl1[param4[cAutoControl]], 1);
 								if ((FreqNum[7] < '4')      &&
 									(FreqNum[7] > '0')      &&
 									(cAutoControl)        	&&	
@@ -2870,8 +2953,8 @@ static void LCDwork(void)
 									{
 										if (TimeError)
 										{
-											LCDprintf(3 , 15 , 2 , Menu11Err , 1);
-											FuncClearCharLCD(3 , 19 , 2);
+											LCDprintf(3, 15, Menu11Err, 1);
+											FuncClearCharLCD(3, 19, 2);
 										}
 										else
 											LCDprintTimeAK(cAutoControl, TypeUdDev, FreqNum[7] , TimeLCD);
@@ -2882,81 +2965,94 @@ static void LCDwork(void)
 									FuncClearCharLCD(3, 9, 13);
 								
 								if (cNumLine == 2)
-									LCDprint(4,1,2,Measuring[5],1);
+									LCDprint(4, 1, Measuring[5], 1);
 								else
 									if (cNumLine == 3)
 									{
-										LCDprintChar(4 , 1 , '1');
-										LCDprint(4 , 2 , 2 , Measuring[5] , 1);
-										LCDprintChar(4 , 11 , '2');
-										LCDprint(4 , 12 , 2 , Measuring[6] , 1);
+										LCDprintChar(4, 1, '1');
+										LCDprint(4, 2, Measuring[5], 1);
+										LCDprintChar(4, 11, '2');
+										LCDprint(4, 12, Measuring[6], 1);
 									}
 							}
 						}
 					}
 				}break;
-				case LVL_MENU:{ //второй уровень меню
-					if (LCD2new==1){ //обновляем информацию на втором меню
-						for(LCD2new=ShiftMenu;((LCD2new-ShiftMenu)<MaxDisplayLine);LCD2new++)
-							LCDprintf(2+LCD2new-ShiftMenu,1,2,Menu2point[LCD2new],1);
+				case LVL_MENU:		//второй уровень меню
+				{ 
+					if (LCD2new==1)
+					{ //обновляем информацию на втором меню
+						for(uint8_t i = ShiftMenu, j = 0; j < MaxDisplayLine; i++, j++)
+							LCDprintf(2 + j, 1, Menu2point[i], 1);
 						LCD2new=0;
 					}
 				}break;
-				case LVL_DATA_TIME:{ //третий уровень меню, ввоод дата/время
-					if (LCD2new==1){LCDprintf(2,1,2,Menu31,1);LCDprintf(3,1,2,Menu32,1);LCD2new=0;}
+				case LVL_DATA_TIME:	//третий уровень меню, ввоод дата/время
+				{ 
+					if (LCD2new==1)
+					{
+						LCDprintf(2, 1, Menu31, 1);
+						LCDprintf(3, 1, Menu32, 1);
+						LCD2new=0;
+					}
 				}break;
 				
 				case LVL_JOURNAL:	//меню/журнал
 				{  
 					if (LCD2new==1)
 					{
-						LCD2new = ShiftMenu;
-						for(uint8_t i = 2; (LCD2new < sArchives.numArchives) && (i < 5); i++, LCD2new++)
+						for(uint8_t i = 2, j = ShiftMenu; (j < sArchives.numArchives) && (i < 5); i++, j++)
 						{
-							LCDprintChar(i, 1, LCD2new + '1');
+							LCDprintChar(i, 1, j + '1');
 							LCDprintChar(i, 2, '.');
-							LCDprintf(i, 3, 2, Archive, 1);
-							LCDprintf(i, 10, 2, sArchives.listArchives[LCD2new]->name,1);
+							LCDprintf(i, 3, Archive, 1);
+							LCDprintf(i, 10, sArchives.listArchives[j]->name,1);
 						}
 						LCD2new=0;
 					}
 				}
 				break;
 				
-				case LVL_SETUP: //меню/установить
+				case LVL_SETUP: 	//меню/установить
 				{
 					if (LCD2new==1)
 					{
 						if (WorkRate!=0)  /*хз че это*/
 						{
-							LCDprintf(2,1,2, Menu5point[ShiftMenu],1);
-							LCDprintf(3,1,2, Menu5point[ShiftMenu+1],1);
+							LCDprintf(2, 1, Menu5point[ShiftMenu], 1);
+							LCDprintf(3, 1, Menu5point[ShiftMenu+1], 1);
 						}
 						else
-							for(LCD2new=ShiftMenu;((LCD2new-ShiftMenu)<MaxDisplayLine);LCD2new++)
+						{
+							for(uint8_t i = ShiftMenu, j = ShiftMenu; j < MaxDisplayLine; i++, j++)
 							{
-								LCDprintf(2+LCD2new-ShiftMenu,1,2,Menu5point[LCD2new],1);
+								LCDprintf(2 + j, 1, Menu5point[i], 1);
 							}
+						}
 						LCD2new=0;
 					}
 				}
 				break;
+				
 				case LVL_PARAM_VIEW: //меню/просмотр параметров
-				case LVL_PARAM_SETUP:{
-					for(uint8_t i=0;  i<MaxDisplayLine; i++)
+				case LVL_PARAM_SETUP:
+				{
+					for(uint8_t i = 0, j = ShiftMenu;  i < MaxDisplayLine; i++, j++)
 					{
-						LCDprintChar(2+i,1,'1'+i+ShiftMenu);
-						LCDprintChar(2+i,2,'.');
-						LCDprintf(2+i,3,2,mMenu6point[ShiftMenu+i],1);
+						LCDprintChar(2 + i, 1, '1' + j);
+						LCDprintChar(2 + i, 2, '.');
+						LCDprintf(2 + i, 3, mMenu6point[j],1);
 					}
 					LCD2new=0;
-				}break;
+				}
+				break;
+				
 				case LVL_DEF_VIEW:
 				case LVL_DEF_SETUP:
 				{  //меню/просмотр(установить) параметров/Защита
 					if (LCD2new==1)
 					{
-						LCDprintf(2,1,2,Menu7paramPOST[sMenuDefParam.punkt[ShiftMenu]],1);
+						LCDprintf(2, 1, Menu7paramPOST[sMenuDefParam.punkt[ShiftMenu]], 1);
 						
 						if ( (cTypeLine == 2) && (cNumLine == 3) )				// 3-х концевая оптика
 						{
@@ -2973,45 +3069,45 @@ static void LCDwork(void)
 						}
 						
 						FuncClearCharLCD(3,1,20);
-						LCDprintf(3,1,2,MenuValue,1);
+						LCDprintf(3, 1, MenuValue, 1);
 						
 						if (ValueVsRange == 0)
 						{
 							switch(sMenuDefParam.punkt[ShiftMenu])
 							{
 								case 0:
-								LCDprintf(3, 11, 2, MenuTypeDefendNum[MenuTypeDefend], 1);
+								LCDprintf(3, 11, MenuTypeDefendNum[MenuTypeDefend], 1);
 								break;
 								case 1:
-								LCDprint(3, 11, 2, MenuTypeLine, 1);
+								LCDprint(3, 11, MenuTypeLine, 1);
 								break;
 								case 2:
-								LCDprint(3, 11, 2, MenuPossibleTimeNoMan, 1);
+								LCDprint(3, 11, MenuPossibleTimeNoMan, 1);
 								break;
 								case 3:
-								LCDprint(3, 11, 2, MenuPossibleTimeSignal[NumberCom-1], 1);
+								LCDprint(3, 11, MenuPossibleTimeSignal[NumberCom-1], 1);
 								break;
 								case 4:
-								LCDprint(3, 11, 2, MenuCoveringImpulse[NumberCom-1], 1);
+								LCDprint(3, 11, MenuCoveringImpulse[NumberCom-1], 1);
 								break;
 								case 5:
-								LCDprint(3, 11, 2, MenuVoltageLimit[NumberCom - 1], 1);
+								LCDprint(3, 11, MenuVoltageLimit[NumberCom - 1], 1);
 								break;
 								case 6:
-								LCDprintf(3, 11, 2, MenuAllSynchrTimerNum[MenuAKdecrease], 1);
+								LCDprintf(3, 11, MenuAllSynchrTimerNum[MenuAKdecrease], 1);
 								break;
 								case 7:
-								LCDprintf(3, 11, 2, fmMenuAllFreq[MenuFreqPRD], 1);
+								LCDprintf(3, 11, fmMenuAllFreq[MenuFreqPRD], 1);
 								break;
 								case 8:
-								LCDprintf(3, 11, 2, fmMenuAllFreq[MenuFreqPRM], 1);
+								LCDprintf(3, 11,  fmMenuAllFreq[MenuFreqPRM], 1);
 								break;
 							}
 						}
 						else
 						{
-							LCDprintf(3, 1, 2, ParamRange, 1);
-							LCDprint(3, 11, 2, cViewParam, 1);
+							LCDprintf(3, 1, ParamRange, 1);
+							LCDprint(3, 11, cViewParam, 1);
 						}
 						LCD2new=0;
 					}
@@ -3023,44 +3119,45 @@ static void LCDwork(void)
 				{  //меню/просмотр параметров(установить/параметры)/общие
 					if (LCD2new==1)
 					{
-						LCDprintf(2,1,2,Menu10paramAll[sMenuGlbParam.name[ShiftMenu]],1);
+						LCDprintf(2, 1, Menu10paramAll[sMenuGlbParam.name[ShiftMenu]], 1);
 						FuncClearCharLCD(3,1,20);
 						if ( (cNumLine == 3) && (sMenuGlbParam.punkt[ShiftMenu] == 10) ) 
 							LCDprintChar(2, 18, NumberCom + '0');
+						
 						if (ValueVsRange==0)
 						{
-							LCDprintf(3, 1, 2, MenuValue,1);
+							LCDprintf(3, 1, MenuValue,1);
 							switch(sMenuGlbParam.punkt[ShiftMenu])
 							{
-								case 0: LCDprintf(3, 11, 2, fmTypeUdDev[TypeUdDev], 1); break;
-								case 1: LCDprintf(3, 11, 2, MenuAllSynchrTimerNum[MenuAllSynchrTimer], 1); break;					
-								case 2: LCDprint(3, 11, 2, MenuAllUoutNominal, 1); break;					
-								case 3: LCDprintf(3, 11, 2, MenuAllSynchrTimerNum[MenuAllKeepComPRD], 1); break;	
-								case 4: LCDprint(3, 11, 2, MenuAllLanAddress, 1); break;
-								case 5: LCDprint(3, 11, 2, MenuAllTimeRerun, 1); break;
-								case 6: LCDprint(3, 11, 2, MenuAllFreq, 1); break;
-								case 7: LCDprint(3, 11, 2, MenuAllNumDevice, 1); break;
-								case 8: LCDprintf(3, 11, 2, MenuAllSynchrTimerNum[MenuAllControlUout], 1); break;	
-								case 9: LCDprint(3, 11, 2, MenuAllCF, 1); break; //Порог КЧ					
-								case 10: LCDprint(3, 11, 2, MenuVoltageLimitPRM[NumberCom-1], 1); break;					
+								case 0: LCDprintf(3, 11, fmTypeUdDev[TypeUdDev], 1); break;
+								case 1: LCDprintf(3, 11, MenuAllSynchrTimerNum[MenuAllSynchrTimer], 1); break;					
+								case 2: LCDprint(3, 11, MenuAllUoutNominal, 1); break;					
+								case 3: LCDprintf(3, 11, MenuAllSynchrTimerNum[MenuAllKeepComPRD], 1); break;	
+								case 4: LCDprint(3, 11, MenuAllLanAddress, 1); break;
+								case 5: LCDprint(3, 11, MenuAllTimeRerun, 1); break;
+								case 6: LCDprint(3, 11, MenuAllFreq, 1); break;
+								case 7: LCDprint(3, 11, MenuAllNumDevice, 1); break;
+								case 8: LCDprintf(3, 11, MenuAllSynchrTimerNum[MenuAllControlUout], 1); break;	
+								case 9: LCDprint(3, 11, MenuAllCF, 1); break; //Порог КЧ					
+								case 10: LCDprint(3, 11, MenuVoltageLimitPRM[NumberCom-1], 1); break;					
 								case 11:					
-								case 12: LCDprint(3, 11, 2, sCorrParam[sMenuGlbParam.punkt[ShiftMenu] + NumberCom - 12].Print, 1); break;  //коррекция напряжения и тока
+								case 12: LCDprint(3, 11, sCorrParam[sMenuGlbParam.punkt[ShiftMenu] + NumberCom - 12].Print, 1); break;  //коррекция напряжения и тока
 								// ПВЗУ-Е
-								case 13: LCDprintf(3, 11, 2, MenuAllProtocolNum[sParamPVZE.protocol], 1); break;
-								case 14: LCDprintf(3, 11, 2, MenuAllParityNum[sParamPVZE.parity], 1); break;
-								case 15: LCDprint(3, 11, 2, sParamPVZE.proval, 1); break;
-								case 16: LCDprint(3, 11, 2, sParamPVZE.porog, 1); break;
-								case 17: LCDprint(3, 11, 2, sParamPVZE.noise, 1); break;
-								case 18: LCDprintf(3, 11, 2, MenuAllControlNum[sParamPVZE.autocontrol], 1); break;
-								case 19: LCDprintf(3, 11, 2, MenuAllSynchrTimerNum[sParamOpt.reserv], 1); break;
-								case 20: LCDprint(3, 11, 2, MenuAllLowCF, 1); break;
-								case 21: LCDprintf(3, 11, 2, MenuAllSynchrTimerNum[MenuAllKeepComPRM], 1); break;	
+								case 13: LCDprintf(3, 11, MenuAllProtocolNum[sParamPVZE.protocol], 1); break;
+								case 14: LCDprintf(3, 11, MenuAllParityNum[sParamPVZE.parity], 1); break;
+								case 15: LCDprint(3, 11, sParamPVZE.proval, 1); break;
+								case 16: LCDprint(3, 11, sParamPVZE.porog, 1); break;
+								case 17: LCDprint(3, 11, sParamPVZE.noise, 1); break;
+								case 18: LCDprintf(3, 11, MenuAllControlNum[sParamPVZE.autocontrol], 1); break;
+								case 19: LCDprintf(3, 11, MenuAllSynchrTimerNum[sParamOpt.reserv], 1); break;
+								case 20: LCDprint(3, 11, MenuAllLowCF, 1); break;
+								case 21: LCDprintf(3, 11, MenuAllSynchrTimerNum[MenuAllKeepComPRM], 1); break;	
 							}				
 						}
 						else
 						{
-							LCDprintf(3,1,2,ParamRange,1);
-							LCDprint(3,11,2,cViewParam,1);				
+							LCDprintf(3, 1, ParamRange, 1);
+							LCDprint(3, 11, cViewParam, 1);				
 						}
 					}
 					LCD2new=0;
@@ -3069,59 +3166,57 @@ static void LCDwork(void)
 				{			
 					if (LCD2new==1)
 					{
-						if (TestDelay==0){
-							FuncClearCharLCD(2,1,20);
-							FuncClearCharLCD(3,1,20);
-							if (bAllDevice){
-								//Пост
-								LCDprintf(2,1,2,Menu1Def,1);
-								if (CurrentState[0]==0x4E) LCDprintf(2,5,2,Menu11Err,1);
-								else LCDprintf(2,5,2,Menu11var[CurrentState[0]],1);
-								//ПРМ1
-								LCDprintf(2,11,2,Menu1Rec1,1);
-								if (CurrentState[2]==0x4E) LCDprintf(2,15,2,Menu11Err,1);
-								else LCDprintf(2,15,2,Menu11var[CurrentState[2]],1);
-								//ПРД
-								LCDprintf(3,1,2,Menu1Tran,1);
-								if (CurrentState[4]==0x4E) LCDprintf(3,5,2,Menu11Err,1);
-								else LCDprintf(3,5,2,Menu11var[CurrentState[4]],1);
-								//ПРМ2
-								LCDprintf(3,11,2,Menu1Rec2,1);
-								if (CurrentState[6]==0x4E) LCDprintf(3,15,2,Menu11Err,1);
-								else LCDprintf(3,15,2,Menu11var[CurrentState[6]],1);
-							}else{
-								uint8_t i = 1;  //выравнивание слева, при отсутствии одного или нескольких утсройств
-								if (bDef){
-									LCDprintf(2,2,2,Menu11d,1);
-									if (CurrentState[0]==0x4E) LCDprintf(3,2,2,Menu11Err,1);
-									else LCDprintf(3,1,2,Menu11var[CurrentState[0]],1);
-									i+=7;
-								}
-								if (cNumComR1>0){
-									if (cNumLine==2) LCDprintf(2,i+1,2,Menu11r,1);
-									else LCDprintf(2,i+1,2,Menu11r1,1);
-									if (CurrentState[2]==0x4E) LCDprintf(3,i+1,2,Menu11Err,1);
-									else LCDprintf(3,i,2,Menu11var[CurrentState[2]],1);
-									i+=7;
-								}
-								if (cNumComR2>0){
-									LCDprintf(2,i+1,2,Menu11r2,1);
-									if (CurrentState[6]==0x4E) LCDprintf(3,i+1,2,Menu11Err,1);
-									else LCDprintf(3,i,2,Menu11var[CurrentState[6]],1);
-									i+=7;
-								}
-								if (cNumComT>0){
-									LCDprintf(2,i+1,2,Menu11t,1);
-									if (CurrentState[4]==0x4E) LCDprintf(3,i+1,2,Menu11Err,1);
-									else LCDprintf(3,i,2,Menu11var[CurrentState[4]],1);
-								}
-							}
+						FuncClearCharLCD(2,1,20);
+						FuncClearCharLCD(3,1,20);
+						if (bAllDevice){
+							//Пост
+							LCDprintf(2, 1, Menu1Def, 1);
+							if (CurrentState[0]==0x4E) LCDprintf(2, 5, Menu11Err, 1);
+							else LCDprintf(2, 5, Menu11var[CurrentState[0]], 1);
+							//ПРМ1
+							LCDprintf(2,11, Menu1Rec1, 1);
+							if (CurrentState[2]==0x4E) LCDprintf(2, 15, Menu11Err, 1);
+							else LCDprintf(2, 15, Menu11var[CurrentState[2]], 1);
+							//ПРД
+							LCDprintf(3,1, Menu1Tran, 1);
+							if (CurrentState[4]==0x4E) LCDprintf(3, 5, Menu11Err, 1);
+							else LCDprintf(3, 5, Menu11var[CurrentState[4]], 1);
+							//ПРМ2
+							LCDprintf(3, 11, Menu1Rec2, 1);
+							if (CurrentState[6]==0x4E) LCDprintf(3, 15, Menu11Err, 1);
+							else LCDprintf(3, 15, Menu11var[CurrentState[6]], 1);
 						}else{
-							LCDprintf(2,1,2,TestDelayMline2,1);
-							LCDprintf(3,1,2,TestDelayMline3,1);
-							LCDprintDEC(3,13,TestDelay/10);
+							uint8_t i = 1;  //выравнивание слева, при отсутствии одного или нескольких утсройств
+							if (bDef)
+							{
+								LCDprintf(2, 2, Menu11d, 1);
+								if (CurrentState[0]==0x4E) LCDprintf(3, 2, Menu11Err, 1);
+								else LCDprintf(3, 1, Menu11var[CurrentState[0]], 1);
+								i+=7;
+							}
+							if (cNumComR1 > 0)
+							{
+								if (cNumLine==2) LCDprintf(2, i + 1, Menu11r, 1);
+								else LCDprintf(2, i + 1, Menu11r1, 1);
+								if (CurrentState[2]==0x4E) LCDprintf(3, i + 1, Menu11Err, 1);
+								else LCDprintf(3, i, Menu11var[CurrentState[2]], 1);
+								i+=7;
+							}
+							if (cNumComR2 > 0)
+							{
+								LCDprintf(2, i + 1, Menu11r2, 1);
+								if (CurrentState[6]==0x4E) LCDprintf(3, i + 1, Menu11Err, 1);
+								else LCDprintf(3, i, Menu11var[CurrentState[6]], 1);
+								i += 7;
+							}
+							if (cNumComT > 0)
+							{
+								LCDprintf(2, i + 1, Menu11t, 1);
+								if (CurrentState[4] == 0x4E) LCDprintf(3, i + 1, Menu11Err, 1);
+								else LCDprintf(3, i, Menu11var[CurrentState[4]], 1);
+							}
 						}
-						LCD2new=0;
+						LCD2new = 0;
 					}
 				}
 				break;
@@ -3133,7 +3228,7 @@ static void LCDwork(void)
 						return;
 					LCD2new = 0;
 					
-					LCDprintf(2,1,2,Menu8paramPRM[ShiftMenu],1);
+					LCDprintf(2, 1, Menu8paramPRM[ShiftMenu], 1);
 					
 					unsigned char **tmValuePRMparam, **tmMenuVoltageLimitPRM;
 					unsigned char *tmValuePrmTimeOff, *tmValuePrmBlockCom, *tmValuePrmLongCom;
@@ -3182,15 +3277,15 @@ static void LCDwork(void)
 					FuncClearCharLCD(3,1,20);
 					if (ValueVsRange == 0)
 					{
-						LCDprintf(3, 1, 2, MenuValue,1);
-						LCDprint(3, 11, 2, tmValuePRMparam[ShiftMenu], 1);
+						LCDprintf(3, 1, MenuValue,1);
+						LCDprint(3, 11, tmValuePRMparam[ShiftMenu], 1);
 						
 						if (ShiftMenu == 2)
 						{
 							if (tmValuePrmTimeOff[NumberCom-1] != 255) 
 								LCDprintDEC2(3, 11, tmValuePrmTimeOff[NumberCom - 1]);
 							else 
-								LCDprintf(3, 11, 2, Menu11Err, 1);
+								LCDprintf(3, 11, Menu11Err, 1);
 							
 						}
 						else if (ShiftMenu == 3)
@@ -3204,15 +3299,15 @@ static void LCDwork(void)
 						else if (ShiftMenu == 4)
 						{
 							if (tNumComR > 4)
-								LCDprintBits(3,11,tmValuePrmLongCom[NumberCom-1]);
+								LCDprintBits(3, 11, tmValuePrmLongCom[NumberCom-1]);
 							else
-								LCDprintTetr(3,11,(tmValuePrmLongCom[0]&0x0F));
+								LCDprintTetr(3, 11, (tmValuePrmLongCom[0]&0x0F));
 						}
 					}
 					else
 					{
-						LCDprintf(3, 1, 2, ParamRange, 1);
-						LCDprint(3, 11, 2, cViewParam, 1);
+						LCDprintf(3, 1,  ParamRange, 1);
+						LCDprint(3, 11, cViewParam, 1);
 					}
 					
 				}break;
@@ -3225,7 +3320,7 @@ static void LCDwork(void)
 					LCD2new = 0;
 					
 					// Вывод названия параметра
-					LCDprintf(2,1,2,Menu9paramPRD[ShiftMenu],1);
+					LCDprintf(2, 1, Menu9paramPRD[ShiftMenu], 1);
 					// Выведем диапазон, для битовых переменных
 					if ( (ShiftMenu == 3) || (ShiftMenu == 4) )
 					{
@@ -3246,8 +3341,8 @@ static void LCDwork(void)
 					// Вывод значения/подсказки параметра
 					if (ValueVsRange == 0)
 					{
-						LCDprintf(3,1,2,MenuValue,1);
-						LCDprint(3, 11, 2, MenuParamPRD[ShiftMenu], 1);
+						LCDprintf(3, 1, MenuValue, 1);
+						LCDprint(3, 11, MenuParamPRD[ShiftMenu], 1);
 				
 						if (ShiftMenu == 3)
 						{
@@ -3266,34 +3361,46 @@ static void LCDwork(void)
 					}	
 					else
 					{
-						LCDprintf(3,1,2,ParamRange,1);
-						LCDprint(3,11,2,cViewParam,1);
+						LCDprintf(3, 1, ParamRange, 1);
+						LCDprint(3, 11, cViewParam, 1);
 					}
 				}
 				break;
 				
 				case LVL_PROTOCOL: 	//меню Протоколы
 				{
-					LCDprintf(2,1,2,Menu18,1);LCDprintf(3,1,2,MenuValue,1);LCDprintf(3,11,2,Menu18Param[Protocol],1);
+					LCDprintf(2, 1, Menu18, 1);
+					LCDprintf(3, 1, MenuValue, 1);
+					LCDprintf(3, 11, Menu18Param[Protocol], 1);
 				} 
 				break;
 				
 				case LVL_INFO: 		//Меню прошивки
 				{
-					LCDprintf(2,1,2,Menu19Param[ShiftMenu],1);LCDprintf(3,1,2,MenuValue,1);
-					if (ShiftMenu<3){
+					LCDprintf(2, 1, Menu19Param[ShiftMenu], 1);
+					LCDprintf(3, 1, MenuValue, 1);
+					if (ShiftMenu<3)
+					{
 						LCDprintHEX(3,11,(char) (MyInsertion[ShiftMenu]>>8));
 						LCDprintHEX(3,14,(char) MyInsertion[ShiftMenu]);
 						LCDprintChar(3,13,'.');
-					}else
-						if (ShiftMenu==3){
-							if (bParamView) LCDprintf(3,11,2,fDopParamViewTrue,1);
-							else LCDprintf(3,11,2,fDopParamViewFalse,1);
-						}else
-							if (ShiftMenu==4){
-								if (bParamValue) LCDprintf(3,11,2,fDopParamValueTrue,1);
-								else LCDprintf(3,11,2,fDopParamValueFalse,1);
+					}
+					else
+					{	
+						if (ShiftMenu==3)
+						{
+							if (bParamView) LCDprintf(3, 11, fDopParamViewTrue, 1);
+							else LCDprintf(3, 11, fDopParamViewFalse, 1);
+						}
+						else
+						{
+							if (ShiftMenu==4)
+							{
+								if (bParamValue) LCDprintf(3, 11, fDopParamValueTrue, 1);
+								else LCDprintf(3, 11, fDopParamValueFalse, 1);
 							}
+						}
+					}
 				}break;
 				case LVL_TEST:  	//меню тестов
 				{ 
@@ -3329,7 +3436,7 @@ static void LCDwork(void)
 					// В нижней строке выведем номер Теста
 					if (WorkRate == 0) 
 					{
-						LCDprintf(4, 1, 2, Menu20line4[Test], 1);
+						LCDprintf(4, 1, Menu20line4[Test], 1);
 						FuncClearCharLCD(4, 7, 13);
 					}
 					
@@ -3340,37 +3447,38 @@ static void LCDwork(void)
 						
 						if (group == 1)
 						{
-							LCDprintf(2, 1, 2, Menu20gr1n, 1);
-							LCDprintf(2, 6, 2, Menu20gr[sMenuTest.cf_val].name, 1);
+							LCDprintf(2, 1, Menu20gr1n, 1);
+							LCDprintf(2, 6, Menu20gr[sMenuTest.cf_val].name, 1);
 						}
 						else if (group == 2)
 						{
-							LCDprintf(2, 11, 2, Menu20gr2n, 1);
-							LCDprintf(2, 16, 2, Menu20gr[sMenuTest.def_val].name, 1);
+							LCDprintf(2, 11, Menu20gr2n, 1);
+							LCDprintf(2, 16,  Menu20gr[sMenuTest.def_val].name, 1);
 						}
 					}
 					
 					// В Тест1 выведем на экран текущую выбранную группу
 					if (Test == 0)
-						LCDprintf(3, 1, 2, Menu20grName[sMenuTest.gr_items[ShiftMenu] - 1].name, 1);		
+						LCDprintf(3, 1, Menu20grName[sMenuTest.gr_items[ShiftMenu] - 1].name, 1);		
 				}
 				break;
 				
-				case LVL_JRN_VIEW:		//журнал/ (соб, защб прм, прд)
+				case LVL_JRN_VIEW:		// logs
 				{ 
 					if (LCD2new == 0)
 						break;
 					
 					LCD2new = 0;
 					
+					// clear 2-4 LCD lines
 					FuncClearCharLCD(2, 1, 20); 
 					FuncClearCharLCD(3, 1, 20); 
 					FuncClearCharLCD(4, 1, 20); 
 					
-					// вывод имени журнала
-					LCDprintf(2, 1, 2, sArchives.curArchive->nameJrn,1); 
+					// print log name
+					LCDprintf(2, 1, sArchives.curArchive->nameJrn,1); 
 					
-					// вывод (текущей записи / максимального кол-ва записей)
+					// print (current entry / max entries)
 					uint16_t max = (sArchives.ovf) ? sArchives.curArchive->maxNumEntries : sArchives.oldestEntry; 
 					LCDptinrArchCount(max, sArchives.curEntry + 1);
 					
@@ -3379,152 +3487,67 @@ static void LCDwork(void)
 					{
 						strArchiveDevice *ptr = sArchives.curArchive;
 						
+						// print entry time
 						LCDprintTime(28, sArchives.hours, sArchives.minutes,
 									 	 sArchives.seconds, sArchives.milliseconds);
 						
+						// print entry data
 						LCDprintData(72, sArchives.day, sArchives.month, sArchives.year);
 												
-						if (ptr->typeDev == 0xC0)
+						if (ptr->typeDev == 0xC0)			// def log
 						{
 							
 						}
-						else if (ptr->typeDev == 0xD0)
+						else if (ptr->typeDev == 0xD0)		// prm log
 						{
 							
 						}
-						else if (ptr->typeDev == 0xE0)
+						else if (ptr->typeDev == 0xE0)		// prd log
 						{
 							
 						}
-						else if (ptr->typeDev == 0xF0)
+						else if (ptr->typeDev == 0xF0)		// event log
 						{
+							// print regime
+							if ( sArchives.regime < (sizeof(Menu1regime) / sizeof(Menu1regime[0])) )
+								LCDprintf(3, 1, Menu1regime[sArchives.regime], 1);
+							else
+								LCDprintf(3, 1, Menu11Err, 1);
 							
-						}
-						
-//					// Выведем архивы в зависимости от типа аппарата
-//					// 1 - Р400
-//					// 2 - командный вариант
-//					if (sArchive.typeDev == 2)
-//					{
-//						
-//					}
-//					else if (sArchive.typeDev == 1)
-//					{
-//						if (sArchive.RecCount)
-//						{  //если в архиве что-то есть, будем выводить записи
-//							if (sArchive.Data[12]){  //если данные уже получены
-//								//for(char i=0; i<4; i++) LCDprintHEX(3,i*2+1, sArchive.Data[i]);
-//								//вывод инф-ии на экран
-//								unsigned __flash char* mm= 0;
-//								
-//								switch(sArchive.Data[0]){ //устройство
-//									case 0: mm= Menu11d; break; //пост
-//									case 1: if (cNumLine==2) mm=Menu11r; else mm=Menu11r1; break;  //прм / пм1
-//									case 2: mm=Menu11r2; break;  //пм2
-//									case 3: mm=Menu11t; break; //прд
-//									case 4: mm=Menu21g; break; //общ
-//								}
-//								
-//								if (mm==0)
-//								{
-//									LCDprintHEX(2,1,sArchive.Data[0]);
-//									LCDprintChar(2,3,'?');
-//								}
-//								else 
-//									LCDprintf(2,1,2,mm,1);
-//								
-//								FuncClearCharLCD(2,4,4);  //очистим 4 клетки между устрйством и временем
-//								
-//								switch(sArchive.Dev[sArchive.CurrDev])
-//								{
-//									case 0:{  //журнал событий
-//										if ((sArchive.Data[1] > 0) && (sArchive.Data[1] <= dNumSob) )
-//										{
-//											LCDprintf(3,1,2,ArchSob[sArchive.Data[1] - 1],1);
-//										}
-//										else
-//										{//если неизвестный код записи
-//											FuncClearCharLCD(3,1,10);
-//											LCDprintHEX(3,2,sArchive.Data[1]);
-//											LCDprintHEX(3,5,sArchive.Data[3]);
-//										}
-//										FuncClearCharLCD(3,11,1);
-//										FuncClearCharLCD(3,19,2);
-//										
-//										if (sArchive.Data[2]<0x04){ //значение события
-//											LCDprintf(3,12,2,Menu1regime[sArchive.Data[2]],1);
-//										}else
-//											if (sArchive.Data[2]==0x0A){
-//												LCDprintf(3,12,2,ArchEvV,1);
-//											}else{
-//												LCDprintHEX(3,12,sArchive.Data[1]);
-//											}
-//									}break; //конец вывода ждурнала событий
-//									case 1: //передатчик
-//									case 2:
-//									{  //приемник
-//										uint8_t i;
-//										
-//										mm=0;
-//										if (sArchive.Data[2]==0) {mm=ArchEvEnd; i=7;}
-//										else
-//											if (sArchive.Data[2]==1) {mm=ArchEvStart; i=8;}
-//										
-//										if (mm==0){
-//											LCDprintHEX(3,1,sArchive.Data[0]);
-//											FuncClearCharLCD(3,3,i-3);
-//										}else LCDprintf(3,1,2,mm,1);
-//										
-//										if ((sArchive.Data[1]==0)||(sArchive.Data[1]>32)){  //ошибочное значение команды
-//											LCDprintHEX(3,i,sArchive.Data[1]); i+=2;
-//										}else{
-//											LCDprintDEC(3,i,sArchive.Data[1]);
-//											if (sArchive.Data[1]<10) i+=1;
-//											else i+=2;
-//										}
-//										FuncClearCharLCD(3,i++,1);
-//										LCDprintf(3,i,2,ArchEvCom,1);
-//									}break; //конец вывода ждурнала передатчика/приемника
-//									case 3:{  //защита
-//										mm=0;
-//										//состояние защиты
-//										if (sArchive.Data[2]==0) mm=ArchEvV1; //перезапуск
-//										else
-//											if (sArchive.Data[2]<11) mm=Menu1condPOST[sArchive.Data[2]];
-//										
-//										if (mm==0){
-//											FuncClearCharLCD(3,1,10);
-//											LCDprintHEX(3,2,sArchive.Data[1]);
-//										}else LCDprintf(3,1,2,mm,1);
-//										
-//										FuncClearCharLCD(3,9,10);
-//										(sArchive.Data[1]&0x01) ? LCDprintChar(3,10,'1') : LCDprintChar(3,10,'0');  //пуск
-//										(sArchive.Data[1]&0x02) ? LCDprintChar(3,11,'1') : LCDprintChar(3,11,'0');  //стоп
-//										(sArchive.Data[1]&0x04) ? LCDprintChar(3,12,'1') : LCDprintChar(3,12,'0');  //ман
-//										//LCDprintBitMask(49, sArchive.Data[1],0x07);
-//										//FuncClearCharLCD(3,13,1);
-//										(sArchive.Data[3]&0x02) ? LCDprintChar(3,14,'1') : LCDprintChar(3,14,'0');  //прд
-//										(sArchive.Data[3]&0x01) ? LCDprintChar(3,15,'1') : LCDprintChar(3,15,'0');  //прм
-//										(sArchive.Data[3]&0x03) ? LCDprintChar(3,16,'1') : LCDprintChar(3,16,'0'); //рз (если есть прм или прд)
-//									} break; //конец вывода ждурнала защиты
-//								}// end switch(sArchive.Dev[sArchive.CurrDev])
-//								
-//								//for(char i=0; i<9; i++) LCDprintHEX(3,i*2+1, sArchive.Data[i+7]);
-//								LCDprintData(72, sArchive.Data);
-//								LCDprintTime(28, sArchive.Data);
-//								
-//							}else{
-//								FuncClearCharLCD(2,1,40); //очистка инф-ы
-//								LCDprintf(3,1,2,Menu2xRdArch,1);
-//							}
-					}
-					else
-					{  //архив пустой
-						
+							// counting number entries in current log entry
+							uint8_t num = 0;
+							for(uint8_t j = 0; j < 4; j++)
+							{
+								for(uint8_t i = 1; i > 0; i <<= 1)
+								{
+									if (sArchives.bytes[j] & i)
+										num++;
+								}
+							}
+							
+							if (num >= 1)
+							{
+								uint8_t pos = 4;
+								
+								// check current entry in current log entry
+								sArchives.subNum = findNextSubEntry(sArchives.bytes, 4, 0, sArchives.subNum);
+								
+								// print number entries in current log entry
+								LCDprintChar(2, pos++, '(');
+								pos += LCDprintDEC(2, pos, num);
+								LCDprintChar(2, pos, ')');
+								
+								// print current entry in current log entry
+								if (sArchives.subNum < 32)
+									LCDprintf(3, 9, fEventLog[sArchives.subNum], 1);
+							}
+						}						
 					}
 					
 					LCD2new=0;
-				}break;
+				}
+				break;
+				
 				case LVL_UPR:		//меню/управление
 				{ 
 					if (WorkRate==0)
@@ -3544,13 +3567,13 @@ static void LCDwork(void)
 						for (uint8_t i = 0; i < num; i++)
 						{
 							LCDprintChar(2 + i, 1, i + ShiftMenu + '0');
-							LCDprintf(2 + i, 2, 2, Menu22upr[sMenuUpr.name[i + ShiftMenu]], 1);
+							LCDprintf(2 + i, 2, Menu22upr[sMenuUpr.name[i + ShiftMenu]], 1);
 						}
 					}
 					else
 					{
 						LCDprintChar(2, 1, ShiftMenu + '0');
-						LCDprintf(2, 2, 2, Menu22upr[sMenuUpr.name[ShiftMenu]], 1);
+						LCDprintf(2, 2, Menu22upr[sMenuUpr.name[ShiftMenu]], 1);
 						FuncClearCharLCD(3,1,20);
 					}
 					LCD2new=0;
@@ -3563,38 +3586,38 @@ static void LCDwork(void)
 			{
 				LCDtimerNew=1; 
 				LCDparam=1; 
-				LCDprintf(1,1,2,LCDavarNoUSP,2);
+				LCDprintf(1, 1, LCDavarNoUSP, 2);
 			}
 			
 			if (LCDtimerNew==1)
 			{
 				if (((AvarNoUsp==1)&&(LoopUART==5))||(AvarNoUsp==0))
 				{
-					FuncClearCharLCD(1,9,2);
+					FuncClearCharLCD(1, 9, 2);
 					if (cTypeLine == 1)
 					{
 						if (MenuLevel != LVL_DATA_TIME)
 						{
 							if (LCDtimer == 1) 
-								LCDprint(1,1,2,DataLCD,0);
+								LCDprint(1, 1, DataLCD, 0);
 							else if (LCDtimer == 2) 
-								LCDprint(1,1,2,TimeLCD,0);
+								LCDprint(1, 1, TimeLCD, 0);
 							else if (LCDtimer == 3) 
-								LCDprint(1,1,2,FreqNum,1);
+								LCDprint(1, 1, FreqNum, 1);
 							else if (LCDtimer == 4)
-								LCDprintf(1,1,2, flAutoContorl[param4[cAutoControl]],1);//выводим режим автоконтроля	  
+								LCDprintf(1, 1, flAutoContorl[param4[cAutoControl]], 1);//выводим режим автоконтроля	  
 						} 
 						else 
 						{
-							LCDprint(1,1,2,DataLCD,0);
-							LCDprint(1,13,2,TimeLCD,0);
+							LCDprint(1, 1, DataLCD, 0);
+							LCDprint(1, 13, TimeLCD, 0);
 							FuncClearCharLCD(1,11,2);
 						}
 					}
 					else 
 					{
-						LCDprint(1,1,2,DataLCD,0); 
-						LCDprint(1,13,2,TimeLCD,0);
+						LCDprint(1, 1, DataLCD, 0); 
+						LCDprint(1, 13, TimeLCD, 0);
 					}
 					LCDtimerNew=0;
 				}
@@ -3621,14 +3644,14 @@ static void LCDwork(void)
 							if ((!bParamValue)&&((NumberAskMeasuring==1)||(NumberAskMeasuring==9)||(NumberAskMeasuring==10)))
 							{
 								if (NumberAskMeasuring == 1) 
-									LCDprint(1,13,2,Iline1H,1);
+									LCDprint(1, 13, Iline1H, 1);
 								else if (NumberAskMeasuring == 9) 
-									LCDprint(1,13,2,KovH,1);
+									LCDprint(1, 13, KovH, 1);
 								else if (NumberAskMeasuring == 10) 
-									LCDprint(1,13,2,PkH,1);
+									LCDprint(1, 13, PkH, 1);
 							}
 							else 
-								LCDprint(1,13,2,Measuring[NumberAskMeasuring-1],1);
+								LCDprint(1, 13, Measuring[NumberAskMeasuring-1], 1);
 							
 							if (cNumLine==3)
 							{ //если трех-концевая линия, то выведем 1 или 2 перед Uк/Uз
@@ -3646,12 +3669,15 @@ static void LCDwork(void)
 				}
 			}
 		}else
-			if (((AvarNoUsp==1)&&(LoopUART==5))||(AvarNoUsp==0)) {
-				FuncClearCharLCD(1,1,20);
-				LCDprintf(2,1,2,fNoReadVers,1);
+			if (((AvarNoUsp==1)&&(LoopUART==5))||(AvarNoUsp==0)) 
+			{
+				FuncClearCharLCD(1, 1, 20);
+				LCDprintf(2, 1, fNoReadVers, 1);
 				PCconn++;
-				if (PCconn>3) PCconn=1;
-				for (j1=0; j1<PCconn; j1++) LCDprintf(2,16+j1,2,Point,1);
+				if (PCconn>3) 
+					PCconn=1;
+				for (uint8_t i = 0; i < PCconn; i++) 
+					LCDprintf(2, 16 + i, Point, 1);
 			}
 	}else
 	{  
@@ -3659,11 +3685,11 @@ static void LCDwork(void)
 		if ((LoopUART==0)||(LoopUART==5))
 		{
 			LCDbufClear();
-			LCDprintf(2,4,2,PCconnect,1);
+			LCDprintf(2, 4, PCconnect, 1);
 			PCconn++;
 			if (PCconn>3) PCconn=1;
-			for (j1=0; j1<PCconn; j1++) 
-				LCDprintf(2,15+j1,2,Point,1);
+			for (uint8_t i = 0; i < PCconn; i++) 
+				LCDprintf(2, 15 + i, Point, 1);
 		}
 	}
 	bLCDwork=false;
@@ -3675,7 +3701,6 @@ __C_task main(void)
 	for(unsigned i=30000; i > 1; i--); //стратовая задержка, для того чтобы индикатор успел включиться
 	
 	StartSetup(); 		//начальные установки
-	ModBusBaza = new BazaModBus(DataM, JournalM, ePassword);
 	ClearPortError(); 	//очитска ошибок УАПП
 	StartUART();  		//запуск УАПП
 	ClearPortError1(); 	//очитска ошибок УАПП
@@ -3728,14 +3753,28 @@ __interrupt void Timer1ovf(void)
 	TCNT1H=0xF9;  //
 	TCNT1L=0xF0;  //было E5 установка 0.1с при делителе 1024
 	
-	if (TestDelay>0) {TestDelay--; PressKey=0xF0;}
 	//работа с ПК
-	if (PCready==1) {StartTrans(PCbyte);PCready=2;}
-	if (PCready==3) {StartTrans1(PCbyte);PCready=4;}
+	if (PCready == 1) 
+	{
+		StartTrans(PCbyte);
+		PCready = 2;
+	}
+	else if (PCready==3) 
+	{
+		StartTrans1(PCbyte);
+		PCready = 4;
+	}
+	
 	//если счетчик дошел до 0, значит с ПК больше не идут запросы
 	PCtime--;
-	if (PCtime==0) {
-		if (PCready!=0) {PCready=0; EnableReceive1; FuncClearCharLCD(2,4,14);}
+	if (PCtime==0) 
+	{
+		if (PCready!=0) 
+		{
+			PCready = 0; 
+			EnableReceive1; 
+			FuncClearCharLCD(2,4,14);
+		}
 		PCtime=PC_wait;
 	}
 	
@@ -3743,9 +3782,9 @@ __interrupt void Timer1ovf(void)
 	//прошла 1с
 	if (LoopUART >= LoopUARTtime)
 	{
-		//раз в секунду мы посылаем запрос общего текущего состояния в MenuLevel = LVL_START,  запрос параметра или отправляем его значение
-		LoopUART=0; //начинаем счет 1с сначала
-		if (TimeInitLCD>=ConstTimeInitLCD) 
+		// раз в секунду мы посылаем запрос общего текущего состояния в MenuLevel = LVL_START,  запрос параметра или отправляем его значение
+		LoopUART = 0; //начинаем счет 1с сначала
+		if (TimeInitLCD >= ConstTimeInitLCD) 
 		{
 			//инициализация ЖК-индикатора
 			FuncInitLCD();
@@ -3754,20 +3793,19 @@ __interrupt void Timer1ovf(void)
 		else 
 			TimeInitLCD++;
 	}
-	//проверяем прошла ли у нас 1сек
-	if (LoopUART < LoopUARTtime) 
-		bUartTrReady1=true;
+	
+	// установим флаг разрешения отправки посылки в БСП	
+	bUartTrReady1 = true;
 	
 	//это делаетс каждые 0.1с
 	//теперь смотрим, надо ли нам обновить информацию на экране LCD
-	bLCDwork=true;
+	bLCDwork = true;
 	
 	// вызываемм обработчик нажатой клавишы, примерно раз в 0.3с
 	if (bReadVers)
 	{
 		if ( ((LoopUART == 0) || (LoopUART == 3) || (LoopUART == 6)) &&
-			 (PCready == 0) && 
-			 (TestDelay == 0) )
+			 (PCready == 0))
 		{
 			switch(WorkRate)
 			{

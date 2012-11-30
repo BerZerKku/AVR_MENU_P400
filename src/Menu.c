@@ -692,6 +692,7 @@ static void PressInMenuJournal(char key)
 	MaxDisplayLine=2;
 	sArchives.curArchive = sArchives.listArchives[key];
 	sArchives.curEntry = 0;  
+	sArchives.subNum = 0;
 	LCD2new = 1;
 }
 

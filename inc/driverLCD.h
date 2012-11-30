@@ -19,21 +19,21 @@
 extern unsigned char LCDstat;
 
 //
-extern void LCDprint (unsigned char Line, unsigned char AddressInLine, unsigned char LCDstatus, unsigned char *bufer, unsigned char convers);
-extern void LCDprintf (unsigned char Line, unsigned char AddressInLine, unsigned char LCDstatus, unsigned char __flash *buferf, unsigned char convers);
+extern void LCDprint (unsigned char Line, unsigned char AddressInLine, unsigned char *bufer, unsigned char convers);
+extern void LCDprintf (unsigned char Line, unsigned char AddressInLine, unsigned char __flash *buferf, unsigned char convers);
 extern void FuncCommandLCD(unsigned char com);
 extern void FuncInitLCD(void);
 extern void LCDbufClear(void);
 extern void LCDbufClMenu(void);
 extern void LCDprintHEX(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
 extern void FuncClearCharLCD(unsigned char Line, unsigned char AddressInLine, unsigned char NumberChar);
-extern void LCDprintDEC(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
+//extern void LCDprintDEC(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
 extern void LCDprintDEC1(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
 extern void LCDprintDEC2(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
 extern void LCDprintBits(unsigned char Line, unsigned char AddressLine, unsigned char CodePrint);
 extern void LCDprintInsertion(unsigned char Line, unsigned char AddressInLine, unsigned int CodePrint);
 extern void LCDprintTetr(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
-extern void LCDprintChar (unsigned char Line, unsigned char AddressInLine, unsigned int CodePrint); //вывод на экран 1 символа
+extern void LCDprintChar(unsigned char Line, unsigned char AddressInLine, unsigned int CodePrint); //вывод на экран 1 символа
 extern void LCDptinrArchCount(unsigned int max, unsigned int now);
 //extern void LCDprintData(unsigned char Adr, unsigned char* Mass);
 //extern void LCDprintTime(unsigned char Adr, unsigned char* Mass);
@@ -43,3 +43,5 @@ extern void LCDprintUkDef(unsigned char AKdecrease);
 
 extern void LCDprintTime(uint8_t adr, uint8_t h, uint8_t m, uint8_t s, uint16_t ms);
 extern void LCDprintData(uint8_t adr, uint8_t day, uint8_t month, uint8_t year);
+
+extern uint8_t LCDprintDEC(uint8_t Line, uint8_t AddressInLine, uint8_t CodePrint);
