@@ -3727,8 +3727,6 @@ __C_task main(void)
 		
 		if (bUartTrReady1) 
 			FuncTr();
-		
-		LCDprintHEX(4, 19, MaxValue);
 	}
 }
 
