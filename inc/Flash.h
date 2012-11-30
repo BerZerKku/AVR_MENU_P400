@@ -800,7 +800,7 @@ __flash unsigned __flash char *Menu1PostErrorT[] =
 __flash unsigned char Menu1PostError10_1[] 	= "АК-Нет ответа   ";
 
 //предупреждения Защиты
-__flash unsigned char Menu1PostWarning1[]	= "АК-Снижен.запаса";
+__flash unsigned char Menu1PostWarning1[]	= "Нет КЧ          ";
 __flash unsigned char Menu1PostWarning2[] 	= "Нет сигнала МАН ";
 __flash unsigned char Menu1PostWarning4[] 	= "Порог по помехе ";
 __flash unsigned char Menu1PostWarning8[]	= "Автоконтроль    ";
