@@ -690,9 +690,20 @@ static void PressInMenuJournal(char key)
 	LCDbufClMenu();
 	ShiftMenu=0;
 	MaxDisplayLine=2;
-	sArchives.curArchive = sArchives.listArchives[key];
-	sArchives.curEntry = 0;  
-	sArchives.subNum = 0;
+	
+	strArchives *ptr = &sArchives; 
+
+	ptr->curArchive = sArchives.listArchives[key];
+	ptr->curEntry = 0;  
+	ptr->ovf = false;
+	ptr->oldestEntry = 0;
+	ptr->refresh = false;
+	ptr->bytes[0] = 0;
+	ptr->bytes[1] = 0;
+	ptr->bytes[2] = 0;
+	ptr->bytes[3] = 0;
+	ptr->subNum = 0;
+	
 	LCD2new = 1;
 }
 

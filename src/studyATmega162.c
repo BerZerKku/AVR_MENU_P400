@@ -324,13 +324,16 @@ static uint8_t findNextSubEntry(uint8_t *bytes, uint8_t numBytes, uint8_t search
 			curNum %= (numBytes * 8);
 			byte = curNum / 8;
 			pos = curNum % 8;
-
-			for(uint8_t i = 1 << pos; i > 0; i <<= 1, curNum++)
+			
+			if ( *(bytes + byte) > 0)
 			{
-				if ( *(bytes + byte) & i )
+				for(uint8_t i = 1 << pos; i > 0; i <<= 1, curNum++)
 				{
-					find = true;
-					break;
+					if ( *(bytes + byte) & i )
+					{
+						find = true;
+						break;
+					}
 				}
 			}
 			
@@ -1716,6 +1719,7 @@ static void FuncPressKey(void)
 							ptr->curEntry = ptr->oldestEntry - 1;
 					}
 					ptr->subNum = 0;
+					ptr->refresh = false;
 				}
 				break;
 			}
@@ -1789,6 +1793,7 @@ static void FuncPressKey(void)
 							ptr->curEntry = 0;
 					}
 					ptr->subNum = 0;
+					ptr->refresh = false;
 				}
 				break;
 			}
@@ -2415,7 +2420,7 @@ void FuncTr(void)
 								
 								// calculate the address of the desired entry
 								if (ptr->ovf)
-									adr = ptr->oldestEntry + 1;
+									adr = ptr->oldestEntry;
 								adr += ptr->curEntry;
 								
 								adr = adr % ptr->curArchive->maxNumEntries;							
@@ -3482,66 +3487,154 @@ static void LCDwork(void)
 					uint16_t max = (sArchives.ovf) ? sArchives.curArchive->maxNumEntries : sArchives.oldestEntry; 
 					LCDptinrArchCount(max, sArchives.curEntry + 1);
 					
-					
-					if ( (sArchives.ovf) || (sArchives.oldestEntry != 0) )
+					if (sArchives.refresh)
 					{
-						strArchiveDevice *ptr = sArchives.curArchive;
-						
-						// print entry time
-						LCDprintTime(28, sArchives.hours, sArchives.minutes,
-									 	 sArchives.seconds, sArchives.milliseconds);
-						
-						// print entry data
-						LCDprintData(72, sArchives.day, sArchives.month, sArchives.year);
+					
+						if ( (sArchives.ovf) || (sArchives.oldestEntry != 0) )
+						{
+							strArchiveDevice *ptr = sArchives.curArchive;
+							
+							// print entry time
+							LCDprintTime(28, sArchives.hours, sArchives.minutes,
+											 sArchives.seconds, sArchives.milliseconds);
+							
+							// print entry data
+							LCDprintData(72, sArchives.day, sArchives.month, sArchives.year);
 												
-						if (ptr->typeDev == 0xC0)			// def log
-						{
-							
-						}
-						else if (ptr->typeDev == 0xD0)		// prm log
-						{
-							
-						}
-						else if (ptr->typeDev == 0xE0)		// prd log
-						{
-							
-						}
-						else if (ptr->typeDev == 0xF0)		// event log
-						{
-							// print regime
-							if ( sArchives.regime < (sizeof(Menu1regime) / sizeof(Menu1regime[0])) )
-								LCDprintf(3, 1, Menu1regime[sArchives.regime], 1);
-							else
-								LCDprintf(3, 1, Menu11Err, 1);
-							
-							// counting number entries in current log entry
-							uint8_t num = 0;
-							for(uint8_t j = 0; j < 4; j++)
+							// print current signals sost: Pusk, Stop, Man, Prm, Prd, PZ
+							if (ptr->typeDev == 0xC0)			// def log
 							{
-								for(uint8_t i = 1; i > 0; i <<= 1)
-								{
-									if (sArchives.bytes[j] & i)
-										num++;
-								}
+								LCDprintf(3, 1, fLogDefLine3, 1);
+								
+								uint8_t byte = sArchives.bytes[0];
+								
+								LCDprintChar(3, 2, (byte&0x01) + '0'); 
+								
+								byte >>= 1;
+								LCDprintChar(3, 4, (byte&0x01) + '0');
+								
+								byte >>= 1;
+								LCDprintChar(3, 6, (byte&0x01) + '0');
+								
+								byte = sArchives.bytes[1];
+								LCDprintChar(3, 16, (byte&0x01) + '0');
+								
+								byte >>= 1;
+								LCDprintChar(3, 11, (byte&0x01) + '0');
+								
+								(byte & 0x03) ?	LCDprintChar(3, 20, '1') : LCDprintChar(3, 20, '0');
 							}
-							
-							if (num >= 1)
+							else if (ptr->typeDev == 0xD0)		// prm log
 							{
+								// counting number entries in current log entry
+								uint8_t num = 0;
+								for(uint8_t j = 0; j < 4; j++)
+								{
+									if (sArchives.bytes[j] > 0)
+									{
+										for(uint8_t i = 1; i > 0; i <<= 1)
+										{
+											if (sArchives.bytes[j] & i)
+												num++;
+										}
+									}
+								}
+								
 								uint8_t pos = 4;
-								
-								// check current entry in current log entry
-								sArchives.subNum = findNextSubEntry(sArchives.bytes, 4, 0, sArchives.subNum);
-								
 								// print number entries in current log entry
 								LCDprintChar(2, pos++, '(');
 								pos += LCDprintDEC(2, pos, num);
 								LCDprintChar(2, pos, ')');
 								
-								// print current entry in current log entry
-								if (sArchives.subNum < 32)
-									LCDprintf(3, 9, fEventLog[sArchives.subNum], 1);
+								if (num > 0)
+								{
+									// check current entry in current log entry
+									sArchives.subNum = findNextSubEntry(sArchives.bytes, 4, 0, sArchives.subNum);
+										
+									// print current entry in current log entry
+									if (sArchives.subNum < 32)
+									{
+										LCDprintf(3, 1, fPrmCom, 1);
+										LCDprintDEC(3, 17, sArchives.subNum + 1);
+									}
+								}
+								else
+									LCDprintf(3, 1, fNoCom, 1);
 							}
-						}						
+							else if (ptr->typeDev == 0xE0)		// prd log
+							{
+								// counting number entries in current log entry
+								uint8_t num = 0;
+								for(uint8_t j = 0; j < 4; j++)
+								{
+									if (sArchives.bytes[j] > 0)
+									{
+										for(uint8_t i = 1; i > 0; i <<= 1)
+										{
+											if (sArchives.bytes[j] & i)
+												num++;
+										}
+									}
+								}
+								
+								uint8_t pos = 4;
+								// print number entries in current log entry
+								LCDprintChar(2, pos++, '(');
+								pos += LCDprintDEC(2, pos, num);
+								LCDprintChar(2, pos, ')');
+								
+								if (num > 0)
+								{	
+									// check current entry in current log entry
+									sArchives.subNum = findNextSubEntry(sArchives.bytes, 4, 0, sArchives.subNum);
+														
+									// print current entry in current log entry
+									if (sArchives.subNum < 32)
+									{
+										LCDprintf(3, 1, fPrdCom, 1);
+										LCDprintDEC(3, 16, sArchives.subNum + 1);
+									}
+								}
+								else
+									LCDprintf(3, 1, fNoCom, 1);
+							}
+							else if (ptr->typeDev == 0xF0)		// event log
+							{
+								// print regime
+								if ( sArchives.regime < (sizeof(Menu1regime) / sizeof(Menu1regime[0])) )
+									LCDprintf(3, 1, Menu1regime[sArchives.regime], 1);
+								else
+									LCDprintf(3, 1, Menu11Err, 1);
+								
+								// counting number entries in current log entry
+								uint8_t num = 0;
+								for(uint8_t j = 0; j < 4; j++)
+								{
+									for(uint8_t i = 1; i > 0; i <<= 1)
+									{
+										if (sArchives.bytes[j] & i)
+											num++;
+									}
+								}
+								
+								if (num > 0)
+								{
+									uint8_t pos = 4;
+									
+									// check current entry in current log entry
+									sArchives.subNum = findNextSubEntry(sArchives.bytes, 4, 0, sArchives.subNum);
+									
+									// print number entries in current log entry
+									LCDprintChar(2, pos++, '(');
+									pos += LCDprintDEC(2, pos, num);
+									LCDprintChar(2, pos, ')');
+									
+									// print current entry in current log entry
+									if (sArchives.subNum < 32)
+										LCDprintf(3, 9, fEventLog[sArchives.subNum], 1);
+								}
+							}						
+						}
 					}
 					
 					LCD2new=0;

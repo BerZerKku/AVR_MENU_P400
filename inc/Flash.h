@@ -1044,5 +1044,8 @@ __flash unsigned char fEventLog[] [13] =
 	"32 - событие"
 };
 
-
+__flash unsigned char fLogDefLine3[] = "П?С?М? ПРД? ПРМ? РЗ?";  
+__flash unsigned char fNoCom[] = "Команд нет";
+__flash unsigned char fPrdCom[] = "Подана команда";
+__flash unsigned char fPrmCom[] = "Принята команда";
 #endif

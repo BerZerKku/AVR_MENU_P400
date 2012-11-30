@@ -11,7 +11,7 @@
 // константные измеряемые параметры
 //#define EXHIBITION
 
-#define DEB true /*работа(false)/отладка(true)*/
+#define DEB false /*работа(false)/отладка(true)*/
 #if DEB // подключение файла "debug.h" 
 	#warning "DEBUG MODE ON!!!"
 	#include "debug.h"
@@ -108,13 +108,14 @@ struct strArchiveDevice
 
 struct strArchives
 {
+	bool refresh;						// true - получена новая инф-ия
 	uint8_t numArchives;				// кол-во архивов устройств
-	strArchiveDevice *curArchive;				// номер в listArchives
-	strArchiveDevice *listArchives[4];		// указатели на архивы устройств
+	strArchiveDevice *curArchive;		// номер в listArchives
+	strArchiveDevice *listArchives[4];	// указатели на архивы устройств
 	
-	bool ovf;								// флаг переполнения архива
+	bool ovf;							// флаг переполнения архива
 	uint16_t oldestEntry;				// номер самой старой записи при переполнении
-											// и макс. записей без переполнения
+										// и макс. записей без переполнения
 	uint16_t curEntry;					// номер текущей записи
 	uint8_t subNum;
 	
@@ -135,6 +136,7 @@ struct strArchives
 	
 	strArchives()
 	{
+		refresh = true;
 		numArchives = 0;
 		oldestEntry = 0;
 		curEntry = 0;

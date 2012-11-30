@@ -1208,8 +1208,8 @@ void FArchive(void)
 		else
 		{
 			// def journal 
-			sArchives.bytes[1] = *ptr++;
 			sArchives.bytes[0] = *ptr++;
+			sArchives.bytes[1] = *ptr++;
 		}
 		
 		// read date entry
@@ -1222,6 +1222,8 @@ void FArchive(void)
 		sArchives.minutes = *ptr++;
 		sArchives.seconds = *ptr++;
 		sArchives.milliseconds = (*ptr << 8) + *(ptr + 1);
+		
+		sArchives.refresh = true;
 	}
 	
 	RecivVar = 1;
