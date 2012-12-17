@@ -240,9 +240,9 @@ void FParamDef(unsigned char command)
 				MenuTypeLine[0] = '?'; 
 			else 
 			{
+				MenuTypeLine[0] = tmp + '0';
 				if (cNumLine != tmp)
 				{
-					MenuTypeLine[0] = tmp + '0';
 					cNumLine = tmp;
 					MenuTestCreate();
 					MenuParamGlbCreate();
