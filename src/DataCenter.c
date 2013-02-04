@@ -61,7 +61,6 @@ extern unsigned char MenuVoltageLimitPRM22[];
 //параметры ПРД-ка
 extern unsigned char MenuPrdTimeOn[];
 extern unsigned char MenuPrdTimeCom[];
-extern unsigned char MenuPrdTimeRep[];
 extern unsigned char MenuPrdBlockCom[];
 extern unsigned char MenuPrdLongCom[];
 extern unsigned char ValuePrdBlockCom[];
@@ -139,13 +138,14 @@ extern bool bRec1Avar, bRec1Warn;
 extern bool bTrAvar, bTrWarn;
 extern bool bRec2Avar, bRec2Warn;
 extern __flash  unsigned char  Menu61[],Menu62[],Menu63[],Menu64[],Menu62_1[],Menu62_2[];
-extern unsigned char LineInMenu6; //кол-во строк в меню просмотр параметров/ установить параметры
+//extern unsigned char LineInMenu6; //кол-во строк в меню просмотр параметров/ установить параметры
 extern unsigned __flash char  *mMenu6point[]; //массив строк для меню просмотр параметров/ установить параметры
 extern unsigned char  __flash* Param4;
 extern __flash unsigned __flash char* flAutoSinch[];
 extern __flash unsigned __flash char* flAutoContorl[];
 extern  uchar   cNumKF;
 
+extern void MenuParamCreate(bool def, bool prm, bool prd);
 extern void MenuParamGlbCreate(void);
 extern void MenuParamDefCreate(void);
 extern void MenuUprCreate(uint8_t act);
@@ -284,19 +284,16 @@ void FParamDef(unsigned char command)
 				MenuPossibleTimeSignal1[1] = tmp%10 + '0';
 			}
 			
-			if (cNumLine == 3)
+			tmp = Rec_buf_data_uart[5];
+			if ((tmp < min) || (tmp > max)) 
 			{
-				tmp = Rec_buf_data_uart[5];
-				if ((tmp < min) || (tmp > max)) 
-				{
-					MenuPossibleTimeSignal2[0] = '?';
-					MenuPossibleTimeSignal2[1] = '?';
-				}
-				else
-				{
-					MenuPossibleTimeSignal2[0] = tmp/10 + '0';
-					MenuPossibleTimeSignal2[1] = tmp%10 + '0';
-				}
+				MenuPossibleTimeSignal2[0] = '?';
+				MenuPossibleTimeSignal2[1] = '?';
+			}
+			else
+			{
+				MenuPossibleTimeSignal2[0] = tmp/10 + '0';
+				MenuPossibleTimeSignal2[1] = tmp%10 + '0';
 			}
 		}break;
 		case 0x05:{//принято значение перекрытия импульсов (пост)
@@ -650,31 +647,9 @@ void FParamPrd(unsigned char command)
 		}
 		break;
 		
-		case 0x23:{ //время на повторное формирование команды (передатчик)
-			min = paramPrd[2].min;
-			max = paramPrd[2].max;
-			
-			if ( (tmp < min) || (tmp > max) )
-			{
-				MenuPrdTimeRep[0]='?';
-				MenuPrdTimeRep[1]='?';
-				MenuPrdTimeRep[2]='?';
-			}
-			else
-			{
-				if (tmp < 10)
-				{
-					MenuPrdTimeRep[0] = tmp + '0';
-					MenuPrdTimeRep[1] = '0';
-					MenuPrdTimeRep[2] = ' ';
-				}
-				else
-				{
-					MenuPrdTimeRep[0] = tmp/10 + '0';
-					MenuPrdTimeRep[1] = tmp%10 + '0';
-					MenuPrdTimeRep[2] = '0';
-				}
-			}
+		case 0x23:
+		{
+			// нет
 		}
 		break;
 		
@@ -985,7 +960,7 @@ extern strParamOpt	sParamOpt;
 
 void vfOptParam(void)
 {
-	u8 tmp;
+	uint8_t tmp; 
 	// протокол обмена
 	
 	tmp = Rec_buf_data_uart[4];
@@ -1512,28 +1487,29 @@ void VersDevice(void)
 	}
 	
 	//сформируем меню просмотр параметров/установимть параметры
-	LineInMenu6 = 0;
-	if (bDef)
-		mMenu6point[LineInMenu6++] = Menu61; //пост
-	if (cNumLine==2)
-	{
-		if (cNumComR>0)
-			mMenu6point[LineInMenu6++] = Menu62;  //прм, в 2-х концевой
-	}
-	else
-	{
-		if (cNumComR1 > 0)
-			mMenu6point[LineInMenu6++] = Menu62_1; //прм 1, в 3-х концевой
-		if (cNumComR2 > 0)
-			mMenu6point[LineInMenu6++] = Menu62_2; //прм 2, в 3-х концевой
-	}
-	
-	if (cNumComT > 0)
-		mMenu6point[LineInMenu6++] = Menu63;  //прд
-	mMenu6point[LineInMenu6++] = Menu64;  //общ
+//	LineInMenu6 = 0;
+//	if (bDef)
+//		mMenu6point[LineInMenu6++] = Menu61; //пост
+//	if (cNumLine==2)
+//	{
+//		if (cNumComR>0)
+//			mMenu6point[LineInMenu6++] = Menu62;  //прм, в 2-х концевой
+//	}
+//	else
+//	{
+//		if (cNumComR1 > 0)
+//			mMenu6point[LineInMenu6++] = Menu62_1; //прм 1, в 3-х концевой
+//		if (cNumComR2 > 0)
+//			mMenu6point[LineInMenu6++] = Menu62_2; //прм 2, в 3-х концевой
+//	}
+//	
+//	if (cNumComT > 0)
+//		mMenu6point[LineInMenu6++] = Menu63;  //прд
+//	mMenu6point[LineInMenu6++] = Menu64;  //общ
 	
 	//сформируем меню общих параметров, до того как нам станет известным тип удаленного аппарата
 	sMenuGlbParam.dev = 0xFF;
+	MenuParamCreate(bDef, (bool) cNumComR, (bool) cNumComT);
 	MenuParamGlbCreate();
 	MenuParamDefCreate();
 	MenuUprCreate(1);

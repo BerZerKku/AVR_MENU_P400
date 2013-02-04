@@ -5,6 +5,7 @@
 
 #define dSetUprItem(com,nameItem) sMenuUpr.punkt[num] = com; sMenuUpr.name[num++] = nameItem 
 
+void MenuParamCreate(bool def, bool prm, bool prd);
 void MenuParamGlbCreate	(void);
 void MenuParamDefCreate	(void);
 void MenuUprCreate 		(uint8_t act);
@@ -26,16 +27,42 @@ static void Menu_Setup_Regime		(void);
 static void Menu_Protocol			(void);
 static void Menu_Info				(void);
 static void Menu_Setup_Test			(void);
+static void pressInMenuParam		(eMENUlvl Menu, char key);
 static void PressInMenuJournal		(char Key);
 static void Menu_Upr				(void);
 static void PressInMenuDataTime		(char Key);
 static void PressInMenuReset		(char key);
 
+/** Формирование меню параметров в зависимости от имеющихся устройств
+ *	@param def Определяет наличие защиты. (true - есть)
+ *	@param prm Определяет наличие приемника. (true - есть)
+ * 	@param prd Определяет наличие передатчика. (true - есть)
+ *	@return Нет
+ */
+void MenuParamCreate(bool def, bool prm, bool prd)
+{
+	uint8_t num = 0;
+	
+	// номер пункта совпадает с порядком в Menu6point3
+	
+	if (def)
+		sMenuParam.punkt[num++] = 0;
+	
+	if (prm)
+		sMenuParam.punkt[num++] = 1;
+	
+	if (prd)
+		sMenuParam.punkt[num++] = 2;
+	
+	sMenuParam.punkt[num++] = 3;
+	
+	sMenuParam.num = num;
+}
 
 /** Формирование списка параметров Общих в зависимости от совместимости
-*	@param Нет
-*	@return Нет
-*/
+ *	@param Нет
+ *	@return Нет
+ */
 void MenuParamGlbCreate(void)
 {
 	char num = 0;
@@ -559,25 +586,28 @@ static void Menu_Setup(void)
 }
 
 //меню/просмотр параметров
-static void Menu_ParamSetup(eMENUlvl Menu)
+static void Menu_ParamSetup(eMENUlvl Menu) 
 {
 	MenuLevel = Menu; // 6 и 12
 	LCDbufClMenu();
 	ShiftMenu=0;
 	ValueVsRange=0;
 	NumberCom=1;
-	if (LineInMenu6 <= 3){ //если 3 или менее строк
-		MaxShiftMenu=0;
-		MaxDisplayLine = LineInMenu6;
-	}else{
-		MaxShiftMenu = LineInMenu6-3;
-		MaxDisplayLine=3;
+	
+	uint8_t num = sMenuParam.num;
+	if ( num <= 3) {
+		MaxShiftMenu = 0;
+		MaxDisplayLine = num;
+	} 
+	else {
+		MaxShiftMenu = num - 3;
+		MaxDisplayLine = 3;
 	}
+
 	LCD2new=1;
 }
 
-static void Menu_ParamSetup_Def(eMENUlvl lvl)
-{
+static void Menu_ParamSetup_Def(eMENUlvl lvl) {
   	MenuLevel = lvl; 
   	LCDbufClMenu();
   	ShiftMenu = 0;
@@ -587,8 +617,7 @@ static void Menu_ParamSetup_Def(eMENUlvl lvl)
   	cNumParam = 0x20;
 }
 
-static void Menu_ParamSetup_Prm(eMENUlvl lvl)
-{
+static void Menu_ParamSetup_Prm(eMENUlvl lvl) {
 	MenuLevel = lvl; 
 	LCDbufClMenu();
 	ShiftMenu=0;
@@ -599,20 +628,17 @@ static void Menu_ParamSetup_Prm(eMENUlvl lvl)
 	cNumParam=0x40;
 }
 
-static void Menu_ParamSetup_Prd(eMENUlvl lvl)
-{
+static void Menu_ParamSetup_Prd(eMENUlvl lvl) {
 	MenuLevel = lvl; 
 	LCDbufClMenu();
-	ShiftMenu=0;
-	MaxShiftMenu=4;
-	MaxDisplayLine=1;
-	MaxShiftMenu=NumParamPrd-1;
-	LCD2new=1;
-	cNumParam=0x60;
+	ShiftMenu = 0;
+	MaxDisplayLine = 1;
+	MaxShiftMenu = NumParamPrd-1;
+	LCD2new = 1;
+	cNumParam = 0x60;
 }
 
-static void Menu_ParamSetup_Global(eMENUlvl lvl)
-{
+static void Menu_ParamSetup_Global(eMENUlvl lvl) {
   	MenuLevel = lvl; 
   	LCDbufClMenu();
   	ShiftMenu = 0;
@@ -623,8 +649,7 @@ static void Menu_ParamSetup_Global(eMENUlvl lvl)
   	cNumParam = 0x80;
 }
 
-static void Menu_Setup_Regime(void)
-{
+static void Menu_Setup_Regime(void) {
 	MenuLevel = LVL_REGIME;
 	LCDbufClMenu();
 	ShiftMenu=0;
@@ -673,6 +698,73 @@ static void Menu_Setup_Test(void)
    	if ((bDef)&&(CurrentState[0]==5)) MaxShiftMenu=0;  //если есть Защита, и она в Тест2
    	LCD2new=1;
 }
+
+/** Выбор следующего пункта при нажатии кнопки в пункте параметров
+ * 	@param lvl текущий уровень меню (LVL_PARAM_VIEW или LVL_PARAM_SETUP)
+ *	@param key код нажатой кнопки
+ * 	@return Нет
+ */
+static void pressInMenuParam(eMENUlvl lvl, char key) {
+	
+	key -= '1';
+	
+	// выйдем, если желаемый номер пункта превышает кол-во имеющихся
+	if (key >= sMenuParam.num)
+		return;
+	
+	uint8_t cur_lvl = sMenuParam.punkt[key];
+	
+	if (cur_lvl == 0) {
+		// защита
+		if (lvl == LVL_PARAM_VIEW)
+			lvl = LVL_DEF_VIEW;
+		else if (lvl == LVL_PARAM_SETUP)
+			lvl = LVL_DEF_SETUP;
+		else {
+			// завершим ошибочный вызов функции
+			return;
+		}
+		Menu_ParamSetup_Def(lvl);
+	} 
+	else if (cur_lvl == 1) {
+		// приемник
+		if (lvl == LVL_PARAM_VIEW)
+			lvl = LVL_PRM_VIEW;
+		else if (lvl == LVL_PARAM_SETUP)
+			lvl = LVL_PRM_SETUP;
+		else {
+			// завершим ошибочный вызов функции
+			return;
+		}
+		Menu_ParamSetup_Prm(lvl);
+	}
+	else if (cur_lvl == 2) {
+		// передатчик
+		if (lvl == LVL_PARAM_VIEW)
+			lvl = LVL_PRD_VIEW;
+		else if (lvl == LVL_PARAM_SETUP)
+			lvl = LVL_PRD_SETUP;
+		else {
+			// завершим ошибочный вызов функции
+			return;
+		}
+		Menu_ParamSetup_Prd(lvl);
+	}
+	else if (cur_lvl == 3) {
+		// общие
+		if (lvl == LVL_PARAM_VIEW)
+			lvl = LVL_GLB_VIEW;
+		else if (lvl == LVL_PARAM_SETUP)
+			lvl = LVL_GLB_SETUP;
+		else {
+			// завершим ошибочный вызов функции
+			return;
+		}
+		Menu_ParamSetup_Global(lvl);	
+	}
+}
+
+
 
 static void PressInMenuJournal(char key)
 {  

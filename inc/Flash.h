@@ -199,16 +199,14 @@ __flash unsigned __flash char *Menu8paramPRM[] =
 #define NumParamPrm (sizeof(Menu8paramPRM) / sizeof(Menu8paramPRM[0]))
 
 //Параметры Передатчика
-__flash unsigned char Menu93[] = "Время на повт. ком. ";
-__flash unsigned char Menu94[] = "Блок. команды  ?..? ";
-__flash unsigned char Menu95[] = "Длит. команды  ?..? ";
+__flash unsigned char Menu93[] = "Блок. команды  ?..? ";
+__flash unsigned char Menu94[] = "Длит. команды  ?..? ";
 __flash unsigned __flash char *Menu9paramPRD[] =
 {
 	Menu81, 
 	Menu82, 
 	Menu93, 
-	Menu94, 
-	Menu95
+	Menu94
 };
 // кол-во параметров передатчика
 #define NumParamPrd (sizeof(Menu9paramPRD) / sizeof(Menu9paramPRD[0]))
@@ -580,7 +578,6 @@ __flash strParam paramPrd[] =
 {
 	0 , 10,   	1,	2,	2,  	// задержка на выкл
 	1,  50,  	10,	1,	2,  	// длительность команды
-	1,  50,  	10,	1,	2,  	// время на повторение
 	0,  255,  	1,	1,	0,  	// блокированные команды
 	0,  255,  	1,	1,	0		// длительные команды
 };
