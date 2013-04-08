@@ -407,22 +407,22 @@ void FParamDef(unsigned char command)
 					{
 						case 1:	// ПВЗ
 						{
-							switch(cAutoControl)
-							{
-								case 1:	// норм
-								case 2:
-								iTimeToAK = 16800;
-								break;
-								case 3:	// ускор
-								iTimeToAK = 2100;
-								break;
-								case 5:	// проверка
-								iTimeToAK = 131;
-								break;
-								case 6:	// испыт
-								iTimeToAK = 2;
-								break;
-							}
+//							switch(cAutoControl)
+//							{
+//								case 1:	// норм
+//								case 2:
+//								iTimeToAK = 16800;
+//								break;
+//								case 3:	// ускор
+//								iTimeToAK = 2100;
+//								break;
+//								case 5:	// проверка
+//								iTimeToAK = 131;
+//								break;
+//								case 6:	// испыт
+//								iTimeToAK = 2;
+//								break;
+//							}
 							a = Rec_buf_data_uart[5];
 							a <<= 8;
 							a += Rec_buf_data_uart[6];
@@ -431,27 +431,28 @@ void FParamDef(unsigned char command)
 							a <<= 8;
 							a += Rec_buf_data_uart[8];
 							a = a / 1000;
-							iTimeToAKnow = a;
+//							iTimeToAKnow = a;
+							iTimeToAK = a;
 						}
 						break;
 						case 2:	// АВЗК
 						{
-							switch(cAutoControl)
-							{
-								case 1:	// норм
-								case 2:
-								iTimeToAK = 20000;
-								break;
-								case 3:	// ускор
-								iTimeToAK = 2000;
-								break;
-								case 5:	// проверка
-								iTimeToAK = 200;
-								break;
-								case 6:	// испыт
-								iTimeToAK = 2;
-								break;
-							}
+//							switch(cAutoControl)
+//							{
+//								case 1:	// норм
+//								case 2:
+//								iTimeToAK = 20000;
+//								break;
+//								case 3:	// ускор
+//								iTimeToAK = 2000;
+//								break;
+//								case 5:	// проверка
+//								iTimeToAK = 200;
+//								break;
+//								case 6:	// испыт
+//								iTimeToAK = 2;
+//								break;
+//							}
 							a = Rec_buf_data_uart[5];
 							a <<= 8;
 							a += Rec_buf_data_uart[6];
@@ -460,7 +461,8 @@ void FParamDef(unsigned char command)
 							a <<= 8;
 							a += Rec_buf_data_uart[8];
 							a = a / 1000;
-							iTimeToAKnow = a;
+//							iTimeToAKnow = a;
+							iTimeToAK = a;
 						}
 						break;
 						case 3: // ПВЗЕ-У
@@ -476,7 +478,7 @@ void FParamDef(unsigned char command)
 							a += Rec_buf_data_uart[8];
 							a = a / 1000;
 							iTimeToAK = a;
-							iTimeToAKnow = 0;
+//							iTimeToAKnow = 0;
 						}
 						break;
 					} 

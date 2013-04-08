@@ -411,7 +411,8 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
 		{
 			unsigned int a;
 			
-			a = iTimeToAK - iTimeToAKnow;
+//			a = iTimeToAK - iTimeToAKnow;
+			a = iTimeToAK;
 			time2 = a % 60;
 			a /= 60;
 			time1 = a % 60;
