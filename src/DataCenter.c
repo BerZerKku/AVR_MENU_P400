@@ -1144,22 +1144,33 @@ void FParamGlobal(unsigned char command)
 				FreqNum[0]='?';FreqNum[1]='?';FreqNum[2]='?';
 			}else{
 				if (Pk_temp<100){
-					MenuAllFreq[0] = Pk_temp/10+0x30;
-					MenuAllFreq[1] = Pk_temp%10+0x30;
+					MenuAllFreq[0] = Pk_temp/10 + '0';
+					MenuAllFreq[1] = Pk_temp%10 + '0';
 					MenuAllFreq[2] = ' ';
 					MenuAllFreq[3] = 'ê';
 					MenuAllFreq[4] = 'Ã';
 					MenuAllFreq[5] = 'ö';
 					MenuAllFreq[6] = ' ';
-				}else{
-					MenuAllFreq[0] = Pk_temp/100+0x30; Pk_temp=Pk_temp - (MenuAllFreq[0]-0x30)*100;
-					MenuAllFreq[1] = Pk_temp/10+0x30;
-					MenuAllFreq[2] = Pk_temp%10+0x30;
+				} else if (Pk_temp < 1000) {
+					MenuAllFreq[0] = Pk_temp/100 + '0'; Pk_temp %= 100;
+					MenuAllFreq[1] = Pk_temp/10 + '0';
+					MenuAllFreq[2] = Pk_temp%10 + '0';
 					MenuAllFreq[3] = ' ';
 					MenuAllFreq[4] = 'ê';
 					MenuAllFreq[5] = 'Ã';
 					MenuAllFreq[6] = 'ö';
+				} else if (Pk_temp < 10000) {
+					MenuAllFreq[0] = Pk_temp/1000 + '0'; Pk_temp %= 1000;
+					MenuAllFreq[1] = Pk_temp/100 + '0'; Pk_temp %= 100;
+					MenuAllFreq[2] = Pk_temp/10 + '0';
+					MenuAllFreq[3] = Pk_temp%10 + '0';
+					MenuAllFreq[4] = 'ê';
+					MenuAllFreq[5] = 'Ã';
+					MenuAllFreq[6] = 'ö';
 				}
+				
+				
+				
 				FreqNum[0]=MenuAllFreq[0];
 				FreqNum[1]=MenuAllFreq[1];
 				FreqNum[2]=MenuAllFreq[2];

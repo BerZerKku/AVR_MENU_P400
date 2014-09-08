@@ -11,8 +11,8 @@
 //если надо перекодировать русские буквы Windows в русские буквы LCD надо convers=1, иначе 0
 
 //используется таймер 2
-#define LCDclear; FuncCommandLCD(0x01); //очистка экрана LCD
-#define LCDinit;  FuncInitLCD;  //начальная
+#define LCDclear FuncCommandLCD(0x01) //очистка экрана LCD
+#define LCDinit  FuncInitLCD  //начальная
 
 
 extern unsigned char LCDstat;

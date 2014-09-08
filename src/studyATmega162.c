@@ -874,7 +874,7 @@ static void FuncInputData(void)
     else
 		LCDprintf(4, 1, 2, MenuInputData, 1); //выводим на экран "Ввод:"
 		
-	if (NumberInputChar<MaxNumberInputChar) //если кол-во введеных символов еще меньше максимальновозможного
+	if (NumberInputChar < MaxNumberInputChar) //если кол-во введеных символов еще меньше максимальновозможного
 		if ( (InputParameter == 14) || (InputParameter == 15) || (InputParameter == 20) || (InputParameter == 21) )
 		{	//т.е. вводим пар-р из 0 и 1
 			if ( (PressKey == '0') || (PressKey == '1') )
@@ -971,36 +971,43 @@ static void FuncInputData(void)
 	}
 			
 	//принятие введенного числa
-	if (	(PressKey=='E') && (MenuLevel != LVL_MENU) && (MenuLevel != LVL_SETUP) && (MenuLevel != LVL_REGIME) &&
+	if ((PressKey=='E') && (MenuLevel != LVL_MENU) && (MenuLevel != LVL_SETUP) && (MenuLevel != LVL_REGIME) &&
 		(InputParameter != 14) && (InputParameter != 15) && (InputParameter != 20) && (InputParameter != 21) )
 	{
 		WorkRate=0x00;LCDbufClMenu();LCD2new=1;
 		
 		switch(NumberInputChar)
 		{
-			case 1:{
-				TempValueD=(InputValue[0]-0x30)/Discret;TempValue=TempValueD*Discret;TempValueBCD=InputValue[0]-0x30;
-				if ((TempValue>=MinValue)&&(TempValue<=MaxValue)) ControlParameter=1;
-			}break;
-			case 2:{
-				TempValueD=((InputValue[0]-0x30)*10+(InputValue[1]-0x30))/Discret;TempValue=TempValueD*Discret;
-				TempValueBCD=((InputValue[0]-0x30)<<4)+(InputValue[1]-0x30);
-				if ((TempValue>=MinValue)&&(TempValue<=MaxValue)) ControlParameter=1;
-			}break;
-			case 3:{
-				TempValueD=((InputValue[0]-0x30)*100+(InputValue[1]-0x30)*10+(InputValue[2]-0x30))/Discret;
-				TempValue=TempValueD*Discret;
-				if ((TempValue>=MinValue)&&(TempValue<=MaxValue)) ControlParameter=1;
+			case 1: {
+				TempValueD 	= (InputValue[0] - '0') / Discret;
+				TempValue	= TempValueD * Discret;
+				TempValueBCD= InputValue[0] - '0';
+				if ((TempValue >= MinValue) && (TempValue <= MaxValue)) 
+					ControlParameter = 1;
+			} break;
+			case 2: {
+				TempValueD	= ((InputValue[0] - '0')*10 + (InputValue[1] - '0')) / Discret;
+				TempValue	= TempValueD * Discret;
+				TempValueBCD= ((InputValue[0] - '0')<<4) + (InputValue[1] - '0');
+				if ((TempValue >= MinValue) && (TempValue <= MaxValue)) 
+					ControlParameter = 1;
+			} break;
+			case 3: {
+				TempValueD	= ((InputValue[0] - '0')*100 + (InputValue[1] - '0')*10 + (InputValue[2] - '0')) / Discret;
+				TempValue	= TempValueD * Discret;
+				if ((TempValue >= MinValue) && (TempValue <= MaxValue)) 
+					ControlParameter = 1;
 			}break;
 			case 4:{
-				TempValueD=((InputValue[0]-0x30)*1000+(InputValue[1]-0x30)*100+(InputValue[2]-0x30)*10+(InputValue[3]-0x30))/Discret;
-				TempValue=TempValueD*Discret;
-				if ((TempValue>=MinValue)&&(TempValue<=MaxValue)) ControlParameter=1;
+				TempValueD	= ((InputValue[0] - '0')*1000 + (InputValue[1] - '0')*100 + (InputValue[2] - '0')*10 + (InputValue[3] - '0')) / Discret;
+				TempValue 	= TempValueD * Discret;
+				if ((TempValue >= MinValue) && (TempValue <= MaxValue)) 
+					ControlParameter = 1;
 			}break;
 		}
 		
 		//а теперь сформируем и отправим в USP введеное значение, если необходимо
-		if (ControlParameter==1)
+		if (ControlParameter == 1)
 		{
 			switch(InputParameter)
 			{
@@ -1925,111 +1932,48 @@ static void FuncPressKey(void)
 					if (bInpVal){
 						switch(sMenuGlbParam.punkt[ShiftMenu])
 						{
-							case 0:
-							{
-								WorkRate = 2;
-								SelectValue = 3;
-								InputSelectValue = 0;
-								MassSelectValue = fmTypeUdDev;
-							}
-							break;		
-							case 1: {WorkRate=2;SelectValue=1;InputSelectValue=0;/*MaxSelectValue=1;MinSelectValue=0;*/MassSelectValue=MenuAllSynchrTimerNum;} break;
-							case 2: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=0xB6;Discret=1;} break;
-							case 3: {WorkRate=2;SelectValue=3;InputSelectValue=0;/*MaxSelectValue=1;MinSelectValue=0;*/MassSelectValue=MenuAllSynchrTimerNum;} break;
-							case 4: {WorkRate=0x01;MaxNumberInputChar=3;ByteShift=0;/*MaxValue=255;MinValue=0;*/InputParameter=25;Discret=1;} break;
-							case 5: {WorkRate=0x01;MaxNumberInputChar=1;ByteShift=0;/*MaxValue=5;MinValue=0;*/InputParameter=26;Discret=1;} break;
-							case 6: {WorkRate=0x01;MaxNumberInputChar=3;ByteShift=0;/*MaxValue=998;MinValue=26;*/InputParameter=28;Discret=1;} break;
-							case 7: {WorkRate=0x01;MaxNumberInputChar=1;ByteShift=0;/*MaxValue=3;MinValue=1;*/InputParameter=29;Discret=1;} break;
-							case 8: {WorkRate=2;SelectValue=9;InputSelectValue=0;/*MaxSelectValue=1;MinSelectValue=0;*/MassSelectValue=MenuAllSynchrTimerNum;} break;
-							case 9: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;/*MaxValue=22;MinValue=0;*/InputParameter=30;Discret=1;NumberTransCom=1;} break; //Порог предупреждения по КЧ
-							case 10: {WorkRate=0x01; MaxNumberInputChar=2;ByteShift=0;/*MaxValue=22;MinValue=0;*/InputParameter=30;Discret=1;NumberTransCom=NumberCom+1;} break;
-							case 11:	//коррекция напряжения
-							WorkRate = 0x04;
-							InputParameter = 1;
-							MaxNumberInputChar = 4;
-							InputValue[0]='0';InputValue[1]='0';InputValue[2]='.';InputValue[3]='0';
-							break;
-							case 12:
-							WorkRate = 0x04;
-							InputParameter = 1 + NumberCom;
-							MaxNumberInputChar = 3;
-							break;
-							case 13:
-							{
-								WorkRate = 2; 
-								SelectValue = 0x39;
-								NumberTransCom = 1;
-								InputSelectValue = 1;
-								MassSelectValue = MenuAllProtocolNum;	
-							}
-							break;
-							case  14:
-							{
-								WorkRate = 2;
-								SelectValue = 0x39;
-								NumberTransCom = 2;
-								InputSelectValue = 1;
-								MassSelectValue = MenuAllParityNum;
-							}
-							break;
-							case 15:
-							{
-								WorkRate = 1;
-								MaxNumberInputChar = 3;
-								ByteShift = 0;
-								InputParameter = 0x39;
-								NumberTransCom = 3;
-								Discret = 18;
-							}
-							break;
-							case 16:
-							{
-								WorkRate = 1;
-								MaxNumberInputChar = 3;
-								ByteShift = 0;
-								InputParameter = 0x39;
-								NumberTransCom = 4;
-								Discret = 1;
-							}
-							break;
-							case 17:
-							{
-								WorkRate = 1;
-								MaxNumberInputChar = 2;
-								ByteShift = 0;
-								InputParameter = 0x39;
-								NumberTransCom = 5;
-								Discret = 18;
-							}
-							break;
-							case 18:
-							{
-								WorkRate = 2;
-								SelectValue = 0x39;
-								NumberTransCom = 6;
-								InputSelectValue = 1;
-								MassSelectValue = MenuAllControlNum;
-							}
-							break;
-							case 19:
-							{
-								WorkRate = 2;
-								SelectValue = 0x33;								
-								NumberTransCom = 1;								
-								InputSelectValue = 0;							
-								MassSelectValue = MenuAllSynchrTimerNum; 
-							}
-							break;
-							case 20:
-							{
-								WorkRate = 1;
-								MaxNumberInputChar = 2;
-								ByteShift = 0;
-								InputParameter = 0x39;
-								NumberTransCom = 1;
-								Discret = 1;
-							}
-							break;
+							// Совместимость (тип уд.аппарата)	
+							case 0:  {WorkRate = 2; SelectValue = 3;		InputSelectValue = 0;	MassSelectValue=fmTypeUdDev;}	break;		
+							// синхронизация часов
+							case 1:  {WorkRate = 2; SelectValue = 1;		InputSelectValue = 0;	MassSelectValue=MenuAllSynchrTimerNum;} break;
+							// Uвых номинальное 
+							case 2:  {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 0xB6;	ByteShift=0;	Discret = 1;} break;
+							// удержание реле ПРД
+							case 3:  {WorkRate = 2; SelectValue = 3;		InputSelectValue = 0;	MassSelectValue=MenuAllSynchrTimerNum;} break;
+							// сетевой адрес
+							case 4:  {WorkRate = 1; MaxNumberInputChar = 3;	InputParameter = 25;	ByteShift=0;	Discret = 1;} break;
+							// время перезапуска
+							case 5:  {WorkRate = 1; MaxNumberInputChar = 1;	InputParameter = 26;	ByteShift=0;	Discret = 1;} break;
+							// частота 
+							case 6:  {WorkRate = 1; MaxNumberInputChar = 4;	InputParameter = 28;	ByteShift=0;	Discret = 1;} break;
+							// номер аппарата 
+							case 7:  {WorkRate = 1; MaxNumberInputChar = 1;	InputParameter = 29;	ByteShift=0;	Discret = 1;} break;
+							// контроль выходного сигнала 
+							case 8:  {WorkRate = 2; SelectValue = 9;		InputSelectValue = 0;	MassSelectValue=MenuAllSynchrTimerNum;} break;
+							// порог предупреждения по КЧ 
+							case 9:  {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 30;	ByteShift=0;	Discret = 1;	NumberTransCom = 1;} break; 
+							// загрубление чувствительности по КЧ
+							case 10: {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 30;	ByteShift=0;	Discret = 1;	NumberTransCom = NumberCom + 1;} break;
+							// коррекция напряжения 
+							case 11: {WorkRate = 4; MaxNumberInputChar = 4;	InputParameter = 1; 	InputValue[0]='0';InputValue[1]='0';InputValue[2]='.';InputValue[3]='0';} break; 
+							// коррекция тока 
+							case 12: {WorkRate = 4; MaxNumberInputChar = 3;	InputParameter = 1 + NumberCom;} break;
+							// протокол обмена
+							case 13: {WorkRate = 2; SelectValue = 0x39;		InputSelectValue = 1; 	MassSelectValue = MenuAllProtocolNum;	NumberTransCom = 1;} break;
+							// признак четности	
+							case 14: {WorkRate = 2; SelectValue = 0x39;		InputSelectValue = 1;	MassSelectValue = MenuAllParityNum;		NumberTransCom = 2;} break;
+							// допустимые провалы
+							case 15: {WorkRate = 1;	MaxNumberInputChar = 3;	InputParameter = 0x39;	ByteShift = 0; 	Discret = 18;	NumberTransCom = 3;} break;
+							// порог по помехе
+							case 16: {WorkRate = 1;	MaxNumberInputChar = 3;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 4;} break;
+							// допустимая помеха
+							case 17: {WorkRate = 1;	MaxNumberInputChar = 2;	InputParameter = 0x39;	ByteShift = 0;	Discret = 18;	NumberTransCom = 5;} break;
+							// тип автоконтроля	
+							case 18: {WorkRate = 2;	SelectValue = 0x39;		InputSelectValue = 1;	MassSelectValue = MenuAllControlNum;	NumberTransCom = 6;} break;
+							// Резервирование (оптика)
+							case 19: {WorkRate = 2;	SelectValue = 0x33;		InputSelectValue = 0;	MassSelectValue = MenuAllSynchrTimerNum;	NumberTransCom = 1;} break;	
+							// снижение ответа АК (пвзл)
+							case 20: {WorkRate = 1;	MaxNumberInputChar = 2;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 1;} break;
 						}
 						bInpVal=false;
 					}
@@ -3203,7 +3147,7 @@ static void LCDwork(void)
 					
 					LCDprintf(2,1,2,Menu8paramPRM[ShiftMenu],1);
 					
-					unsigned char **tmValuePRMparam, **tmMenuVoltageLimitPRM;
+					unsigned char **tmValuePRMparam; // **tmMenuVoltageLimitPRM;
 					unsigned char *tmValuePrmTimeOff, *tmValuePrmBlockCom, *tmValuePrmLongCom;
 					unsigned char tNumComR;
 					
@@ -3215,7 +3159,7 @@ static void LCDwork(void)
 						else tNumComR=cNumComR1;
 						tmValuePrmBlockCom=ValuePrmBlockCom;
 						tmValuePrmLongCom=ValuePrmLongCom;
-						tmMenuVoltageLimitPRM=MenuVoltageLimitPRM;
+//						tmMenuVoltageLimitPRM=MenuVoltageLimitPRM;
 					}
 					else
 					{//если 2-ой приемник в 3-х концевой
@@ -3224,7 +3168,7 @@ static void LCDwork(void)
 						tNumComR=cNumComR2;
 						tmValuePrmBlockCom=ValuePrmBlockCom2;
 						tmValuePrmLongCom=ValuePrmLongCom2;
-						tmMenuVoltageLimitPRM=MenuVoltageLimitPRM_2;
+//						tmMenuVoltageLimitPRM=MenuVoltageLimitPRM_2;
 					}
 					
 					// Вывод названия параметра
