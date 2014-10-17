@@ -183,28 +183,25 @@ __flash unsigned __flash char *Menu7paramPOST[] =
 
 //Параметры Приемника
 __flash unsigned char Menu81[]= "Задержка на вкл.    ";
-__flash unsigned char Menu82[]= "Длительность команды";
-__flash unsigned char Menu83[]= "Задержка на выкл.  к";
-__flash unsigned char Menu84[]= "Блок. команды  ?..? ";
-__flash unsigned char Menu85[]= "Длит. команды  ?..? ";
+__flash unsigned char Menu82[]= "Задержка на выкл.  к";
+__flash unsigned char Menu83[]= "Блок. команды  ?..? ";
 __flash unsigned __flash char *Menu8paramPRM[] =
 {
 	Menu81, 
 	Menu82, 
-	Menu83, 
-	Menu84, 
-	Menu85
+	Menu83
 };
 // кол-во параметров приемника
 #define NumParamPrm (sizeof(Menu8paramPRM) / sizeof(Menu8paramPRM[0]))
 
 //Параметры Передатчика
+__flash unsigned char Menu92[] = "Длительность команды";
 __flash unsigned char Menu93[] = "Блок. команды  ?..? ";
 __flash unsigned char Menu94[] = "Длит. команды  ?..? ";
 __flash unsigned __flash char *Menu9paramPRD[] =
 {
 	Menu81, 
-	Menu82, 
+	Menu92, 
 	Menu93, 
 	Menu94
 };
@@ -562,11 +559,9 @@ __flash strParam paramDef[] =
 // параметры приемника
 __flash strParam paramPrm[] =
 {
-	0,	10,		1,	2,	2,		// задержка на включение
-	1,	50,		10,	1,	2,		// длительность команды
+	0,	5,		1,	1,	2,		// задержка на включение
 	0,	100,	10,	1,	2,		// задержка на выключение
 	0,	255,	1,	1,	0,		// блокированные команды
-	0,	255,	1,	0,	0		// длительные команды
 };
 
 // 		м			
@@ -576,8 +571,8 @@ __flash strParam paramPrm[] =
 // параметры передатчика
 __flash strParam paramPrd[] =
 {
-	0 , 10,   	1,	2,	2,  	// задержка на выкл
-	1,  50,  	10,	1,	2,  	// длительность команды
+	0 , 20,   	1,	1,	2,  	// задержка на выкл
+	3,  50,  	10,	1,	2,  	// длительность команды
 	0,  255,  	1,	1,	0,  	// блокированные команды
 	0,  255,  	1,	1,	0		// длительные команды
 };
@@ -763,7 +758,7 @@ __flash unsigned char Menu1PostError1[]		= "Нет блока БСЗ   ";
 __flash unsigned char Menu1PostError2[]		= "Неиспр.верс.БСЗ ";
 __flash unsigned char Menu1PostError4[]		= "Неиспр.перекл.  ";
 __flash unsigned char Menu1PostError8[]		= "Неиспр.зап. БСЗ ";
-__flash unsigned char Menu1PostError10[]	= "Нет сигнала ПРМ ";
+__flash unsigned char Menu1PostError10[]	= "Нет КЧ          ";
 __flash unsigned char Menu1PostError20[]	= "Низкий ур. РЗ   ";
 __flash unsigned char Menu1PostError40[]	= "Неиспр.удал.ДФЗ ";	// ПВЗУ-Е
 __flash unsigned char Menu1PostError80[]	= "Неиспр.удал.ВЫХ.";	// ПВЗУ-Е

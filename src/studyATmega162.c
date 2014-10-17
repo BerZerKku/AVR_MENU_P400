@@ -1277,17 +1277,17 @@ static void FuncPressKey(void)
 				{ 	//уменьшение номера команды,для приемника											
 					unsigned char tNumComR;
 					
-					if (cNumLine==2) 
+					if (cNumLine == 2) 
 						tNumComR = cNumComR;
 					else
 					{
-						if (cNumPrm==1) 
+						if (cNumPrm == 1) 
 							tNumComR = cNumComR1;
 						else 
 							tNumComR = cNumComR2;
 					}
 
-					if (ShiftMenu==2)
+					if (ShiftMenu == 1)
 					{  //задержка на выкл
 						if (NumberCom>1) 
 							NumberCom--; 
@@ -1297,8 +1297,7 @@ static void FuncPressKey(void)
 					}
 					else
 					{  //блок и длит комады
-						if ((ShiftMenu==3)||(ShiftMenu==4))
-						{
+						if (ShiftMenu==3) {
 							if (tNumComR>8)
 								if (NumberCom>1) NumberCom--; else NumberCom=tNumComR/8;
 								LCDbufClMenu();LCD2new=1;
@@ -1407,7 +1406,7 @@ static void FuncPressKey(void)
 						else 
 							tNumComR=cNumComR2;
 						
-					if (ShiftMenu == 2)
+					if (ShiftMenu == 1)
 					{
 						if (NumberCom<tNumComR) 
 							NumberCom++; 
@@ -1418,7 +1417,7 @@ static void FuncPressKey(void)
 					}
 					else
 					{
-						if ((ShiftMenu==3)||(ShiftMenu==4))
+						if (ShiftMenu==3)
 						{
 							if (tNumComR>8)
 								if (NumberCom < (tNumComR / 8)) 
@@ -1584,22 +1583,7 @@ static void FuncPressKey(void)
 					if (ShiftMenu > 0) 
 					{
 						ShiftMenu--; LCD2new=1; LCDbufClMenu(); NumberCom=1;
-					}
-					
-//					if ((MenuLevel == LVL_PRM_VIEW) || (MenuLevel == LVL_PRM_SETUP))
-//					{  //меню просмотр параметров приемника
-//						if (ShiftMenu == 1)
-//							ShiftMenu--;
-//						
-//					}
-//					else if ( (MenuLevel == LVL_PRD_VIEW) || (MenuLevel == LVL_PRD_SETUP) )
-//					{
-//						if (ShiftMenu == 2)
-//							ShiftMenu--;
-//					}
-					
-					
-					
+					}				
 				}
 				break; //прокрутка меню
 				
@@ -1658,17 +1642,6 @@ static void FuncPressKey(void)
 					{
 						ShiftMenu++; LCD2new=1; LCDbufClMenu(); NumberCom=1;
 					}
-//					if ( (MenuLevel == LVL_PRM_VIEW) || (MenuLevel == LVL_PRM_SETUP) )
-//					{  //меню просмотр параметров приемника
-//						if (ShiftMenu == 1)
-//							ShiftMenu++;
-//						
-//					}
-//					else if ( (MenuLevel == LVL_PRD_VIEW) || (MenuLevel == LVL_PRD_SETUP) )
-//					{
-//						if (ShiftMenu == 2)
-//							ShiftMenu++;
-//					}
 				}break; //прокрутка меню
 				
 				case LVL_JRN_VIEW:
@@ -1781,21 +1754,10 @@ static void FuncPressKey(void)
 					{
 						switch(ShiftMenu)
 						{
-							case 0: {WorkRate=0x01; MaxNumberInputChar=2; ByteShift=0; /*MaxValue=10;MinValue=0;*/ InputParameter=11; Discret=1;} break;
-							case 1: {WorkRate=0x01; MaxNumberInputChar=3; ByteShift=0; /*MaxValue=500;MinValue=10;*/ InputParameter=12; Discret=10;} break;
-							case 2: {WorkRate=0x01; MaxNumberInputChar=4; ByteShift=0; /*MaxValue=1000;MinValue=0;*/ InputParameter=13; Discret=10; NumberTransCom=NumberCom;} break;
-							case 3: {
-								WorkRate=0x01;  ByteShift=0; /*MaxValue=9999;MinValue=0;*/ InputParameter=14; Discret=1; NumberTransCom=NumberCom;
-								if (cNumLine==2)
-									if (cNumComR>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
-								else
-									if (cNumPrm==1)
-										if (cNumComR1>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
-									else
-										if (cNumComR2>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
-							} break;
-							case 4: {
-								WorkRate=0x01; ByteShift=0; /*MaxValue=9999;MinValue=0;*/ InputParameter=15; Discret=1; NumberTransCom=NumberCom;
+							case 0: {WorkRate=0x01; MaxNumberInputChar=2; ByteShift=0; InputParameter=11; } break;
+							case 1: {WorkRate=0x01; MaxNumberInputChar=4; ByteShift=0; InputParameter=13; NumberTransCom=NumberCom;} break;
+							case 2: {
+								WorkRate=0x01;  ByteShift=0; /*MaxValue=9999;MinValue=0;*/ InputParameter=14; NumberTransCom=NumberCom;
 								if (cNumLine==2)
 									if (cNumComR>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
 								else
@@ -1818,10 +1780,10 @@ static void FuncPressKey(void)
 					{
 						switch(ShiftMenu)
 						{
-							case 0: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;/*MaxValue=10;MinValue=0;*/InputParameter=17;Discret=1;} break;
-							case 1: {WorkRate=0x01;MaxNumberInputChar=3;ByteShift=0;/*MaxValue=500;MinValue=10;*/InputParameter=18;Discret=10;} break;
-							case 2: {WorkRate=0x01; if (cNumComT!=4) MaxNumberInputChar=8; else MaxNumberInputChar=4;ByteShift=0;/*MaxValue=9999;MinValue=0;*/InputParameter=20;Discret=1; NumberTransCom=NumberCom;} break;
-							case 3: {WorkRate=0x01; if (cNumComT!=4) MaxNumberInputChar=8; else MaxNumberInputChar=4;ByteShift=0;/*MaxValue=9999;MinValue=0;*/InputParameter=21;Discret=1; NumberTransCom=NumberCom;} break;
+							case 0: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=17;} break;
+							case 1: {WorkRate=0x01;MaxNumberInputChar=3;ByteShift=0;InputParameter=18;} break;
+							case 2: {WorkRate=0x01; if (cNumComT!=4) MaxNumberInputChar=8; else MaxNumberInputChar=4;ByteShift=0;InputParameter=20; NumberTransCom=NumberCom;} break;
+							case 3: {WorkRate=0x01; if (cNumComT!=4) MaxNumberInputChar=8; else MaxNumberInputChar=4;ByteShift=0;InputParameter=21; NumberTransCom=NumberCom;} break;
 						}
 						
 						MinValue = paramPrd[ShiftMenu].min * paramPrd[ShiftMenu].div;
@@ -2271,21 +2233,21 @@ void FuncTr(void)
 						{
 							if ((cNumLine==3)&&(cNumPrm==2))
 							{
-								if (ShiftMenu < 2) 
-									TransDataInf(0x18+ShiftMenu,0x00);
-								else if (ShiftMenu == 2) 
-									TransDataInf(0x1A,0x00);
+								if (ShiftMenu == 0) 
+									TransDataInf(0x18, 0x00);
+								else if (ShiftMenu == 1) 
+									TransDataInf(0x1A, 0x00);
 								else 
-									TransDataInf(0x1B+ShiftMenu-3,0x00);
+									TransDataInf(0x1B, 0x00);
 							}
 							else
 							{
-								if (ShiftMenu<2) 
-									TransDataInf(0x11+ShiftMenu,0x00);
-								else if (ShiftMenu==2) 
-									TransDataInf(0x13,0x00);
-								else
-									TransDataInf(0x14+ShiftMenu-3,0x00);
+								if (ShiftMenu == 0) 
+									TransDataInf(0x11, 0x00);
+								else if (ShiftMenu == 1) 
+									TransDataInf(0x13, 0x00);
+								else if (ShiftMenu == 2)
+									TransDataInf(0x14, 0x00);
 							}
 						}break;
 						
@@ -2947,6 +2909,7 @@ static void LCDwork(void)
 					{
 						uint8_t line = 2 + i;
 						uint8_t name = sMenuParam.punkt[j];
+						FuncClearCharLCD(line, 1, 20);
 						LCDprintChar(line, 1, '1' + j);
 						LCDprintChar(line, 2, '.');
 						LCDprintf(line, 3, Menu6point3[name],1);
@@ -3166,11 +3129,11 @@ static void LCDwork(void)
 					}
 					
 					// Вывод названия параметра
-					if (ShiftMenu == 2)
+					if (ShiftMenu == 1)
 					{
 						LCDprintDEC1(2, 18, NumberCom);
 					}
-					else if ( (ShiftMenu == 3) || (ShiftMenu == 4) )
+					else if (ShiftMenu == 2)
 					{
 						if (tNumComR <= 8)
 						{	
@@ -3191,7 +3154,7 @@ static void LCDwork(void)
 						LCDprintf(3, 1, MenuValue,1);
 						LCDprint(3, 11, tmValuePRMparam[ShiftMenu], 1);
 						
-						if (ShiftMenu == 2)
+						if (ShiftMenu == 1)
 						{
 							if (tmValuePrmTimeOff[NumberCom-1] != 255) 
 								LCDprintDEC2(3, 11, tmValuePrmTimeOff[NumberCom - 1]);
@@ -3199,20 +3162,13 @@ static void LCDwork(void)
 								LCDprintf(3, 11, Menu11Err, 1);
 							
 						}
-						else if (ShiftMenu == 3)
+						else if (ShiftMenu == 2)
 						{
 							if (tNumComR > 4)
 								LCDprintBits(3, 11, tmValuePrmBlockCom[NumberCom - 1]);
 							else
 								LCDprintTetr(3, 11, (tmValuePrmBlockCom[0] & 0x0F));
 							
-						}		
-						else if (ShiftMenu == 4)
-						{
-							if (tNumComR > 4)
-								LCDprintBits(3, 11, tmValuePrmLongCom[NumberCom-1]);
-							else
-								LCDprintTetr(3, 11, (tmValuePrmLongCom[0]&0x0F));
 						}
 					}
 					else

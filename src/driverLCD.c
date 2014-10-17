@@ -143,37 +143,19 @@ void LCDprintDEC1(unsigned char Line, unsigned char AddressInLine, unsigned char
 //вывод на экран числа в десятичном виде 4 знаков, со сдвигом вправо
 void LCDprintDEC2(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint)
 {
-	unsigned char StartChar;
-	StartChar = (Line-1)*20 + AddressInLine - 1;
-	
+	unsigned char StartChar = (Line-1)*20 + AddressInLine - 1;
+
 	StartChar += 3;
 	
 	LCDbuf[StartChar--] = '0';
-	while(CodePrint > 0)
-	{
-		LCDbuf[StartChar--] = CodePrint%10 + '0';
-		CodePrint /= 10;
+	for(unsigned char i = 0; i < 3; i++) {
+		if (CodePrint == 0) {
+			LCDbuf[StartChar--] = ' ';
+		} else {
+			LCDbuf[StartChar--] = CodePrint%10 + '0';
+			CodePrint /= 10;
+		}
 	}
-	
-//	CodePrint /= 10;
-//	LCDbuf[StartChar--] = CodePrint%10 + '0';
-//	LCDbuf[StartChar--] = CodePrint/10 + '0';
-	
-//	LCDbuf[StartChar]=CodePrint/100 + '0';
-//	CodePrint = CodePrint-(LCDbuf[StartChar] - '0') * 100;
-//	StartChar++;
-//	LCDbuf[StartChar]=CodePrint/10+0x30;
-//	StartChar++;
-//	LCDbuf[StartChar]=CodePrint%10+0x30;
-//	
-//	if (LCDbuf[StartChar - 2] == 0x30) 
-//		LCDbuf[StartChar - 2]=' ';
-//	
-//	if (LCDbuf[StartChar - 1] == 0x30) 
-//		LCDbuf[StartChar - 1]=' ';
-//	
-//	StartChar++;
-//	LCDbuf[StartChar]='0';
 }
 
 void LCDprintBits(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint){
