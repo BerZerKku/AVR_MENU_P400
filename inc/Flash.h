@@ -70,7 +70,8 @@ __flash unsigned char Menu22[] = "2.Дата/время.";
 __flash unsigned char Menu23[] = "3.Управление.";
 __flash unsigned char Menu24[] = "4.Установить.";
 __flash unsigned char Menu25[] = "5.Просмотр парам.";
-__flash unsigned char Menu26[] = "6.Протокол.";
+__flash unsigned char Menu26[] = "6.Автоконтроль.";
+__flash unsigned char Menu27[] = "7.Протокол.";
 __flash unsigned  __flash char *Menu2point[] = 
 {
 	Menu21,
@@ -78,7 +79,8 @@ __flash unsigned  __flash char *Menu2point[] =
 	Menu23,
 	Menu24,
 	Menu25,
-	Menu26
+	Menu26,
+	Menu27
 };
 
 __flash unsigned char Menu31[] = "1. Дата.            ";
@@ -620,10 +622,12 @@ __flash unsigned char Menu22Shift0[]	= ".Сброс своего.     ";
 __flash unsigned char Menu22Shift1[]	= ".Сброс удаленного. ";
 __flash unsigned char Menu22Shift2[]	= ".Сброс удаленного 1";
 __flash unsigned char Menu22Shift3[]	= ".Сброс удаленного 2";
+__flash unsigned char Menu22Shift3x[]	= ".Сброс удаленного 3";
 __flash unsigned char Menu22Shift4[]	= ".Пуск удаленного.  ";
 __flash unsigned char Menu22Shift5[]	= ".Пуск удаленного 1 ";
 __flash unsigned char Menu22Shift6[]	= ".Пуск удаленного 2 ";
-__flash unsigned char Menu22Shift7[]	= ".Пуск удаленных 1,2";
+__flash unsigned char Menu22Shift6x[]	= ".Пуск удаленного 3 ";
+__flash unsigned char Menu22Shift7[]	= ".Пуск удаленных    ";
 __flash unsigned char Menu22Shift8[]	= ".АК автоматический ";
 __flash unsigned char Menu22Shift9[]	= ".АК ускоренный     ";
 __flash unsigned char Menu22Shift10[]	= ".АК выключен       ";
@@ -641,7 +645,10 @@ __flash unsigned char Menu22Shift21[]	= ".Пуск АК удаленный ";
 __flash unsigned char Menu22Shift22[]	= ".Пуск ПРД          ";
 __flash unsigned char Menu22Shift23[]	= ".Пуск налад. вкл.  ";
 __flash unsigned char Menu22Shift24[]	= ".Пуск налад. выкл. ";
-
+__flash unsigned char Menu22Shift25[] 	= ".Пуск удал. МАН 1  ";
+__flash unsigned char Menu22Shift26[] 	= ".Пуск удал. МАН 2  ";
+__flash unsigned char Menu22Shift27[] 	= ".Пуск удал. МАН 3  ";
+__flash unsigned char Menu22Shift28[] 	= ".Пуск удал-ых МАН  ";
 // Пункты меню управления
 // должно совпадать с eMENUctrlName
 __flash unsigned __flash char* Menu22upr[] = 
@@ -650,9 +657,11 @@ __flash unsigned __flash char* Menu22upr[] =
 	Menu22Shift1,
 	Menu22Shift2,
 	Menu22Shift3,
+	Menu22Shift3x,
 	Menu22Shift4,
 	Menu22Shift5,
 	Menu22Shift6,
+	Menu22Shift6x,
 	Menu22Shift7,
 	Menu22Shift8,
 	Menu22Shift9,
@@ -670,7 +679,11 @@ __flash unsigned __flash char* Menu22upr[] =
 	Menu22Shift21,
 	Menu22Shift22,
 	Menu22Shift23,
-	Menu22Shift24
+	Menu22Shift24,
+	Menu22Shift25,
+	Menu22Shift26,
+	Menu22Shift27,
+	Menu22Shift28
 };
 
 //__flash unsigned char fRes[]	= "Сброс";

@@ -150,6 +150,7 @@ extern  uchar   cNumKF;
 extern void MenuParamGlbCreate(void);
 extern void MenuParamDefCreate(void);
 extern void MenuUprCreate(uint8_t act);
+extern void MenuACCreate(void);
 extern void MenuAKCreate(void);
 extern void MenuTestCreate(void);
 extern unsigned char MaxShiftMenu, ShiftMenu;
@@ -241,6 +242,7 @@ void FParamDef(unsigned char command)
 					MenuParamGlbCreate();
 					MenuParamDefCreate();
 					MenuUprCreate(1);
+					MenuACCreate();
 					MenuAKCreate();
 					MenuTestCreate();
 				}
@@ -1009,6 +1011,7 @@ void FParamGlobal(unsigned char command)
 					MenuParamGlbCreate();
 					MenuParamDefCreate();
 					MenuUprCreate(1);
+					MenuACCreate();
 					MenuAKCreate();
 					MenuTestCreate();
 					if ( (MenuLevel == LVL_GLB_VIEW) || (MenuLevel == LVL_GLB_SETUP) )
@@ -1564,6 +1567,7 @@ void VersDevice(void)
 	MenuParamGlbCreate();
 	MenuParamDefCreate();
 	MenuUprCreate(1);
+	MenuACCreate();
 	MenuAKCreate();
 	MenuTestCreate();
 	

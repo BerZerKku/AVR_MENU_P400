@@ -4,6 +4,7 @@
 #include "Menu.h"
 
 #define dSetUprItem(com,nameItem) sMenuUpr.punkt[num] = com; sMenuUpr.name[num++] = nameItem 
+#define dSetACItem(com,nameItem)  sMenuAC.punkt[num] = com; sMenuAC.name[num++] = nameItem 
 
 void MenuParamGlbCreate	(void);
 void MenuParamDefCreate	(void);
@@ -224,6 +225,55 @@ void MenuUprCreate(uint8_t act)
 				sMenuUpr.punkt[0] = CTRL_COM_START_ON; 
 				sMenuUpr.name[0] = CTRL_NAME_START_ON;
 			}
+			
+			if (cNumLine == 3) {
+				uint8_t num = MenuAllNumDevice[0];
+				if (num != '?') {
+					num -= '0';
+					
+					for(uint8_t i = 0; i < sMenuUpr.num; i++) {
+						if ((sMenuUpr.name[i] == CTRL_NAME_START_REMOTE_1) ||
+							(sMenuUpr.name[i] == CTRL_NAME_START_REMOTE_2))
+						{
+							sMenuUpr.name[i] = (num == 1) ? 
+								CTRL_NAME_START_REMOTE_2 :
+								CTRL_NAME_START_REMOTE_1;
+							sMenuUpr.name[i + 1] = (num == 3) ? 
+								CTRL_NAME_START_REMOTE_2 :
+								CTRL_NAME_START_REMOTE_3;		
+							break;
+						}
+					}
+					
+					for(uint8_t i = 0; i < sMenuUpr.num; i++) {
+						if ((sMenuUpr.name[i] == CTRL_NAME_RESET_REMOTE_1) ||
+							(sMenuUpr.name[i] == CTRL_NAME_RESET_REMOTE_2))
+						{
+							sMenuUpr.name[i] = (num == 1) ? 
+								CTRL_NAME_RESET_REMOTE_2 :
+								CTRL_NAME_RESET_REMOTE_1;
+							sMenuUpr.name[i + 1] = (num == 3) ? 
+								CTRL_NAME_RESET_REMOTE_2 :
+								CTRL_NAME_RESET_REMOTE_3;		
+							break;
+						}
+					}
+					
+					for(uint8_t i = 0; i < sMenuUpr.num; i++) {
+						if ((sMenuUpr.name[i] == CTRL_NAME_REMOTE_MAN_1) ||
+							(sMenuUpr.name[i] == CTRL_NAME_REMOTE_MAN_2))
+						{
+							sMenuUpr.name[i] = (num == 1) ? 
+								CTRL_NAME_REMOTE_MAN_2 :
+								CTRL_NAME_REMOTE_MAN_1;
+							sMenuUpr.name[i + 1] = (num == 3) ? 
+								CTRL_NAME_REMOTE_MAN_2 :
+								CTRL_NAME_REMOTE_MAN_3;		
+							break;
+						}
+					}
+				}
+			}
 		}
 	}
 	else if (act == 1)
@@ -250,11 +300,6 @@ void MenuUprCreate(uint8_t act)
 			{
 				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
 				dSetUprItem(CTRL_COM_RESET_REMOTE, 		CTRL_NAME_RESET_REMOTE);	
-				dSetUprItem(CTRL_COM_AC_AUTO_ACCELERATED,CTRL_NAME_AC_NORMAL);
-				dSetUprItem(CTRL_COM_AC_ACCELERATED,	CTRL_NAME_AC_ACCELERATED);
-				dSetUprItem(CTRL_COM_AC_OFF,			CTRL_NAME_AC_OFF);
-				dSetUprItem(CTRL_COM_AC_TEST,			CTRL_NAME_AC_TEST);
-				dSetUprItem(CTRL_COM_AC_START,			CTRL_NAME_AC_START);
 				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
 			}
 			break;
@@ -262,11 +307,6 @@ void MenuUprCreate(uint8_t act)
 			case 2:		// АВЗК-80		
 			{		
 				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
-				dSetUprItem(CTRL_COM_AC_AUTO_ACCELERATED,CTRL_NAME_AC_NORMAL);
-				dSetUprItem(CTRL_COM_AC_ACCELERATED,	CTRL_NAME_AC_ACCELERATED);
-				dSetUprItem(CTRL_COM_AC_OFF,			CTRL_NAME_AC_OFF);
-				dSetUprItem(CTRL_COM_AC_TEST,			CTRL_NAME_AC_TEST);
-				dSetUprItem(CTRL_COM_AC_START,			CTRL_NAME_AC_START);
 				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
 			}
 			break;
@@ -274,13 +314,18 @@ void MenuUprCreate(uint8_t act)
 			case 3:		// ПВЗУ-Е
 			{
 				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
-				dSetUprItem(CTRL_COM_START_REMOTE,		CTRL_NAME_START_REMOTE);
-				dSetUprItem(CTRL_COM_START_REMOTE_12,	CTRL_NAME_START_REMOTE_MAN);
-				dSetUprItem(CTRL_COM_AC_AUTO_ACCELERATED,CTRL_NAME_AC_NORMAL);
-				dSetUprItem(CTRL_COM_AC_ACCELERATED,	CTRL_NAME_AC_ACCELERATED);
-				dSetUprItem(CTRL_COM_AC_CHECK, 			CTRL_NAME_AC_QUICK);
-				dSetUprItem(CTRL_COM_AC_TEST,			CTRL_NAME_AC_CHECK);
-				dSetUprItem(CTRL_COM_AC_OFF,			CTRL_NAME_AC_OFF);
+				if (cNumLine == 3) {
+					dSetUprItem(CTRL_COM_START_REMOTE,	CTRL_NAME_START_REMOTE_1);
+					dSetUprItem(CTRL_COM_START_REMOTE_2,CTRL_NAME_START_REMOTE_2);
+					dSetUprItem(CTRL_COM_START_REMOTE_12,CTRL_NAME_START_REMOTE_12);
+					dSetUprItem(CTRL_COM_MAN_REMOTE_1,	CTRL_NAME_REMOTE_MAN_1);
+					dSetUprItem(CTRL_COM_MAN_REMOTE_2,	CTRL_NAME_REMOTE_MAN_2);
+					dSetUprItem(CTRL_COM_MAN_REMOTE_12,	CTRL_NAME_REMOTE_MAN_12);
+				} else {
+					dSetUprItem(CTRL_COM_START_REMOTE,	CTRL_NAME_START_REMOTE);
+					dSetUprItem(CTRL_COM_MAN_REMOTE_1,	CTRL_NAME_START_REMOTE_MAN);	
+					dSetUprItem(CTRL_COM_MAN_REMOTE_12,	CTRL_NAME_REMOTE_MAN_12);
+				}
 				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
 			}
 			break;
@@ -288,11 +333,6 @@ void MenuUprCreate(uint8_t act)
 			case 4: 	// ПВЗЛ
 			{
 				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
-				dSetUprItem(CTRL_COM_AC_AUTO_ACCELERATED,CTRL_NAME_AC_NORMAL);
-				dSetUprItem(CTRL_COM_AC_CHECK,			CTRL_NAME_AC_ONE_SIDE);
-				dSetUprItem(CTRL_COM_AC_OFF,			CTRL_NAME_AC_OFF);
-				dSetUprItem(CTRL_COM_RESET_REMOTE,		CTRL_NAME_AC_RESET);
-				dSetUprItem(CTRL_COM_AC_TEST,			CTRL_NAME_AC_START_SELF);
 				dSetUprItem(CTRL_COM_START_REMOTE_2,	CTRL_NAME_AC_START_REMOTE);
 				dSetUprItem(CTRL_COM_START_REMOTE_12, 	CTRL_NAME_START_PRD);
 				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
@@ -305,39 +345,28 @@ void MenuUprCreate(uint8_t act)
 				
 				if (cNumLine == 3)
 				{
-					dSetUprItem(CTRL_COM_RESET_REMOTE, 		CTRL_NAME_RESET_REMOTE_1);
-					dSetUprItem(CTRL_COM_RESET_REMOTE_2,	CTRL_NAME_RESET_REMOTE_2);			
+					dSetUprItem(CTRL_COM_RESET_REMOTE, 	CTRL_NAME_RESET_REMOTE_1);
+					dSetUprItem(CTRL_COM_RESET_REMOTE_2,CTRL_NAME_RESET_REMOTE_2);			
 					
 					if (bDef)
 					{
-						dSetUprItem(CTRL_COM_START_REMOTE,		CTRL_NAME_START_REMOTE_1);
-						dSetUprItem(CTRL_COM_START_REMOTE_2,	CTRL_NAME_START_REMOTE_2);
-						dSetUprItem(CTRL_COM_START_REMOTE_12,	CTRL_NAME_START_REMOTE_12);
-						
-						if (cTypeLine == 1)													
-						{
-							// в ВЛ есть смена АК
-							dSetUprItem(CTRL_COM_AC_AUTO_ACCELERATED, 	CTRL_NAME_AC_AUTO);
-							dSetUprItem(CTRL_COM_AC_ACCELERATED,		CTRL_NAME_AC_ACCELERATED);
-							dSetUprItem(CTRL_COM_AC_OFF,				CTRL_NAME_AC_OFF);
-						}
+						dSetUprItem(CTRL_COM_START_REMOTE,	 CTRL_NAME_START_REMOTE_1);
+						dSetUprItem(CTRL_COM_START_REMOTE_2, CTRL_NAME_START_REMOTE_2);
+						dSetUprItem(CTRL_COM_START_REMOTE_12,CTRL_NAME_START_REMOTE_12);
 					}
 				}
 				else
 				{
-					dSetUprItem(CTRL_COM_RESET_REMOTE,		CTRL_NAME_RESET_REMOTE);
+					dSetUprItem(CTRL_COM_RESET_REMOTE, CTRL_NAME_RESET_REMOTE);
 					
 					if (bDef)
 					{
-						dSetUprItem(CTRL_COM_START_REMOTE,		CTRL_NAME_START_REMOTE);
+						dSetUprItem(CTRL_COM_START_REMOTE, CTRL_NAME_START_REMOTE);
 						
 						if (cTypeLine == 1)													
 						{
-							// в ВЛ есть смена АК и вызов
-							dSetUprItem(CTRL_COM_AC_AUTO_ACCELERATED, 	CTRL_NAME_AC_AUTO);
-							dSetUprItem(CTRL_COM_AC_ACCELERATED,		CTRL_NAME_AC_ACCELERATED);
-							dSetUprItem(CTRL_COM_AC_OFF,				CTRL_NAME_AC_OFF);
-							dSetUprItem(CTRL_COM_CALL,					CTRL_NAME_CALL);
+							// в ВЛ есть и вызов
+							dSetUprItem(CTRL_COM_CALL, CTRL_NAME_CALL);
 						}
 					}
 				}
@@ -347,6 +376,72 @@ void MenuUprCreate(uint8_t act)
 		sMenuUpr.num = num;	
 	}
 }
+
+/** Формирование списка команд управления АК в зависимости от совместимости.
+ *	
+ *	@return Нет
+ */
+void MenuACCreate(void)
+{
+	char num = 0;
+	
+	switch(TypeUdDev)
+	{
+		case 1:		// ПВЗ-90	
+		{	
+			dSetACItem(CTRL_COM_AC_AUTO_ACCELERATED,	CTRL_NAME_AC_NORMAL);
+			dSetACItem(CTRL_COM_AC_ACCELERATED,		CTRL_NAME_AC_ACCELERATED);
+			dSetACItem(CTRL_COM_AC_OFF,				CTRL_NAME_AC_OFF);
+			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_TEST);
+			dSetACItem(CTRL_COM_AC_START,				CTRL_NAME_AC_START);
+		}
+		break;
+		
+		case 2:		// АВЗК-80		
+		{		
+			dSetACItem(CTRL_COM_AC_AUTO_ACCELERATED,	CTRL_NAME_AC_NORMAL);
+			dSetACItem(CTRL_COM_AC_ACCELERATED,			CTRL_NAME_AC_ACCELERATED);
+			dSetACItem(CTRL_COM_AC_OFF,					CTRL_NAME_AC_OFF);
+			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_TEST);
+			dSetACItem(CTRL_COM_AC_START,				CTRL_NAME_AC_START);
+		}
+		break;
+		
+		case 3:		// ПВЗУ-Е
+		{
+			dSetACItem(CTRL_COM_AC_AUTO_ACCELERATED,	CTRL_NAME_AC_NORMAL);
+			dSetACItem(CTRL_COM_AC_ACCELERATED,			CTRL_NAME_AC_ACCELERATED);
+			dSetACItem(CTRL_COM_AC_CHECK, 				CTRL_NAME_AC_QUICK);
+			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_CHECK);
+			dSetACItem(CTRL_COM_AC_OFF,					CTRL_NAME_AC_OFF);
+		}
+		break;
+		
+		case 4: 	// ПВЗЛ
+		{
+			dSetACItem(CTRL_COM_AC_AUTO_ACCELERATED,	CTRL_NAME_AC_NORMAL);
+			dSetACItem(CTRL_COM_AC_CHECK,				CTRL_NAME_AC_ONE_SIDE);
+			dSetACItem(CTRL_COM_AC_OFF,					CTRL_NAME_AC_OFF);
+			dSetACItem(CTRL_COM_RESET_REMOTE,			CTRL_NAME_AC_RESET);
+			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_START_SELF);
+		}
+		break;
+		
+		default:	// АВАНТ
+		{
+			if (cTypeLine == 1)													
+			{
+				// в ВЛ есть смена АК и вызов
+				dSetACItem(CTRL_COM_AC_AUTO_ACCELERATED,CTRL_NAME_AC_AUTO);
+				dSetACItem(CTRL_COM_AC_ACCELERATED,		CTRL_NAME_AC_ACCELERATED);
+				dSetACItem(CTRL_COM_AC_OFF,				CTRL_NAME_AC_OFF);
+			}
+		}
+	}
+	
+	sMenuAC.num = num;	
+}
+
 
 
 /** Формирование списка типов АК в зависимости от типа совместимости
@@ -478,7 +573,7 @@ static void Menu_Second(void)
 	LCDbufClMenu();
 	LCDtimerNew=1;
 	ShiftMenu=0;
-	MaxShiftMenu=3;
+	MaxShiftMenu=4;
 	MaxDisplayLine=3;
 	LCD2new=1;
 }
@@ -662,6 +757,19 @@ static void Menu_Upr(void)
   	LCD2new=1;
 }
 
+static void Menu_AC(void)
+{
+	MenuLevel = LVL_AC;
+  	LCDbufClMenu();
+  	ShiftMenu = 0;
+  	MaxDisplayLine = 3;
+	if (sMenuAC.num > 3)
+  		MaxShiftMenu = sMenuAC.num - 3;
+	else
+		MaxShiftMenu = 0;
+  	LCD2new=1;
+}
+
 static void PressInMenuDataTime(char Key)
 { //нажатеи в меню Дата/Время
 	WorkRate=0x03;
@@ -683,16 +791,7 @@ static void PressInMenuReset(char key)
 	
 	char value = sMenuUpr.punkt[key];
 	
-	if (value & 0x80)
-	{
-		// управление
-		TrValue = 0x72;
-	}
-	else
-	{
-		// автоконтроль
-		TrValue = 0x8A;
-	}
+	TrValue = (value & 0x80) ? 	 0x72 : 0x8A;
 	
 	SelectValue = value & 0x7F;
 	ShiftMenu = key;
@@ -701,4 +800,24 @@ static void PressInMenuReset(char key)
   	MassSelectValue = fReset; 
 }
 
+/** Выбор пункта в меню Автоконтроль
+*	@param key Код нажатой кнопки
+*	@return Нет
+*/
+static void PressInMenuAC(char key)
+{  	
+	key--;
+	if (key >= sMenuAC.num)
+		return;
+	
+	char value = sMenuAC.punkt[key];
+	
+	TrValue = (value & 0x80) ? 	 0x72 : 0x8A;
+	
+	SelectValue = value & 0x7F;
+	ShiftMenu = key;
+  	WorkRate = 2; 		
+	MaxValue = MinValue = InputSelectValue = 0;
+  	MassSelectValue = fReset;  
+}
 

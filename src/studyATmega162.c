@@ -126,7 +126,7 @@ unsigned int iTimeToAK = 0, iTimeToAKnow = 0;
 unsigned char MenuAKdecrease=2;  //снижение АК, изначально хз че
 uchar MenuFreqPRD = dMaxMenuAllFreq;
 uchar MenuFreqPRM = dMaxMenuAllFreq;
-strMenuGlbParam sMenuDefParam, sMenuUpr;
+strMenuGlbParam sMenuDefParam, sMenuUpr, sMenuAC;
 
 //параметры Приемника
 unsigned char MenuPrmTimeOn[]="?? мс";
@@ -672,6 +672,7 @@ static void FuncSelectValue(void)
 				}
 				break;
 				
+				case LVL_AC:
 				case LVL_UPR:
 				{
 					TrParam = SelectValue;
@@ -1221,6 +1222,10 @@ static void FuncPressKey(void)
 				case LVL_UPR: 			
 				PressInMenuReset(1); 				
 				break;
+				
+				case LVL_AC:
+				PressInMenuAC(1);
+				break;
 			}
 		}break;
 		
@@ -1273,6 +1278,10 @@ static void FuncPressKey(void)
 				case LVL_UPR: 			
 				PressInMenuReset(2); 				
 				break;
+				
+				case LVL_AC:
+				PressInMenuAC(2);
+				break;
 			}
         }break;
 		
@@ -1323,6 +1332,10 @@ static void FuncPressKey(void)
 				
 				case LVL_UPR: 			
 				PressInMenuReset(3); 				
+				break;
+				
+				case LVL_AC:
+				PressInMenuAC(3);
 				break;
 			}
         }break;
@@ -1443,18 +1456,21 @@ static void FuncPressKey(void)
 				case LVL_UPR: 
 				PressInMenuReset(4); 
 				break;
+				
+				case LVL_AC:
+				PressInMenuAC(4);
+				break;
 			}
         }break;
         case '5':
 		{
-			if (MenuLevel == LVL_MENU)
-			{
+			if (MenuLevel == LVL_MENU) {
 				// переход в Просмотр параметров
 				Menu_ParamSetup(LVL_PARAM_VIEW); 								
-			}
-			else if (MenuLevel == LVL_UPR) 
-			{
+			} else if (MenuLevel == LVL_UPR) {
 				PressInMenuReset(5);
+			} else if (MenuLevel == LVL_AC) {
+				PressInMenuAC(5);
 			}
         }break;
 		
@@ -1474,7 +1490,7 @@ static void FuncPressKey(void)
 				break; 		
 				
 				case LVL_MENU: 	
-				Menu_Protocol(); 
+				Menu_AC(); 
 				break;
 
 				case LVL_DEF_VIEW:
@@ -1558,14 +1574,19 @@ static void FuncPressKey(void)
 				case LVL_UPR: 
 				PressInMenuReset(6); 
 				break;
+				
+				case LVL_AC:
+				PressInMenuAC(6);
+				break;
 			}
         }break;
 		
         case '7':{
-			if (MenuLevel == LVL_MENU) 
-				Menu_Info();
-			if (MenuLevel == LVL_UPR) 
+			if (MenuLevel == LVL_MENU) { 
+				Menu_Protocol(); 	
+			} else if (MenuLevel == LVL_UPR) { 
 				PressInMenuReset(7);
+			}
         }
 		break;
 		
@@ -1586,9 +1607,11 @@ static void FuncPressKey(void)
 					eAddressWrite = 5;
 					eMassiveWrite = eNumberAskMeasuring;
 				}
-			}
-			if (MenuLevel == LVL_UPR) 
+			} else if (MenuLevel == LVL_MENU) {
+				Menu_Info();
+			} else if (MenuLevel == LVL_UPR) {
 				PressInMenuReset(8);
+			}
         }
 		break;
 		
@@ -1627,7 +1650,8 @@ static void FuncPressKey(void)
 				case LVL_PARAM_VIEW:
 				case LVL_PROTOCOL:
 				case LVL_INFO:
-				case LVL_UPR: 			Menu_Second(); 	break;  				//возврат в меню 2-ого уровня
+				case LVL_UPR: 			
+				case LVL_AC: 			Menu_Second(); 	break;  				//возврат в меню 2-ого уровня
 				
 				case LVL_DEF_VIEW:
 				case LVL_PRM_VIEW:
@@ -1678,6 +1702,7 @@ static void FuncPressKey(void)
 				case LVL_INFO:
 				case LVL_TEST:
 				case LVL_UPR:
+				case LVL_AC:
 				{
 					if (ShiftMenu > 0) 
 					{
@@ -1746,6 +1771,7 @@ static void FuncPressKey(void)
 				case LVL_INFO:
 				case LVL_TEST:
 				case LVL_UPR:
+				case LVL_AC:
 				{
 					if (ShiftMenu < MaxShiftMenu) 
 					{
@@ -2199,12 +2225,10 @@ void FuncTr(void)
 				{  	
 					//если находимся в архивах, пошлем команду опроса кол-ва записей
 					TransDataInf(0xF1-(sArchive.Dev[sArchive.CurrDev]<<4),0);
-				}
-				else
-				{	
+				} else {
 					//посылаем команду запроса текущего состояния
 					TransDataInf(0x30, 0x00); 
-				}
+				} 
 			}
 			else if ( (LoopUART == 3) || (LoopUART == 7) )  //опрашиваем примерно раз в 0.5 сек
             {
@@ -2335,6 +2359,10 @@ void FuncTr(void)
 								TransDataInf(0xF2-(sArchive.Dev[sArchive.CurrDev]<<4), 0x02);
 							}
 						}break;
+						
+						case LVL_UPR:
+						TransDataInf(0x3B, 0x00);
+						break;
 						
 						default: 
 						TransDataInf(0x31, 0x00); 	//посылаем запрос общего текущего состояния
@@ -2504,6 +2532,7 @@ void FuncTr(void)
 						break;
 						
 						case LVL_UPR:
+						case LVL_AC:
 						{ 
 							//сброс аппаратов
 							TransDataByte(TrValue, TrParam);
@@ -3504,6 +3533,34 @@ static void LCDwork(void)
 					{
 						LCDprintChar(2, 1, ShiftMenu + '0');
 						LCDprintf(2, 2, 2, Menu22upr[sMenuUpr.name[ShiftMenu]], 1);
+						FuncClearCharLCD(3,1,20);
+					}
+					LCD2new=0;
+				}break;
+				case LVL_AC:
+				{
+					if (WorkRate==0)
+					{ 
+						
+						//идет выбор пункта
+						if (ShiftMenu > MaxShiftMenu) 
+							ShiftMenu = MaxShiftMenu;
+						
+						// определим кол-во отображаемых строк
+						uint8_t num = sMenuAC.num;
+						if (num > 3)
+							num = 3;
+						
+						for (uint8_t i = 0; i < num; i++)
+						{
+							LCDprintChar(2 + i, 1, i + ShiftMenu + '1');
+							LCDprintf(2 + i, 2, 2, Menu22upr[sMenuAC.name[i + ShiftMenu]], 1);
+						}
+					}
+					else
+					{
+						LCDprintChar(2, 1, ShiftMenu + '1');
+						LCDprintf(2, 2, 2, Menu22upr[sMenuAC.name[ShiftMenu]], 1);
 						FuncClearCharLCD(3,1,20);
 					}
 					LCD2new=0;
