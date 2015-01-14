@@ -49,6 +49,7 @@ void MenuParamGlbCreate(void)
 			sMenuGlbParam.punkt[num] = 0; 	sMenuGlbParam.name[num++] = 0;		// Совместимость
 			sMenuGlbParam.punkt[num] = 2; 	sMenuGlbParam.name[num++] = 2;		// Uвых номинальное
 			sMenuGlbParam.punkt[num] = 4;	sMenuGlbParam.name[num++] = 4;		// Сетевой адрес
+			sMenuGlbParam.punkt[num] = 6;	sMenuGlbParam.name[num++] = 6;		// Частота
 			sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;		// Номер аппарата
 			sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;		// Контроль вых.сигнала
 			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
@@ -62,6 +63,7 @@ void MenuParamGlbCreate(void)
 			sMenuGlbParam.punkt[num] = 0; 	sMenuGlbParam.name[num++] = 0;		// Совместимость
 			sMenuGlbParam.punkt[num] = 2; 	sMenuGlbParam.name[num++] = 2;		// Uвых номинальное
 			sMenuGlbParam.punkt[num] = 4; 	sMenuGlbParam.name[num++] = 4;		// Сетевой адрес
+			sMenuGlbParam.punkt[num] = 6;	sMenuGlbParam.name[num++] = 6;		// Частота
 			sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;		// Номер аппарата
 			sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;		// Контроль вых.сигнала
 			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
@@ -100,6 +102,7 @@ void MenuParamGlbCreate(void)
 			sMenuGlbParam.punkt[num] = 0; 	sMenuGlbParam.name[num++] = 0;		// Совместимость
 			sMenuGlbParam.punkt[num] = 2; 	sMenuGlbParam.name[num++] = 2;		// Uвых номинальное
 			sMenuGlbParam.punkt[num] = 4;	sMenuGlbParam.name[num++] = 4;		// Сетевой адрес
+			sMenuGlbParam.punkt[num] = 6;	sMenuGlbParam.name[num++] = 6;		// Частота
 			sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;		// Номер аппарата
 			sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;		// Контроль вых.сигнала
 			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
@@ -163,8 +166,8 @@ void MenuParamDefCreate(void)
 			sMenuDefParam.punkt[num++] = 0;		// Тип Защиты
 			sMenuDefParam.punkt[num++] = 1;		// Тип Линии
 			sMenuDefParam.punkt[num++] = 2;		// Доп. время без ман.
-			sMenuDefParam.punkt[num++] = 3;		// Задержка на линии
-			sMenuDefParam.punkt[num++] = 4;		// Перекрытие импульсов
+//			sMenuDefParam.punkt[num++] = 3;		// Задержка на линии
+//			sMenuDefParam.punkt[num++] = 4;		// Перекрытие импульсов
 			sMenuDefParam.punkt[num++] = 5;		// Загр чувствит по  РЗ
 			sMenuDefParam.punkt[num++] = 7;		// Частота ПРД
 			sMenuDefParam.punkt[num++] = 8;		// Частота ПРМ
@@ -175,8 +178,8 @@ void MenuParamDefCreate(void)
 		{
 			sMenuDefParam.punkt[num++] = 0;		// Тип Защиты
 			sMenuDefParam.punkt[num++] = 2;		// Доп. время без ман.
-			sMenuDefParam.punkt[num++] = 3;		// Задержка на линии
-			sMenuDefParam.punkt[num++] = 4;		// Перекрытие импульсов
+//			sMenuDefParam.punkt[num++] = 3;		// Задержка на линии
+//			sMenuDefParam.punkt[num++] = 4;		// Перекрытие импульсов
 			sMenuDefParam.punkt[num++] = 5;		// Загр чувствит по  РЗ
 			sMenuDefParam.punkt[num++] = 7;		// Частота ПРД
 			sMenuDefParam.punkt[num++] = 8;		// Частота ПРМ
@@ -188,9 +191,8 @@ void MenuParamDefCreate(void)
 			sMenuDefParam.punkt[num++] = 0;		// Тип Защиты
 			sMenuDefParam.punkt[num++] = 1;		// Тип Линии
 			sMenuDefParam.punkt[num++] = 2;		// Доп. время без ман.
-			sMenuDefParam.punkt[num++] = 3;		// Задержка на линии
-			sMenuDefParam.punkt[num++] = 4;		// Перекрытие импульсов
-			
+//			sMenuDefParam.punkt[num++] = 3;		// Задержка на линии
+//			sMenuDefParam.punkt[num++] = 4;		// Перекрытие импульсов
 			if (cTypeLine == 1)						// в ВЛ есть дополнительные параметры
 			{
 				sMenuDefParam.punkt[num++] = 5;	// Загр чувствит по  РЗ						 	
@@ -198,6 +200,10 @@ void MenuParamDefCreate(void)
 			}
 		}
 	}	
+	sMenuDefParam.punkt[num++] = 9;	// Сдвиг пер.фронта ПРД
+	sMenuDefParam.punkt[num++] = 10;// Сдвиг зад.фронта ПРД
+	sMenuDefParam.punkt[num++] = 11;// Сдвиг ПРМ
+	sMenuDefParam.punkt[num++] = 12;// Сдвиг ВЧ ПРД от ПУСК
 	
 	sMenuDefParam.num = num;
 }
@@ -317,7 +323,7 @@ void MenuUprCreate(uint8_t act)
 				if (cNumLine == 3) {
 					dSetUprItem(CTRL_COM_START_REMOTE,	CTRL_NAME_START_REMOTE_1);
 					dSetUprItem(CTRL_COM_START_REMOTE_2,CTRL_NAME_START_REMOTE_2);
-					dSetUprItem(CTRL_COM_START_REMOTE_12,CTRL_NAME_START_REMOTE_12);
+//					dSetUprItem(CTRL_COM_START_REMOTE_12,CTRL_NAME_START_REMOTE_12);
 					dSetUprItem(CTRL_COM_MAN_REMOTE_1,	CTRL_NAME_REMOTE_MAN_1);
 					dSetUprItem(CTRL_COM_MAN_REMOTE_2,	CTRL_NAME_REMOTE_MAN_2);
 					dSetUprItem(CTRL_COM_MAN_REMOTE_12,	CTRL_NAME_REMOTE_MAN_12);

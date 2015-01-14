@@ -38,6 +38,11 @@ extern unsigned char cAutoControl;
 extern unsigned int iTimeToAK, iTimeToAKnow;
 extern unsigned char MenuAKdecrease;
 extern uchar MenuFreqPRD, MenuFreqPRM;
+extern unsigned char MenuDefShftFront[];
+extern unsigned char MenuDefShftBack[];
+extern unsigned char MenuDefShftPrm[];
+extern unsigned char MenuDefShftPrd[];
+extern unsigned char* MenuDefShft[];
 
 extern __flash uint RangPost[] [3];
 //параметры ПРМ-ка
@@ -303,42 +308,55 @@ void FParamDef(unsigned char command)
 			}
 		}break;
 		case 0x05:{//принято значение перекрытия импульсов (пост)
-			if (cTypeLine == 1)
-			{
-				min = RangPost[4] [0];
-				max = RangPost[4] [1];
-			}
-			else
-			{
-				min = 0;
-				max = 54;
-			}
-			
-			if ((tmp < min) || (tmp > max)) 
-			{
-				MenuCoveringImpulse1[0] = '?';
-				MenuCoveringImpulse1[1] = '?';
-			}
-			else
-			{	
-				MenuCoveringImpulse1[0] = tmp/10 + '0';
-				MenuCoveringImpulse1[1] = tmp%10 + '0';
+//			if (cTypeLine == 1)
+//			{
+//				min = RangPost[4] [0];
+//				max = RangPost[4] [1];
+//			}
+//			else
+//			{
+//				min = 0;
+//				max = 54;
+//			}
+//			
+//			if ((tmp < min) || (tmp > max)) 
+//			{
+//				MenuCoveringImpulse1[0] = '?';
+//				MenuCoveringImpulse1[1] = '?';
+//			}
+//			else
+//			{	
+//				MenuCoveringImpulse1[0] = tmp/10 + '0';
+//				MenuCoveringImpulse1[1] = tmp%10 + '0';
+//				
+//				if ( (cTypeLine == 2) && (cNumLine == 3) )						// в 3-х концевой оптике параметр дублируется
+//				{
+//					tmp = Rec_buf_data_uart[5];
+//					if ((tmp < min) || (tmp > max)) 
+//					{
+//						MenuCoveringImpulse2[0] = '?';
+//						MenuCoveringImpulse2[1] = '?';
+//					}
+//					else
+//					{
+//						MenuCoveringImpulse2[0] = (tmp / 10) + '0';
+//						MenuCoveringImpulse2[1] = (tmp % 10) + '0';
+//					}
+//				}
+// 			}
+			min = 0;
+			max = 72; 
+			for(unsigned char i = 0; i < 4; i++) {
+				tmp = Rec_buf_data_uart[4 + i];
 				
-				if ( (cTypeLine == 2) && (cNumLine == 3) )						// в 3-х концевой оптике параметр дублируется
-				{
-					tmp = Rec_buf_data_uart[5];
-					if ((tmp < min) || (tmp > max)) 
-					{
-						MenuCoveringImpulse2[0] = '?';
-						MenuCoveringImpulse2[1] = '?';
-					}
-					else
-					{
-						MenuCoveringImpulse2[0] = (tmp / 10) + '0';
-						MenuCoveringImpulse2[1] = (tmp % 10) + '0';
-					}
+				if ((tmp < min) || (tmp > max)) {
+					MenuDefShft[i] [0] = '?';
+					MenuDefShft[i] [1] = '?';
+				} else {
+					MenuDefShft[i] [0] = tmp/10 + '0';
+					MenuDefShft[i] [1] = tmp%10 + '0';
 				}
- 			}
+			}
 		}break;
 		case 0x06:
 		{//принято значение напряжения порога (пост)
@@ -392,7 +410,7 @@ void FParamDef(unsigned char command)
 		break;
 		case 0x0A:
 		{
-			if ( (tmp < RangPost[9] [0]) || (tmp > RangPost[9] [1]) )
+			if ( (tmp < RangPost[13] [0]) || (tmp > RangPost[13] [1]) )
 			{
 				cAutoControl = 0;
 			}

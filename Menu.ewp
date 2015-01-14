@@ -895,11 +895,11 @@
         </option>
         <option>
           <name>GenerateExtraOutput</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XExtraOutOverride</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>ExtraOutputFile</name>
@@ -908,7 +908,7 @@
         <option>
           <name>ExtraOutputFormat</name>
           <version>11</version>
-          <state>25</state>
+          <state>22</state>
         </option>
         <option>
           <name>ExtraFormatVariant</name>

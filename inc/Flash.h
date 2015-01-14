@@ -163,6 +163,10 @@ __flash unsigned char Menu75[] =	"Загр чувствит по  РЗ";
 __flash unsigned char Menu76[] =	"Снижение уровня АК  ";
 __flash unsigned char Menu77[] =	"Частота ПРД";
 __flash unsigned char Menu78[] =	"Частота ПРМ";
+__flash unsigned char Menu79[] = 	"Сдвиг пер.фронта ПРД";
+__flash unsigned char Menu710[] = 	"Сдвиг зад.фронта ПРД";
+__flash unsigned char Menu711[] = 	"Сдвиг ПРМ";
+__flash unsigned char Menu712[] = 	"Сдвиг ВЧ ПРД от ПУСК";
 __flash unsigned __flash char *Menu7paramPOST[] = 
 {
 	Menu70,
@@ -173,7 +177,11 @@ __flash unsigned __flash char *Menu7paramPOST[] =
 	Menu75,
 	Menu76,
 	Menu77,
-	Menu78
+	Menu78,
+	Menu79,
+	Menu710,
+	Menu711,
+	Menu712
 };
 // кол-во параметров поста
 #define NumParamDef (sizeof(Menu7paramPOST) / sizeof(Menu7paramPOST[0]))
@@ -544,6 +552,10 @@ __flash uint RangPost[NumParamDef + 1] [3] =
 	0,	1,		1,  	// снижение уровня АК
 	0,	4,		1,		// частота ПРД
 	0,	4,		1,		// частота ПРМ
+	0,	72,		1,		// сдвиг переднего фронта ПРД
+	0,	72,		1,		// сдвиг заднего фронта ПРД
+	0,	72,		1,		// сдвиг ПРМ
+	0,	72,		1,		// сдвиг ВЧ ПРД от ПУСК
 	1,	9,		1   	// автоконтроль, всегда в конце  !!! Не забыть исправить в DataCener и StudyATmega162 (обработчик нажатия 'C')!!!*/
 };
 

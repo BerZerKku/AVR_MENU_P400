@@ -118,6 +118,11 @@ unsigned char* MenuPossibleTimeSignal[]={MenuPossibleTimeSignal1, MenuPossibleTi
 unsigned char MenuCoveringImpulse1[]="?? град";
 unsigned char MenuCoveringImpulse2[]="?? град";
 unsigned char* MenuCoveringImpulse[]={MenuCoveringImpulse1, MenuCoveringImpulse2};
+unsigned char MenuDefShftFront[]="?? град";
+unsigned char MenuDefShftBack[] ="?? град";
+unsigned char MenuDefShftPrm[]  ="?? град";
+unsigned char MenuDefShftPrd[]  ="?? град";
+unsigned char* MenuDefShft[] = {MenuDefShftFront,MenuDefShftBack,MenuDefShftPrm,MenuDefShftPrd};
 unsigned char MenuVoltageLimit1[]="?? дБ";
 unsigned char MenuVoltageLimit2[]="?? дБ";
 unsigned char* MenuVoltageLimit[]={MenuVoltageLimit1,MenuVoltageLimit2};
@@ -1028,6 +1033,7 @@ static void FuncInputData(void)
 				case 28: {TrParam=InputParameter-22;TrValueD=TempValueD;} break;
 				case 29: {TrParam=InputParameter-22;TrValue=TempValue;} break;
 				case 30: {TrParam=8; TrValue=TempValue;} break; //параметр прм/напряжение порога
+				case 35: {TrParam=5; TrValue=TempValue;} break;
 				case 0x39: {TrParam = 0x39; TrValue = TempValue;} break;
 				case 0xB6: {TrParam=2; TrValue=TempValue;} break; //параметр общий , Uвых номинальное
 			}
@@ -1871,6 +1877,10 @@ static void FuncPressKey(void)
 							case 6: {WorkRate=2;SelectValue=7;InputSelectValue=0;MassSelectValue=MenuAllSynchrTimerNum;} break;
 							case 7: {WorkRate=2;SelectValue=8;InputSelectValue=0;MassSelectValue=fmMenuAllFreq;}break;
 							case 8: {WorkRate=2;SelectValue=9;InputSelectValue=0;MassSelectValue=fmMenuAllFreq;}break;
+							case 9: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=1;} break;  //
+							case 10:{WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=2;} break;  //
+							case 11:{WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=3;} break;  //
+							case 12:{WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=4;} break;  //
 						}
 						
 						if (sMenuDefParam.punkt[ShiftMenu] < NumParamDef)
@@ -2257,7 +2267,11 @@ void FuncTr(void)
 						case LVL_DEF_SETUP:	
 						{	
 							//считывание параметров ПОСТа
-							TransDataInf(0x01 + sMenuDefParam.punkt[ShiftMenu],0x00);
+							if (sMenuDefParam.punkt[ShiftMenu] < 9) {
+								TransDataInf(0x01 + sMenuDefParam.punkt[ShiftMenu],0x00);
+							} else {
+								TransDataInf(0x05 ,0x00);
+							}
 						}break;
 						
 						case LVL_GLB_VIEW:
@@ -2386,10 +2400,18 @@ void FuncTr(void)
 						
 						case LVL_DEF_SETUP:
 						{
-							if (cNumLine != 3)
+							if (TrParam == 5) {
+								Tr_buf_data_uart[4] = TrValue;
+								Tr_buf_data_uart[5] = NumberTransCom;
+								TransDataInf(0x85, 2);
+								NumberTransCom=0x00;
+//								Tr_buf_data_uart1[4] = TrValue;
+//								Tr_buf_data_uart1[5] = NumberTransCom;
+//								TransDataInf1(0x85, 2);
+							} else if (cNumLine != 3) {
 								TransDataByte(0x80 + TrParam, TrValue); //если 2-х концевая версия
-							else  //если 3-х концевая линия
-								if ( (TrParam>=4) && (TrParam<=6) )
+							} else {  //если 3-х концевая линия
+								if ( (TrParam==4) && (TrParam==6) )
 								{
 									Tr_buf_data_uart[4] = TrValue;
 									Tr_buf_data_uart[5] = NumberTransCom;
@@ -2398,6 +2420,7 @@ void FuncTr(void)
 								}
 								else
 									TransDataByte(0x80 + TrParam,TrValue);
+							}
 						}break;
 						
 						case LVL_PRM_SETUP:
@@ -3047,6 +3070,18 @@ static void LCDwork(void)
 								break;
 								case 8:
 								LCDprintf(3, 11, 2, fmMenuAllFreq[MenuFreqPRM], 1);
+								break;
+								case 9:
+								LCDprint(3, 11, 2, MenuDefShftFront, 1);
+								break;
+								case 10:
+								LCDprint(3, 11, 2, MenuDefShftBack, 1);
+								break;
+								case 11:
+								LCDprint(3, 11, 2, MenuDefShftPrm, 1);
+								break;
+								case 12:
+								LCDprint(3, 11, 2, MenuDefShftPrd, 1);
 								break;
 							}
 						}
@@ -3702,6 +3737,17 @@ __C_task main(void)
 	eAddressRead = 0;
 	eMassiveRead = ePassword;
 	while(eRead);
+	
+	// После перепрошивки пароль пользователя заисан как "FF FF FF FF"
+	// поэтмоу при обнаружении FF исправим пароль на 0000
+	for(char i = 0; i < (sizeof(ePassword) - 1); i++) {
+		if (ePassword[i] == 0x00) {
+			for(char j = 0; j < (sizeof(ePassword) - 1); j++) {
+				ePassword[j] = 0x30;
+			}
+			break;
+		}
+	}
 	
 	// скопируем выводимые на экран пар-ры из EEPROM во флэш
 	eRead = 1;
