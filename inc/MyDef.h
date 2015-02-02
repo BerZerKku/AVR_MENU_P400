@@ -1,7 +1,7 @@
 #ifndef __MY_DEF
 #define __MY_DEF
 //версия прошивки, если первый ноль - то убираем
-#define Insertion 0x0755
+#define Insertion 0x0756
 
 // выставочный вариант
 // отключение неисправностей, отключение контроля версии
@@ -151,6 +151,8 @@ struct strParamPVZUE
 	uchar porog[10];	// порог по помехе
 	uchar noise[10];	// допустимая помеха
 	uchar autocontrol;	// тип автоконтроля
+	uchar periodAC[10];	// период беглого режима АК
+	uchar periodACre[10];// период повтора беглого режима АК
 };
 
 struct strParamOpt

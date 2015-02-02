@@ -59,7 +59,7 @@ __interrupt void Timer2_ovf(void){
   }
 }
 
-void LCDprint(unsigned char Line, unsigned char AddressInLine, unsigned char LCDstatus, unsigned char* bufer, unsigned char convers){
+void LCDprint(unsigned char Line, unsigned char AddressInLine, unsigned char* bufer, unsigned char convers){
   unsigned char StartChar, i2=0;
   StartChar=(Line-1)*20+AddressInLine-1;
   while(bufer[i2]!=0x00){
@@ -168,29 +168,25 @@ void LCDprintTetr(unsigned char Line, unsigned char AddressInLine, unsigned char
   }while(temp!=0);
 }
 
-void LCDprintf(unsigned char Line, unsigned char AddressInLine, unsigned char LCDstatus, unsigned __flash char* buferf, unsigned char convers)
+void LCDprintf(unsigned char Line, unsigned char AddressInLine, unsigned __flash char* buferf, unsigned char convers)
 {
-  unsigned char StartChar, i2=0;
-  StartChar=(Line-1)*20+AddressInLine-1;
-  while(buferf[i2]!=0x00)
-    {
-      if (convers==1)
-        {
-          if ((buferf[i2]>='À')&&(buferf[i2]<='ÿ')) LCDbuf[StartChar+i2]=CodeLetterLCD[buferf[i2]-192];
-          else LCDbuf[StartChar+i2]=buferf[i2];
-        }
-      else
-        if (convers==2)
-          {
-            LCDbuf[StartChar+i2]=0x20;
-          }
-        else
-          {
-            LCDbuf[StartChar+i2]=buferf[i2];
-          }
-      i2++;
+	unsigned char StartChar, i2=0;
+	StartChar=(Line-1)*20+AddressInLine-1;
+	while(buferf[i2]!=0x00) {
+		if (convers==1){
+			if ((buferf[i2]>='À')&&(buferf[i2]<='ÿ')) LCDbuf[StartChar+i2]=CodeLetterLCD[buferf[i2]-192];
+			else LCDbuf[StartChar+i2]=buferf[i2];
+        } else {
+			if (convers==2) {
+				LCDbuf[StartChar+i2]=0x20;
+			}
+			else {
+				LCDbuf[StartChar+i2]=buferf[i2];
+			}
+		}
+		i2++;
     }
- // LCDstat=LCDstatus;
+	// LCDstat=LCDstatus;
 }
 
 void LCDprintInsertion(unsigned char Line, unsigned char AddressInLine, unsigned int CodePrint){

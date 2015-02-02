@@ -1,5 +1,4 @@
-
-
+#include <stdint.h>
 #include "ioavr.h"
 #include "MyDef.h"
 #include "InterfaceS.h"
@@ -8,7 +7,6 @@
 extern BazaModBus* ModBusBaza;
 
 unsigned int CRCSum1, CRCread;
-unsigned char i_dc1;
 extern unsigned char ePassword[];
 unsigned int PassToPC;
 extern unsigned char eWrite, eRead;
@@ -279,10 +277,9 @@ void DataModBus1(unsigned char NumberByte)
                     }
                     else
                     {
-                      for (i_dc1=0; i_dc1<NumberByte; i_dc1++)
-                      {
-                        Tr_buf_data_uart[i_dc1]=Rec_buf_data_uart1[i_dc1];
-                        Rec_buf_data_uart1[i_dc1]=0x00;
+                      for (uint8_t i = 0; i < NumberByte; i++) {
+                        Tr_buf_data_uart[i] = Rec_buf_data_uart1[i];
+                        Rec_buf_data_uart1[i] = 0x00;
                       }
                       PCbyte=NumberByte;
                       PCready=1;
@@ -325,8 +322,8 @@ void DataModBus1(unsigned char NumberByte)
                             }else{
                               Tr_buf_data_uart1[2]=NumberRegister*2;
                               if (AddressStartRegister<250){ //все кроме архивов
-                                for (i_dc1=0; i_dc1<NumberRegister; i_dc1++){
-                                    ModBusBaza->readregister(Tr_buf_data_uart1, 3+i_dc1*2, AddressStartRegister+i_dc1);
+                                for (uint8_t i = 0; i < NumberRegister; i++) {
+                                    ModBusBaza->readregister(Tr_buf_data_uart1, 3 + i*2, AddressStartRegister + i);
                                 }
                                 TransDataInf1(0x03, NumberRegister*2);
                               }else
@@ -375,7 +372,9 @@ void DataModBus1(unsigned char NumberByte)
                       }break;
                       case 0x06:{
                         ModBusBaza->writetoAT(AddressStartRegister,(Rec_buf_data_uart1[4]<<8) + Rec_buf_data_uart1[5]);
-                        for (i_dc1=0; i_dc1<6; i_dc1++) Tr_buf_data_uart1[i_dc1]=Rec_buf_data_uart1[i_dc1];
+                        for (uint8_t i = 0; i < 6; i++) {
+							Tr_buf_data_uart1[i] = Rec_buf_data_uart1[i];
+						}
                         TransDataInf1(0x06, 4-1);
                       }break;
                       default:  {ErrorMessageModBus(0x01);} //команда не поддерживается данным устройством

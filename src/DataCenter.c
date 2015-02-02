@@ -43,6 +43,7 @@ extern unsigned char MenuDefShftBack[];
 extern unsigned char MenuDefShftPrm[];
 extern unsigned char MenuDefShftPrd[];
 extern unsigned char* MenuDefShft[];
+extern unsigned char NumDevError;
 
 extern __flash uint RangPost[] [3];
 //параметры ПРМ-ка
@@ -122,10 +123,6 @@ unsigned char TrDataTimeMass[]={0x30,0x30,0x30,0x30,0x30,0x30};;
 unsigned char DataError=9;
 unsigned char TimeError=9;
 unsigned int Pk_temp=0;
-
-unsigned char j;
-unsigned char l;
-unsigned char i_dc;
 
 unsigned char TempMass[10];
 
@@ -308,42 +305,6 @@ void FParamDef(unsigned char command)
 			}
 		}break;
 		case 0x05:{//принято значение перекрытия импульсов (пост)
-//			if (cTypeLine == 1)
-//			{
-//				min = RangPost[4] [0];
-//				max = RangPost[4] [1];
-//			}
-//			else
-//			{
-//				min = 0;
-//				max = 54;
-//			}
-//			
-//			if ((tmp < min) || (tmp > max)) 
-//			{
-//				MenuCoveringImpulse1[0] = '?';
-//				MenuCoveringImpulse1[1] = '?';
-//			}
-//			else
-//			{	
-//				MenuCoveringImpulse1[0] = tmp/10 + '0';
-//				MenuCoveringImpulse1[1] = tmp%10 + '0';
-//				
-//				if ( (cTypeLine == 2) && (cNumLine == 3) )						// в 3-х концевой оптике параметр дублируется
-//				{
-//					tmp = Rec_buf_data_uart[5];
-//					if ((tmp < min) || (tmp > max)) 
-//					{
-//						MenuCoveringImpulse2[0] = '?';
-//						MenuCoveringImpulse2[1] = '?';
-//					}
-//					else
-//					{
-//						MenuCoveringImpulse2[0] = (tmp / 10) + '0';
-//						MenuCoveringImpulse2[1] = (tmp % 10) + '0';
-//					}
-//				}
-// 			}
 			min = 0;
 			max = 72; 
 			for(unsigned char i = 0; i < 4; i++) {
@@ -427,22 +388,6 @@ void FParamDef(unsigned char command)
 					{
 						case 1:	// ПВЗ
 						{
-//							switch(cAutoControl)
-//							{
-//								case 1:	// норм
-//								case 2:
-//								iTimeToAK = 16800;
-//								break;
-//								case 3:	// ускор
-//								iTimeToAK = 2100;
-//								break;
-//								case 5:	// проверка
-//								iTimeToAK = 131;
-//								break;
-//								case 6:	// испыт
-//								iTimeToAK = 2;
-//								break;
-//							}
 							a = Rec_buf_data_uart[5];
 							a <<= 8;
 							a += Rec_buf_data_uart[6];
@@ -451,28 +396,11 @@ void FParamDef(unsigned char command)
 							a <<= 8;
 							a += Rec_buf_data_uart[8];
 							a = a / 1000;
-//							iTimeToAKnow = a;
 							iTimeToAK = a;
 						}
 						break;
 						case 2:	// АВЗК
 						{
-//							switch(cAutoControl)
-//							{
-//								case 1:	// норм
-//								case 2:
-//								iTimeToAK = 20000;
-//								break;
-//								case 3:	// ускор
-//								iTimeToAK = 2000;
-//								break;
-//								case 5:	// проверка
-//								iTimeToAK = 200;
-//								break;
-//								case 6:	// испыт
-//								iTimeToAK = 2;
-//								break;
-//							}
 							a = Rec_buf_data_uart[5];
 							a <<= 8;
 							a += Rec_buf_data_uart[6];
@@ -481,7 +409,6 @@ void FParamDef(unsigned char command)
 							a <<= 8;
 							a += Rec_buf_data_uart[8];
 							a = a / 1000;
-//							iTimeToAKnow = a;
 							iTimeToAK = a;
 						}
 						break;
@@ -498,7 +425,6 @@ void FParamDef(unsigned char command)
 							a += Rec_buf_data_uart[8];
 							a = a / 1000;
 							iTimeToAK = a;
-//							iTimeToAKnow = 0;
 						}
 						break;
 					} 
@@ -550,9 +476,13 @@ void FParamPrm(unsigned char command)
 			if (command==0x13) TmpMass=ValuePrmTimeOff;
 			else TmpMass=ValuePrmTimeOff2;
 			
-			for (l=0; l<Rec_buf_data_uart[3]; l++){
-				if ((Rec_buf_data_uart[4+l]<RangPrm[2] [0])||(Rec_buf_data_uart[4+l]>RangPrm[2] [1])) TmpMass[l]=0xFF;
-				else TmpMass[l]=Rec_buf_data_uart[4+l];
+			for (uint8_t i = 0; i < Rec_buf_data_uart[3]; i++) {
+				if ((Rec_buf_data_uart[4 + i]<RangPrm[2] [0]) || 
+					(Rec_buf_data_uart[4 + i]>RangPrm[2] [1])) { 
+					TmpMass[i]=0xFF;
+				} else {
+					TmpMass[i] = Rec_buf_data_uart[4 + i];
+				}
 			}
 		}break;
 		case 0x14:
@@ -560,14 +490,18 @@ void FParamPrm(unsigned char command)
 			if (command==0x14) TmpMass=ValuePrmBlockCom;
 			else TmpMass=ValuePrmBlockCom2;
 			
-			for(l=0; l<Rec_buf_data_uart[3]; l++) TmpMass[l]=Rec_buf_data_uart[4+l];
+			for(uint8_t i = 0; i < Rec_buf_data_uart[3]; i++) { 
+				TmpMass[i] = Rec_buf_data_uart[4 + i];
+			}
 		}break;
 		case 0x15:
 		case 0x1C:{ //длительные команды
 			if (command==0x15) TmpMass=ValuePrmLongCom;
 			else TmpMass=ValuePrmLongCom2;
 			
-			for(l=0; l<Rec_buf_data_uart[3]; l++) TmpMass[l]=Rec_buf_data_uart[4+l];
+			for(uint8_t i = 0; i < Rec_buf_data_uart[3]; i++) { 
+				TmpMass[i] = Rec_buf_data_uart[4 + i];
+			}
 		}break;
 	}
 	RecivVar=1;
@@ -621,10 +555,14 @@ void FParamPrd(unsigned char command){
 			}
 		}break;
 		case 0x24:{//блокировка команд (передатчик)
-			for(l=0; l<Rec_buf_data_uart[3]; l++) ValuePrdBlockCom[l]=Rec_buf_data_uart[4+l];
+			for(uint8_t i = 0; i < Rec_buf_data_uart[3]; i++) { 
+				ValuePrdBlockCom[i] = Rec_buf_data_uart[4 + i];
+			}
 		}break;
 		case 0x25:{
-			for(l=0; l<Rec_buf_data_uart[3]; l++) ValuePrdLongCom[l]=Rec_buf_data_uart[4+l];
+			for(uint8_t i = 0; i < Rec_buf_data_uart[3]; i++) {
+				ValuePrdLongCom[i] = Rec_buf_data_uart[4 + i];
+			}
 		}break;
 	}
 	RecivVar=1;
@@ -692,6 +630,12 @@ void FGlobalCurrentState(void)
 	
 	bDefAvar = (GlobalCurrentState[0] != 0) || (GlobalCurrentState[1] != 0) ? true : false;
 	bDefWarn = (GlobalCurrentState[2] != 0) || (GlobalCurrentState[3] != 0) ? true : false;
+	// в случае Р400 ПВЗУ-Е используется доп.байт с номерами аппарата , передаются битами
+	// 0 бит - 1 аппарат
+	// 1 бит - 2 аппарат
+	// 2 бит - 3 аппарат
+	unsigned char tmp = GlobalCurrentState[4];
+	NumDevError = (tmp <= 7) ? tmp : 7;	// номер аппарата с ошибкой (для ПВЗУ-Е)
 	
 	bRec1Avar = (GlobalCurrentState[4] != 0) || (GlobalCurrentState[5] != 0) ? true : false;
 	bRec1Warn = (GlobalCurrentState[6] != 0) || (GlobalCurrentState[7] != 0) ? true : false;
@@ -721,9 +665,17 @@ void FDataTime(void){
 	TimeLCD[6]=(Rec_buf_data_uart[9]>>4)+0x30;  //10-и сек
 	
 	//Проверка на достовереность
-	for (j=0;j<8;j++){
-		if  (((DataLCD[j]>0x39)||(DataLCD[j]<0x30))&&(DataLCD[j]!='.')) DataError++; else DataError=0;
-		if  (((TimeLCD[j]>0x39)||(TimeLCD[j]<0x30))&&(TimeLCD[j]!=':')) TimeError++; else TimeError=0;
+	for (uint8_t i = 0; i < 8; i++){
+		if (((DataLCD[i] > '9') || (DataLCD[i] < '0')) && (DataLCD[i]!='.')) { 
+			DataError++; 
+		} else {
+			DataError=0;
+		}
+		if (((TimeLCD[i] > '9')||(TimeLCD[i] < '0')) && (TimeLCD[i]!=':')) {
+			TimeError++; 
+		} else {
+			TimeError=0;
+		}
 	}
 	
 	if (((DataLCD[7]-0x30)+((DataLCD[6]-0x30)*10))>99)  DataError++;
@@ -733,7 +685,7 @@ void FDataTime(void){
 	if (((TimeLCD[4]-0x30)+((TimeLCD[3]-0x30)*10))>60)  TimeError++;
 	if (((TimeLCD[7]-0x30)+((TimeLCD[6]-0x30)*10))>60)  TimeError++;
 	
-	if (DataError!=0){
+	if (DataError !=0 ){
 		DataLCD[7]='0'; //1-цы лет
 		DataLCD[6]='0';  //10-ки лет
 		DataLCD[4]='0';  //1-цы мес
@@ -741,9 +693,14 @@ void FDataTime(void){
 		DataLCD[1]='0';  //1-цы дней
 		DataLCD[0]='0';  //10-и дней
 		DataError=0;
-		for (j=0; j<3; j++) TrDataTimeMass[j]=0x00;
+		for (uint8_t i = 0; i < 3; i++) { 
+			TrDataTimeMass[i] = 0x00;
+		}
+	} else {
+		for (uint8_t i = 0; i < 3; i++) { 
+			TrDataTimeMass[i] = Rec_buf_data_uart[4 + i];
+		}
 	}
-	else for (j=0; j<3; j++) TrDataTimeMass[j]=Rec_buf_data_uart[4+j];
 	
 	if (TimeError!=0){
 		TimeLCD[1]='0'; //1-цы час
@@ -753,9 +710,14 @@ void FDataTime(void){
 		TimeLCD[7]='0';  //1-цы сек
 		TimeLCD[6]='0';  //10-и сек
 		TimeError=0;
-		for (j=0; j<3; j++) TrDataTimeMass[j+3]=0x00;
-	}else
-		for (j=0; j<3; j++) TrDataTimeMass[j+3]=Rec_buf_data_uart[4+j+3];
+		for (uint8_t i = 0; i < 3; i++) {
+			TrDataTimeMass[i + 3] = 0x00;
+		}
+	} else {
+		for (uint8_t i = 0; i < 3; i++) {
+			TrDataTimeMass[i + 3] = Rec_buf_data_uart[4 + i + 3];
+		}
+	}
 	
 	RecivVar=1;
 	LCDtimerNew=1; //говорим, что было получено новое время и дата
@@ -794,44 +756,71 @@ void fDopCodeToChar(unsigned char *Mass, unsigned char StartAddr, unsigned char 
 	}
 }
 
-void fIntCodeToChar(unsigned char *Mass, unsigned char StartAddr, unsigned char Factor, unsigned char Param, unsigned int Value, unsigned int Max){
+/** Преобразование целого числа в строку.
+ *
+ *	Если число больше максимума, будут записаны "??".
+ *
+ *	@param *Mass Указатель на начало строки.
+ *	@param StartAddr Начальный символ в строке для записи числа.
+ *  @param Param Тип параметра, для записи размерности.
+ *	@arg 1 - "мА"
+ *	@arg 2 - "%"
+ *  @arg 3 - "г"
+ *	@arg 4 - " сек"
+ *	@param Value Число от 0 до 9999 включительно.
+ *	@param Max Максимальное значение числа (включительно).
+ */
+void fIntCodeToChar(unsigned char *Mass, unsigned char StartAddr,  unsigned char Param, unsigned int Value, unsigned int Max){
 	unsigned char i;
-	// Value - должно быть меньше 1000
-	Factor--;
 	
-	for(i=StartAddr; i<8; i++) Mass[i]=' ';
+	for(i = StartAddr; i < 8; i++) 
+		Mass[i]=' ';
 	
-	Value=Value<<Factor;
-	if (Value<Max){
-		if (Value>999){
-			Mass[StartAddr]=Value/1000;
-			Value=Value-Mass[StartAddr]*1000;
-			Mass[StartAddr]+=0x30; StartAddr++;
+	if (Value <= Max) {
+		if (Value > 999){
+			Mass[StartAddr] = Value/1000;
+			Value = Value - Mass[StartAddr]*1000;
+			Mass[StartAddr++] += '0'; 
 		}
-		if (Value>99){
-			Mass[StartAddr]=Value/100;
-			Value=Value-Mass[StartAddr]*100;
-			Mass[StartAddr]+=0x30; StartAddr++;
+		if (Value > 99) {
+			Mass[StartAddr] = Value/100;
+			Value = Value - Mass[StartAddr]*100;
+			Mass[StartAddr++] += '0'; 
 		}
-		Mass[StartAddr]=Value/10+0x30; StartAddr++;
-		Mass[StartAddr]=Value%10+0x30; StartAddr++;
-	}else{
-		Mass[StartAddr]='?'; StartAddr++;
-		Mass[StartAddr]='?'; StartAddr++;
+		Mass[StartAddr++] = Value/10 + '0'; 
+		Mass[StartAddr++] = Value%10 + '0'; 
+	} else {
+		Mass[StartAddr++] = '?'; 
+		Mass[StartAddr++] = '?'; 
 	}
 	
-	switch(Param){
-		case 1:{
-			Mass[StartAddr]='м';
-			Mass[StartAddr+1]='А';
-		}break;
-		case 2:{
-			Mass[StartAddr]='%';
-		}break;
+	switch(Param) {
+		case 1: {
+			Mass[StartAddr++]='м';
+			Mass[StartAddr]  ='А';
+		} break;
+		
+		case 2: {
+			Mass[StartAddr]  ='%';
+		} break;
+		case 3: {
+			Mass[StartAddr]  ='г';
+		} break;
+		case 4: {
+			Mass[StartAddr++]=' ';
+			Mass[StartAddr++]='с';
+			Mass[StartAddr++]='е';
+			Mass[StartAddr++]='к';
+		} break;
 	}
-	
 }
 
+/** Преобразование HEX кода в строку.
+ *
+ *	@param *Mass Указатель на начало строки.
+ *	@param StartAddr Начальный символ в строке для записи числа.
+ *	@param Hex Число от 0x00 до 0xFF включительно.
+ */
 void HexToViewHex(unsigned char *Mass, unsigned char StartAddr, unsigned char Hex)
 {
 	unsigned char t1;
@@ -944,7 +933,7 @@ void FMeasureParam(void)
 		HexToViewHex(Iline1H,5,Rec_buf_data_uart[6]);
 		//ток первый
 		IlineValue=(Rec_buf_data_uart[7]<<8)+Rec_buf_data_uart[8];  //значение для вычисления коррекции
-		fIntCodeToChar(Iline2,3,1,1,IlineValue,1000);
+		fIntCodeToChar(Iline2,3,1,IlineValue,999);
 		//напряжение на линии
 		Uline[5]=Rec_buf_data_uart[10] / 10;
 		UlineValue=((signed int) Rec_buf_data_uart[9])*10 + Uline[5];  //значение для вычисления коррекции
@@ -976,16 +965,11 @@ void FMeasureParam(void)
 		//использование динамического диапазона приемника
 		fDopCodeToChar(Kd,3,1,2,Rec_buf_data_uart[15]);
 		//коэффициент переполнения АЦП
-		fIntCodeToChar(Kov,4,1,2,Rec_buf_data_uart[16],100);
+		fIntCodeToChar(Kov,4,2,Rec_buf_data_uart[16],99);
 		HexToViewHex(KovH,3,Rec_buf_data_uart[16]);
-		//вероятность пропуска команд
+		// Длительность импульсов ВЧ блокировки
 		itmp=(Rec_buf_data_uart[17]<<8)+Rec_buf_data_uart[18];
-		if ((itmp>999)&&(itmp<10000)){
-			Pk[3]=itmp/1000;
-			itmp=itmp-Pk[3]*1000;
-			Pk[3]+=0x30;
-		}else Pk[3]='0';
-		fIntCodeToChar(Pk,5,1,3,itmp,1000);
+		fIntCodeToChar(Pk,3,3,itmp,360);
 		HexToViewHex(PkH,3,Rec_buf_data_uart[17]);
 		HexToViewHex(PkH,5,Rec_buf_data_uart[18]);
 	}
@@ -1146,6 +1130,26 @@ void FParamGlobal(unsigned char command)
 				if ( (tmp < RangGlb[18] [0]) || (tmp > RangGlb[18] [1]) )
 					tmp = RangGlb[18] [1] + 1;
 				sParamPVZE.autocontrol = tmp;
+				
+				// период беглого режима АК
+				tmp = Rec_buf_data_uart[10];
+				if ( (tmp < RangGlb[21] [0]) || (tmp > RangGlb[21] [1]) ) {
+					sParamPVZE.periodAC[0] = '?';
+					sParamPVZE.periodAC[1] = '?';
+					sParamPVZE.periodAC[1] = '?';
+				} else {
+					fIntCodeToChar(sParamPVZE.periodAC, 0, 4, tmp, RangGlb[21] [1]);
+				}
+				
+				// период повтора беглого режима АК
+				tmp = Rec_buf_data_uart[11];
+				if ( (tmp < RangGlb[22] [0]) || (tmp > RangGlb[22] [1]) ) {
+					sParamPVZE.periodACre[0] = '?';
+					sParamPVZE.periodACre[1] = '?';
+					sParamPVZE.periodACre[2] = '?';
+				} else {
+					fIntCodeToChar(sParamPVZE.periodACre, 0, 4, tmp, RangGlb[22] [1]);
+				}
 			}
 			
 		}
@@ -1243,8 +1247,8 @@ void FReadArchEvent(void){
 	NumberRec--; //уменьшаем кол-во считываемых записей
 	NumRecStart++;  //выставляем следующий считываемый номер события архива
 	if ((NumberRec==0)&&(ReadArch==1)){  //если считали всю необходимую информацию, то отправим ответ на ПК
-		for (i_dc=StRegister; i_dc<(NumberRegister+StRegister); i_dc++){
-			ModBusBaza->readarchive(Tr_buf_data_uart1, 3+(i_dc-StRegister)*2, i_dc);
+		for (uint8_t i = StRegister; i < (NumberRegister + StRegister); i++) {
+			ModBusBaza->readarchive(Tr_buf_data_uart1, 3 + (i-StRegister)*2, i);
 		}
 		TransDataInf1(0x03, NumberRegister*2);
 		ReadArch=0;
@@ -1414,7 +1418,7 @@ void VersDevice(void)
 	{
 		bDef = true;
 		bViewParam[5] = true; 
-		sArchive.Dev[++sArchive.NumDev] = 3;
+		sArchive.Dev[++sArchive.NumDev] = 3; // Пост
 	}
 	else 
 	{
@@ -1485,7 +1489,7 @@ void VersDevice(void)
 		
 		// архив для второго приемника. при необходимости
 		if (cNumComR2 != 0)
-			sArchive.Dev[++sArchive.NumDev] = 4;  
+			sArchive.Dev[++sArchive.NumDev] = 4;  // второй приемник
 	}
 	else
 	{
@@ -1526,9 +1530,10 @@ void VersDevice(void)
 		maxLCDtimer = 3;
 	
 	
-	MyInsertion[1] = (Rec_buf_data_uart[10]<<8)+Rec_buf_data_uart[11];  //версия АТмега БСП
-	MyInsertion[2] = (Rec_buf_data_uart[12]<<8)+Rec_buf_data_uart[13];  //версия DSP
-	
+	MyInsertion[1] = (Rec_buf_data_uart[10] << 8) + Rec_buf_data_uart[11];  //версия АТмега БСП
+	MyInsertion[2] = (Rec_buf_data_uart[12] << 8) + Rec_buf_data_uart[13];  //версия DSP
+	MyInsertion[3] = (Rec_buf_data_uart[19] << 4) & 0x0F00;  
+	MyInsertion[3] += Rec_buf_data_uart[19] & 0x0F;	//версия БСЗ ПЛИС
 	
 	// проверим совместимость и если не корректная включим АВАНТ
 	if (Rec_buf_data_uart[14] < 5)	// 5 == NumTypeUdDev
@@ -1625,7 +1630,33 @@ void DataModBus(unsigned char NumberByte)
 		if (PCready==2)
 		{ 
 			// идет работа с ПК
-			for (i_dc=0; i_dc<NumberByte; i_dc++) Tr_buf_data_uart1[i_dc]=Rec_buf_data_uart[i_dc];
+			for (uint8_t i = 0; i < NumberByte; i++) {
+				Tr_buf_data_uart1[i]=Rec_buf_data_uart[i];
+			}
+				// При передачи на ПК команды версии аппаратов, добавим версию ПИ
+			if (Tr_buf_data_uart1[2] == 0x3F) {
+				uint8_t crc = Tr_buf_data_uart1[NumberByte - 1];
+				uint8_t num = Tr_buf_data_uart1[3];
+				if (num < 19) {
+					// если в посылке не зарезервировано место под версию ПИ
+					// т.е. передается меньше байт данных, добавим нужное кол-во
+					for(uint8_t i = num + 4; num < 19; i++, num++) {
+						Tr_buf_data_uart1[i] = 0x00;
+					}
+					crc += 19 - Tr_buf_data_uart1[3];
+					Tr_buf_data_uart1[3] = num;
+					NumberByte = num + 5;
+				} else {
+					// если место под версию ПИ зарезервировано, на всякий случай
+					// учтем изменение контрольной суммы.
+					crc -= Tr_buf_data_uart1[21];
+					crc -= Tr_buf_data_uart1[22];
+				}
+				crc += (Tr_buf_data_uart1[21] = Hi(Insertion));
+				crc += (Tr_buf_data_uart1[22] = Lo(Insertion));
+				Tr_buf_data_uart1[num + 4] = crc;
+				
+			}
 			PCready=3;
 			PCbyte=NumberByte;
 		}

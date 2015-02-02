@@ -241,7 +241,9 @@ __flash unsigned char Menu1016[] =	"Порог по помехе";		// ПВЗУ-Е
 __flash unsigned char Menu1017[] =	"Допустимая помеха";	// ПВЗУ-Е
 __flash unsigned char Menu1018[] =	"Тип автоконтроля";		// ПВЗУ-Е
 __flash unsigned char Menu1019[] =	"Резервирование";		// оптика
-__flash unsigned char Menu1020[] = 	"Снижение ответа АК  ";	// ПВЗЛ
+__flash unsigned char Menu1020[] = 	"Снижение ответа АК  ";	// ПВЗЛ				
+__flash unsigned char Menu1021[] =	"Период беглого АК";	// ПВЗУ-Е
+__flash unsigned char Menu1022[] =	"Период повт.бегл. АК";	// ПВЗУ-Е
 __flash unsigned __flash char *Menu10paramAll[] = 
 {	
 	Menu100, 
@@ -265,6 +267,8 @@ __flash unsigned __flash char *Menu10paramAll[] =
 	Menu1018,	
 	Menu1019,
 	Menu1020,
+	Menu1021,
+	Menu1022,
 	Menu109_1
 };
 // кол-во общих параметров
@@ -582,44 +586,48 @@ __flash uint RangPrd[NumParamPrd] [3] =
 //диапазон значение для Общих параметров
 __flash uint RangGlb[NumParamGlb] [3] = 
 {	
-	0,	4,		1,		// тип уд.аппарата	
-	0,	1,    	1,		// синхронизация часов  
-	8, 50,    	1,  	// Uвых номинальное 
-	0,  2,    	1,  	// удержание реле ПРД 
-	0,  255,  	1,  	// сетевой адрес 
-	0,  5,    	1,  	// время перезапуска  
-	16, 1000,  	1,  	// частота  
-	1,  3,    	1,  	// номер аппарата  
-	0,  1,   	1,  	// контроль выходного сигнала  
-	0,  22,  	1,  	// порог предупреждения по КЧ  
-	0,  22,   	1,  	// загрубление чувствительности по КЧ  
-	0,  999,  	1,  	// коррекция напряжения  
-	0,  999,	1,  	// коррекция тока 
-	1,	2,		1,		// протокол обмена	
-	1,	2,		1,		// признак четности	
-	0,	180,	1,		// допустимые провалы	
-	0,	255,	1,		// порог по помехе	
-	18,	90,		1,		// допустимая помеха	
-	1,	3,		1,		// тип автоконтроля	
-	0,	1,		1,		// Резервирование (оптика)
-	0, 20, 		1		// снижение ответа АК (пвзл)
+	0,	4,		1,		// 0  тип уд.аппарата	
+	0,	1,    	1,		// 1  синхронизация часов  
+	8, 	50,		1,  	// 2  Uвых номинальное 
+	0,  2,    	1,  	// 3  удержание реле ПРД 
+	0,  255,  	1,  	// 4  сетевой адрес 
+	0,  5,    	1,  	// 5  время перезапуска  
+	16, 1000,  	1,  	// 6  частота  
+	1,  3,    	1,  	// 7  номер аппарата  
+	0,  1,   	1,  	// 8  контроль выходного сигнала  
+	0,  22,  	1,  	// 9  порог предупреждения по КЧ  
+	0,  22,   	1,  	// 10 загрубление чувствительности по КЧ  
+	0,  999,  	1,  	// 11 коррекция напряжения  
+	0,  999,	1,  	// 12 коррекция тока 
+	1,	2,		1,		// 13 протокол обмена	
+	1,	2,		1,		// 14 признак четности	
+	0,	80,		1,		// 15 допустимые провалы	
+	0,	255,	1,		// 16 порог по помехе	
+	20,	80,		1,		// 17 допустимая помеха	
+	1,	3,		1,		// 18 тип автоконтроля	
+	0,	1,		1,		// 19 Резервирование (оптика)
+	0,	20, 	1,		// 20 снижение ответа АК (пвзл)
+	1, 	255,	1,		// 21 Период беглого режима АК (пвзу-е)
+	1, 	255,	1		// 22 Период повтора беглого режима АК (пвзу-е)	
 };		
 
 __flash unsigned char Menu16Shift10[] = "0.0..99.9";
 
 //Прошивки
-__flash unsigned char Menu19Shift0[] = "Прошивка P-USP  ";
-__flash unsigned char Menu19Shift1[] = "Прошивка AT-USP ";
-__flash unsigned char Menu19Shift2[] = "Прошивка DSP-USP";
-__flash unsigned char Menu19Shift3[] = "Дополн. параметры";
-__flash unsigned char Menu19Shift4[] = "Вид параметра";
+__flash unsigned char Menu19Shift0[] = "Прошивка ПИ MCU  ";
+__flash unsigned char Menu19Shift1[] = "Прошивка БСП MCU ";
+__flash unsigned char Menu19Shift2[] = "Прошивка БСП DSP ";
+__flash unsigned char Menu19Shift3[] = "Прошивка БСЗ ПЛИС";
+__flash unsigned char Menu19Shift4[] = "Дополн. параметры"; 
+__flash unsigned char Menu19Shift5[] = "Вид параметра";		
 __flash unsigned __flash char *Menu19Param[] = 
 {
 	Menu19Shift0, 
 	Menu19Shift1, 
 	Menu19Shift2, 
 	Menu19Shift3,
-	Menu19Shift4
+	Menu19Shift4,
+	Menu19Shift5
 };
 
 __flash unsigned char fDopParamViewTrue[] 	="Есть";
@@ -768,6 +776,25 @@ __flash unsigned __flash char *Menu1GlobalWarningT[] =
 	UnknownErrorT
 };
 
+__flash unsigned char Menu1PostErrorDop000[] = "   ";
+__flash unsigned char Menu1PostErrorDop001[] = " 1 ";
+__flash unsigned char Menu1PostErrorDop010[] = " 2 ";
+__flash unsigned char Menu1PostErrorDop011[] = "1 2";
+__flash unsigned char Menu1PostErrorDop100[] = " 3 ";
+__flash unsigned char Menu1PostErrorDop101[] = "1 3";
+__flash unsigned char Menu1PostErrorDop110[] = "2 3";
+__flash unsigned char Menu1PostErrorDop111[] = " ? ";
+__flash unsigned __flash char *Menu1PostErrorDopT[] = {
+	Menu1PostErrorDop000,
+	Menu1PostErrorDop001,
+	Menu1PostErrorDop010,
+	Menu1PostErrorDop011,
+	Menu1PostErrorDop100,
+	Menu1PostErrorDop101,
+	Menu1PostErrorDop110,
+	Menu1PostErrorDop111
+};
+
 //ошибки Защиты
 __flash unsigned char Menu1PostError1[]		= "Нет блока БСЗ   ";
 __flash unsigned char Menu1PostError2[]		= "Неиспр.верс.БСЗ ";
@@ -775,16 +802,16 @@ __flash unsigned char Menu1PostError4[]		= "Неиспр.перекл.  ";
 __flash unsigned char Menu1PostError8[]		= "Неиспр.зап. БСЗ ";
 __flash unsigned char Menu1PostError10[]	= "Нет сигнала ПРМ ";
 __flash unsigned char Menu1PostError20[]	= "Низкий ур. РЗ   ";
-__flash unsigned char Menu1PostError40[]	= "Неиспр.удал.ДФЗ ";	// ПВЗУ-Е
-__flash unsigned char Menu1PostError80[]	= "Неиспр.удал.ВЫХ.";	// ПВЗУ-Е
+__flash unsigned char Menu1PostError40[]	= "Неиспр.уд.ДФЗ";	// ПВЗУ-Е (+ номер)
+__flash unsigned char Menu1PostError80[]	= "Неиспр.уд.ВЫХ";	// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostError100[]	= "Неиспр.вход.ПУСК";
 __flash unsigned char Menu1PostError200[]	= "Неиспр.вход.СТОП";
-__flash unsigned char Menu1PostError400[]	= "Уд.ПОСТ без отв.";	// ПВЗУ-Е
+__flash unsigned char Menu1PostError400[]	= "Удал.без отв.";	// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostError800[]	= "Неиспр.цепь.ВЫХ ";
-__flash unsigned char Menu1PostError1000[]	= "Уд.ПОСТ обн.пом.";	// ПВЗУ-Е
+__flash unsigned char Menu1PostError1000[]	= "Удал.обн.пом.";	// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostError2000[]	= "Неиспр.зап. ВЫХ ";
-__flash unsigned char Menu1PostError4000[]	= "Длительн. помеха";	// ПВЗУ-Е
-__flash unsigned char Menu1PostError8000[]	= "Неиспр. ДФЗ     ";	// ПВЗУ-Е
+__flash unsigned char Menu1PostError4000[]	= "Длит. помеха ";	// ПВЗУ-Е
+__flash unsigned char Menu1PostError8000[]	= "Неиспр. ДФЗ  ";	// ПВЗУ-Е
 __flash unsigned __flash char *Menu1PostErrorT[] =
 {	Menu1PostError1,
 	Menu1PostError2,
@@ -803,11 +830,11 @@ __flash unsigned __flash char *Menu1PostErrorT[] =
 	Menu1PostError4000,
 	Menu1PostError8000
 };
-//в чистой защите вместо "Нет сигнала ПРМ", выведем другое сообщение
-__flash unsigned char Menu1PostError10_1[] 	= "АК-Нет ответа   ";
+//в чистой защите вместо "Нет сигнала ПРМ", выведем другое сообщение// ПВЗУ-Е (+ номер)
+__flash unsigned char Menu1PostError10_1[] 	= "АК-Нет ответа";
 
 //предупреждения Защиты
-__flash unsigned char Menu1PostWarning1[]	= "АК-Снижен.запаса";
+__flash unsigned char Menu1PostWarning1[]	= "АК-Сн.запаса ";	// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostWarning2[] 	= "Нет сигнала МАН ";
 __flash unsigned char Menu1PostWarning4[] 	= "Порог по помехе ";
 __flash unsigned char Menu1PostWarning8[]	= "Автоконтроль    ";

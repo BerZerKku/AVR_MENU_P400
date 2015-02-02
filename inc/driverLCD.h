@@ -18,8 +18,8 @@
 extern unsigned char LCDstat;
 
 //
-extern void LCDprint (unsigned char Line, unsigned char AddressInLine, unsigned char LCDstatus, unsigned char *bufer, unsigned char convers);
-extern void LCDprintf (unsigned char Line, unsigned char AddressInLine, unsigned char LCDstatus, unsigned char __flash *buferf, unsigned char convers);
+extern void LCDprint (unsigned char Line, unsigned char AddressInLine, unsigned char *bufer, unsigned char convers);
+extern void LCDprintf (unsigned char Line, unsigned char AddressInLine, unsigned char __flash *buferf, unsigned char convers);
 extern void FuncCommandLCD(unsigned char com);
 extern void FuncInitLCD(void);
 extern void LCDbufClear(void);

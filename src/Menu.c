@@ -93,7 +93,20 @@ void MenuParamGlbCreate(void)
 					break;
 			}
 			sMenuGlbParam.punkt[num] = 18; 	sMenuGlbParam.name[num++] = 18;		// Тип автоконтроля
-			
+			sMenuGlbParam.punkt[num] = 21; 	sMenuGlbParam.name[num++] = 21;		// Период беглого режима АК
+			for(char i = 0; i < 10; i++)
+			{
+				sParamPVZE.periodAC[i] = MenuAllPorog[i];
+				if (MenuAllPorog[i] == 0)
+					break;
+			}
+			sMenuGlbParam.punkt[num] = 22; 	sMenuGlbParam.name[num++] = 22;		/// Период повтора беглого режима АК
+			for(char i = 0; i < 10; i++)
+			{
+				sParamPVZE.periodACre[i] = MenuAllPorog[i];
+				if (MenuAllPorog[i] == 0)
+					break;
+			}
 		}
 		break;
 		
@@ -708,7 +721,7 @@ static void Menu_Info(void)
 	MenuLevel = LVL_INFO;
 	LCDbufClMenu();
 	ShiftMenu=0;
-	MaxShiftMenu=3;
+	MaxShiftMenu=4;
 	MaxDisplayLine=1;
 	LCD2new=1;
 }
