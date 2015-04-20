@@ -523,11 +523,11 @@ __flash unsigned __flash char *MenuAllControlNum[] =
 };
 
 /*************************/
-__flash uchar MenuAllFreq0[] = "-500 關";
-__flash uchar MenuAllFreq1[] = "-250 關";
+__flash uchar MenuAllFreq0[] = "-1000 關";
+__flash uchar MenuAllFreq1[] = "-500 關";
 __flash uchar MenuAllFreq2[] = "+0 關";
-__flash uchar MenuAllFreq3[] = "+250 關";
-__flash uchar MenuAllFreq4[] = "+500 關";
+__flash uchar MenuAllFreq3[] = "+500 關";
+__flash uchar MenuAllFreq4[] = "+1000 關";
 __flash uchar MenuAllFreq5[] = "霟魨罻";
 #define dMaxMenuAllFreq 5
 __flash unsigned __flash char *fmMenuAllFreq[] = 

@@ -1,7 +1,7 @@
 #ifndef __MY_DEF
 #define __MY_DEF
 //версия прошивки, если первый ноль - то убираем
-#define Insertion 0x0756
+#define Insertion 0x0757
 
 // выставочный вариант
 // отключение неисправностей, отключение контроля версии
@@ -38,9 +38,9 @@
 #define AddressDevice 0x01
 
 //размер буфера принимаемых по UART данных
-#define MaxLenghtRecBuf 64
+#define MaxLenghtRecBuf 128
 //размер буфера передаваемых по UART данных
-#define MaxLenghtTrBuf 64
+#define MaxLenghtTrBuf 128
 #define MaxLenghtTrBuf1 255
 //5 //максимальное расстояние между байтами *1000мкс
 #define MaxPause 30
