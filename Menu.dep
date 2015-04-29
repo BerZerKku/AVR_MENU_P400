@@ -99,7 +99,7 @@
       <outputs>
         <tool>
           <name>XLINK</name>
-          <file> 35 37 43</file>
+          <file> 43 35 37</file>
         </tool>
       </outputs>
     </file>

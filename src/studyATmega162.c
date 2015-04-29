@@ -2792,7 +2792,7 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 						switch(temp)
 						{
 							case 1:
-							if ((Device == 1) && (sArchive.NumDev == 1) &&(TypeUdDev == 3)) {
+							if ((Device == 1) && (sArchive.NumDev == 1) && (TypeUdDev == 3)) {
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
 							} else {
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);

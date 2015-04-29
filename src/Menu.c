@@ -125,6 +125,19 @@ void MenuParamGlbCreate(void)
 		}
 		break;
 		
+		case 7 : 	// ПВЗУ
+		{
+			sMenuGlbParam.punkt[num] = 0; 	sMenuGlbParam.name[num++] = 0;		// Совместимость
+			sMenuGlbParam.punkt[num] = 2; 	sMenuGlbParam.name[num++] = 2;		// Uвых номинальное
+			sMenuGlbParam.punkt[num] = 4;	sMenuGlbParam.name[num++] = 4;		// Сетевой адрес
+			sMenuGlbParam.punkt[num] = 6;	sMenuGlbParam.name[num++] = 6;		// Частота
+			sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;		// Номер аппарата
+			sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;		// Контроль вых.сигнала
+			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
+			sMenuGlbParam.punkt[num] = 15; 	sMenuGlbParam.name[num++] = 15;		// Допустимые провалы
+		}
+		break;
+		
 		default: 	// АВАНТ
 		{
 			if (cTypeLine == 1)													
@@ -193,6 +206,17 @@ void MenuParamDefCreate(void)
 			sMenuDefParam.punkt[num++] = 2;		// Доп. время без ман.
 //			sMenuDefParam.punkt[num++] = 3;		// Задержка на линии
 //			sMenuDefParam.punkt[num++] = 4;		// Перекрытие импульсов
+			sMenuDefParam.punkt[num++] = 5;		// Загр чувствит по  РЗ
+			sMenuDefParam.punkt[num++] = 7;		// Частота ПРД
+			sMenuDefParam.punkt[num++] = 8;		// Частота ПРМ
+		}
+		break;
+		
+		case 7: 	// ПВЗУ
+		{
+			sMenuDefParam.punkt[num++] = 0;		// Тип Защиты
+			sMenuDefParam.punkt[num++] = 1;		// Тип Линии
+			sMenuDefParam.punkt[num++] = 2;		// Доп. время без ман.
 			sMenuDefParam.punkt[num++] = 5;		// Загр чувствит по  РЗ
 			sMenuDefParam.punkt[num++] = 7;		// Частота ПРД
 			sMenuDefParam.punkt[num++] = 8;		// Частота ПРМ
@@ -358,6 +382,14 @@ void MenuUprCreate(uint8_t act)
 			}
 			break;
 			
+			case 7: 	// ПВЗУ
+			{	
+				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
+				
+				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
+			}
+			break;
+			
 			default:	// АВАНТ
 			{
 				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
@@ -409,8 +441,8 @@ void MenuACCreate(void)
 		case 1:		// ПВЗ-90	
 		{	
 			dSetACItem(CTRL_COM_AC_AUTO_ACCELERATED,	CTRL_NAME_AC_NORMAL);
-			dSetACItem(CTRL_COM_AC_ACCELERATED,		CTRL_NAME_AC_ACCELERATED);
-			dSetACItem(CTRL_COM_AC_OFF,				CTRL_NAME_AC_OFF);
+			dSetACItem(CTRL_COM_AC_ACCELERATED,			CTRL_NAME_AC_ACCELERATED);
+			dSetACItem(CTRL_COM_AC_OFF,					CTRL_NAME_AC_OFF);
 			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_TEST);
 			dSetACItem(CTRL_COM_AC_START,				CTRL_NAME_AC_START);
 		}
@@ -443,6 +475,15 @@ void MenuACCreate(void)
 			dSetACItem(CTRL_COM_AC_OFF,					CTRL_NAME_AC_OFF);
 			dSetACItem(CTRL_COM_RESET_REMOTE,			CTRL_NAME_AC_RESET);
 			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_START_SELF);
+		}
+		break;
+
+		case 7: 	// ПВЗУ
+		{
+			dSetACItem(CTRL_COM_AC_AUTO_ACCELERATED,	CTRL_NAME_AC_NORMAL);
+			dSetACItem(CTRL_COM_AC_ACCELERATED,			CTRL_NAME_AC_ACCELERATED);
+			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_CHECK);
+			dSetACItem(CTRL_COM_AC_OFF,					CTRL_NAME_AC_OFF);
 		}
 		break;
 		

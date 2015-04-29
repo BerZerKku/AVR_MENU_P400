@@ -1546,7 +1546,7 @@ void VersDevice(void)
 	MyInsertion[3] += Rec_buf_data_uart[19] & 0x0F;	//версия БСЗ ПЛИС
 	
 	// проверим совместимость и если не корректная включим АВАНТ
-	if (Rec_buf_data_uart[14] < 5)	// 5 == NumTypeUdDev
+	if (Rec_buf_data_uart[14] <= 7)	// 7 == NumTypeUdDev
 	{
 		TypeUdDev = Rec_buf_data_uart[14];
 	}
