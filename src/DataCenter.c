@@ -380,54 +380,64 @@ void FParamDef(unsigned char command)
 				cAutoControl = tmp;
 				
 				// åñëè òèï óäàëåííîãî àïïàðàòà ÏÂÇ èëè ÀÂÇÊ
-				if ( (sMenuGlbParam.dev >= 1) || (sMenuGlbParam.dev <= 4) )
+				if ( (sMenuGlbParam.dev >= 1) || (sMenuGlbParam.dev <= 7) )
 				{
 					long a;
 					
-					switch(sMenuGlbParam.dev)
-					{
-						case 1:	// ÏÂÇ
-						{
-							a = Rec_buf_data_uart[5];
-							a <<= 8;
-							a += Rec_buf_data_uart[6];
-							a <<= 8;
-							a += Rec_buf_data_uart[7];
-							a <<= 8;
-							a += Rec_buf_data_uart[8];
-							a = a / 1000;
-							iTimeToAK = a;
-						}
-						break;
-						case 2:	// ÀÂÇÊ
-						{
-							a = Rec_buf_data_uart[5];
-							a <<= 8;
-							a += Rec_buf_data_uart[6];
-							a <<= 8;
-							a += Rec_buf_data_uart[7];
-							a <<= 8;
-							a += Rec_buf_data_uart[8];
-							a = a / 1000;
-							iTimeToAK = a;
-						}
-						break;
-						case 3: // ÏÂÇÅ-Ó
-						case 4: // ÏÂÇË
-				  		// Æåíüêà ïîñûëàåò âðåìÿ äî ÀÊ
-						{
-							a = Rec_buf_data_uart[5];
-							a <<= 8;
-							a += Rec_buf_data_uart[6];
-							a <<= 8;
-							a += Rec_buf_data_uart[7];
-							a <<= 8;
-							a += Rec_buf_data_uart[8];
-							a = a / 1000;
-							iTimeToAK = a;
-						}
-						break;
-					} 
+					a = Rec_buf_data_uart[5];
+					a <<= 8;
+					a += Rec_buf_data_uart[6];
+					a <<= 8;
+					a += Rec_buf_data_uart[7];
+					a <<= 8;
+					a += Rec_buf_data_uart[8];
+					a = a / 1000;
+					iTimeToAK = a;
+					
+//					switch(sMenuGlbParam.dev)
+//					{
+//						case 1:	// ÏÂÇ
+//						{
+//							a = Rec_buf_data_uart[5];
+//							a <<= 8;
+//							a += Rec_buf_data_uart[6];
+//							a <<= 8;
+//							a += Rec_buf_data_uart[7];
+//							a <<= 8;
+//							a += Rec_buf_data_uart[8];
+//							a = a / 1000;
+//							iTimeToAK = a;
+//						}
+//						break;
+//						case 2:	// ÀÂÇÊ
+//						{
+//							a = Rec_buf_data_uart[5];
+//							a <<= 8;
+//							a += Rec_buf_data_uart[6];
+//							a <<= 8;
+//							a += Rec_buf_data_uart[7];
+//							a <<= 8;
+//							a += Rec_buf_data_uart[8];
+//							a = a / 1000;
+//							iTimeToAK = a;
+//						}
+//						break;
+//						case 3: // ÏÂÇÅ-Ó
+//						case 4: // ÏÂÇË
+//				  		// Æåíüêà ïîñûëàåò âðåìÿ äî ÀÊ
+//						{
+//							a = Rec_buf_data_uart[5];
+//							a <<= 8;
+//							a += Rec_buf_data_uart[6];
+//							a <<= 8;
+//							a += Rec_buf_data_uart[7];
+//							a <<= 8;
+//							a += Rec_buf_data_uart[8];
+//							a = a / 1000;
+//							iTimeToAK = a;
+//						}
+//						break;
+//					} 
 				}
 			}
 			LCDtimerNew=1;
