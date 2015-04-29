@@ -346,6 +346,9 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
 	// dev = 2 - АВЗК
 	// dev = 3 - ПВЗУ-Е
 	// dev = 4 - ПВЗЛ
+	// dev = 5 - ЛИНИЯ-Р
+	// dev = 6 - ПВЗК	
+	// dev = 7 - ПВЗУ
 	
     uchar 	time1 = 59,	// минуты
 	time2 = 0, 	// секунды
@@ -353,7 +356,7 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
     uchar 	start1 = 48;
 	
 	
-	if  ( (AK > 6) || (AK == 4) || (AK == 0) || (dev > 4) || (iTimeToAKnow > iTimeToAK) )
+	if  ( (AK > 6) || (AK == 4) || (AK == 0) || (dev > 7) || (iTimeToAKnow > iTimeToAK) )
 	{
 		// если ошибочный тип АК или тип удаленного устройства
 		// либо текущий счетчик времени больше времени до АК
@@ -400,10 +403,7 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
 		}
 		break;
 		
-		case 1:
-		case 2:
-		case 3:
-		case 4:
+		default:
 		{
 			unsigned int a;
 			
