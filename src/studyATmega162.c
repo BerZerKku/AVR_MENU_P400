@@ -2948,8 +2948,8 @@ static void LCDwork(void)
 									(cAutoControl)        	&&	
 									(CurrentState[0] == 2)	)
 								{
-									// Только в ПВЗУ-Е при аварии/неисправности выводится время до АК
-									if ( (TypeUdDev != 3) && (bDefAvar || bGlobalAvar ||  (CurrentState[1] != 1)) )
+									// Только в ПВЗУ-Е и ПВЗУ при аварии/неисправности выводится время до АК
+									if ( (TypeUdDev != 3) && (TypeUdDev != 7) && (bDefAvar || bGlobalAvar ||  (CurrentState[1] != 1)) )
 										FuncClearCharLCD(3, 9, 13);
 									else
 									{
