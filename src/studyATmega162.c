@@ -130,6 +130,7 @@ unsigned char cAutoControl=0;
 unsigned int iTimeToAK = 0, iTimeToAKnow = 0;
 unsigned char MenuAKdecrease=2;  //снижение АК, изначально хз че
 unsigned char NumDevError = '?'; // Номер аппарата с ошибкой (для ПВЗУ-Е)
+unsigned char NumDfzError[] = "???";	// Дополнительное значение для "Неисправность ДФЗ" в ПВЗУ
 uchar MenuFreqPRD = dMaxMenuAllFreq;
 uchar MenuFreqPRM = dMaxMenuAllFreq;
 strMenuGlbParam sMenuDefParam, sMenuUpr, sMenuAC;
@@ -2715,11 +2716,14 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 				if (tglobal & temp)
 				{
 					// в чистой защите, одна неисправность меняет название
-					// а для неисправностей в совместимости ПВЗУ-Е добавляется номер
-					
+					// а для неисправностей в совместимости ПВЗУ-Е/ПВЗУ добавляется номер
 					if ((Device == 1) && (sArchive.NumDev == 1)) {
-						if (TypeUdDev == 3) { // добавляем номер уд.аппарата с ошибкой (если не надо - затрется)
-							LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
+						if ((TypeUdDev == 3) || (TypeUdDev == 7)) { // добавляем номер уд.аппарата с ошибкой (если не надо - затрется)
+							if (temp == 0x8000) {
+								LCDprint(NumString, 17, NumDfzError, 1);
+							} else {
+								LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
+							}
 						} else {
 							LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
 						}
@@ -2729,9 +2733,8 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 						} else {
 							LCDprintf(NumString, 5, MassError[i], 1);
 						}
-		
 					} else {
-						LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1); // сотрем, т.к. часть сообщений на 3 символа короче (для ПВЗУ-Е)
+						FuncClearCharLCD(NumString, 17, 4); // сотрем, т.к. часть сообщений на 3-4 символа короче (для ПВЗУ-Е/ПВЗУ)
 						LCDprintf(NumString, 5, MassError[i], 1);
 					}
 					break;
@@ -2792,7 +2795,7 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 						switch(temp)
 						{
 							case 1:
-							if ((Device == 1) && (sArchive.NumDev == 1) && (TypeUdDev == 3)) {
+							if ((Device == 1) && (sArchive.NumDev == 1) && ((TypeUdDev == 3) || (TypeUdDev == 7)) ) {
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
 							} else {
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);

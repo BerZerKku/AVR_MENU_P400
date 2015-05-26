@@ -802,6 +802,7 @@ __flash unsigned __flash char *Menu1PostErrorDopT[] = {
 };
 
 //ошибки Защиты
+// ПЗВУ-Е и ПВЗУ сделаны в плане неисправностей одинаково
 __flash unsigned char Menu1PostError1[]		= "Нет блока БСЗ   ";
 __flash unsigned char Menu1PostError2[]		= "Неиспр.верс.БСЗ ";
 __flash unsigned char Menu1PostError4[]		= "Неиспр.перекл.  ";
@@ -816,8 +817,8 @@ __flash unsigned char Menu1PostError400[]	= "Удал.без отв.";	// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostError800[]	= "Неиспр.цепь.ВЫХ ";
 __flash unsigned char Menu1PostError1000[]	= "Удал.обн.пом.";	// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostError2000[]	= "Неиспр.зап. ВЫХ ";
-__flash unsigned char Menu1PostError4000[]	= "Длит. помеха ";	// ПВЗУ-Е
-__flash unsigned char Menu1PostError8000[]	= "Неиспр. ДФЗ  ";	// ПВЗУ-Е
+__flash unsigned char Menu1PostError4000[]	= "Длит. помеха    ";	// ПВЗУ-Е
+__flash unsigned char Menu1PostError8000[]	= "Неиспр. ДФЗ ";	// ПВЗУ-Е (+ доп. значение)
 __flash unsigned __flash char *Menu1PostErrorT[] =
 {	Menu1PostError1,
 	Menu1PostError2,
@@ -1017,33 +1018,39 @@ __flash unsigned __flash char *Menu20line4[] = {Menu201line4, Menu202line4};
 
 __flash unsigned char Menu20no[] = "Тест не запущен";
 
-#define dNumSob 25
+#define dNumSob 31
 __flash unsigned char ArchSob[dNumSob] [11] =
 {	
-	"Н.чт.FLASH",
-	"Н.зп.FLASH",
-	"Н.чт.PLIS ",
-	"Н.зп.PLIS ",
-	"Н.зп.2RAM ",
-	"Н.чт.2RAM ",
-	"Н.раб.DSP ",
-	"Вост.р.DSP",
-	"Низк. Uвых",
-	"Выс. Uвых ",
-	"Н.св. с УМ",
-	"Н. часов  ",
-	"Нет бл.БСЗ",
-	"Н.верс.БСЗ",
-	"Н.пер. БСЗ",
-	"Нет с. МАН",
-	"Перезапуск",
-	"Изм.режима",
-	"Ош.записи ",
-	"Ош.контр. ",
-	"Сниж.у.ПРМ",
-	"Нет с. ПРМ",
-	"Нет с.ПУСК",
-	"нет с.СТОП",
-	"Выключение"
+	"Н.чт.FLASH",	// 1
+	"Н.зп.FLASH",	// 2
+	"Н.чт.PLIS ",	// 3
+	"Н.зп.PLIS ",	// 4
+	"Н.зп.2RAM ",	// 5
+	"Н.чт.2RAM ",	// 6
+	"Н.раб.DSP ",	// 7
+	"Вост.р.DSP",	// 8
+	"Низк. Uвых",	// 9
+	"Выс. Uвых ",	// 10
+	"Н.св. с УМ",	// 11
+	"Н. часов  ",	// 12
+	"Нет бл.БСЗ",	// 13
+	"Н.верс.БСЗ",	// 14
+	"Н.пер. БСЗ",	// 15
+	"Нет с. МАН",	// 16
+	"Перезапуск",	// 17
+	"Изм.режима",	// 18
+	"Ош.записи ",	// 19
+	"Ош.контр. ",	// 20
+	"Сниж.у.ПРМ",	// 21
+	"Нет с. ПРМ",	// 22 <---
+	"Нет с.ПУСК",	// 23
+	"нет с.СТОП",	// 24
+	"Выключение",	// 25
+	"Помеха в п",  	// 26
+	"Неиспр.ДФЗ",  	// 27
+	"Уд: Нет АК",  	// 28 <---
+	"Уд: Помеха",	// 29 <---
+	"Уд: Н. ДФЗ",   // 30 <---
+	"Уд: Н. ВЫХ",   // 31 <---
 };											
 #endif

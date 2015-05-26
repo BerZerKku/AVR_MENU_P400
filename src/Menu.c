@@ -528,7 +528,7 @@ void MenuAKCreate(void)
 	param4[i++] = 3;		// ףסך.ÀÊ
 	param4[i++] = 4;		// גûךכ.ÀÊ
 	
-	if (TypeUdDev == 3) 		// ÏÂÇÓ-Å
+	if ((TypeUdDev == 3) || (TypeUdDev == 7))	// ÏÂÇÓ-Å
 	{
 		param4[i++] = 9;	// בודכ.ÀÊ
 		param4[i++] = 5;	// ןנמג.ÀÊ

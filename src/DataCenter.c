@@ -44,6 +44,7 @@ extern unsigned char MenuDefShftPrm[];
 extern unsigned char MenuDefShftPrd[];
 extern unsigned char* MenuDefShft[];
 extern unsigned char NumDevError;
+extern unsigned char NumDfzError[];
 
 extern __flash uint RangPost[] [3];
 //параметры ПРМ-ка
@@ -156,6 +157,9 @@ extern void MenuACCreate(void);
 extern void MenuAKCreate(void);
 extern void MenuTestCreate(void);
 extern unsigned char MaxShiftMenu, ShiftMenu;
+
+
+void getNumDfzError(uint8_t val);
 
 //функция вычисляет код CRC-16
 //на входе указатель на начало буфера
@@ -647,6 +651,10 @@ void FGlobalCurrentState(void)
 	unsigned char tmp = GlobalCurrentState[4];
 	NumDevError = (tmp <= 7) ? tmp : 7;	// номер аппарата с ошибкой (для ПВЗУ-Е)
 	
+	// дополнительное значение используемое в неиспрановтси ДФЗ в совместимости ПВЗУ
+	getNumDfzError(GlobalCurrentState[5]);
+	
+	
 	bRec1Avar = (GlobalCurrentState[4] != 0) || (GlobalCurrentState[5] != 0) ? true : false;
 	bRec1Warn = (GlobalCurrentState[6] != 0) || (GlobalCurrentState[7] != 0) ? true : false;
 	
@@ -657,6 +665,25 @@ void FGlobalCurrentState(void)
 	bRec2Warn = (GlobalCurrentState[18] != 0) || (GlobalCurrentState[19]!=0) ? true : false;
 	
 	RecivVar=1;
+}
+
+// заполнение переменной для вывода значения при неисправности ДФЗ в совместимости с ПВЗУ
+// диапазон значений 0.255, выводится только нужное кол-во цифр (не менее 1).
+void getNumDfzError(uint8_t val) {
+	uint8_t i = 0;
+	uint8_t tmp = val;
+	if (val >= 100) {	
+		NumDfzError[i++] = tmp / 100 + '0';
+		val = val % 100;
+	}
+	if (val >= 10) {
+		NumDfzError[i++] = tmp / 10 + '0';
+	}
+	NumDfzError[i++] = tmp % 10 + '0';
+	
+	while(i <= 3) {
+		NumDfzError[i++] = ' ';
+	}
 }
 
 void FDataTime(void){
