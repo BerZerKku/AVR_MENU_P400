@@ -674,7 +674,7 @@ void getNumDfzError(uint8_t val) {
 	uint8_t tmp = val;
 	if (val >= 100) {	
 		NumDfzError[i++] = tmp / 100 + '0';
-		val = val % 100;
+		tmp = tmp % 100;
 	}
 	if (val >= 10) {
 		NumDfzError[i++] = tmp / 10 + '0';
