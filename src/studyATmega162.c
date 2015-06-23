@@ -429,6 +429,7 @@ static void FuncViewValue(uint8_t numparam)
 				case 20:	// снижение уровня ответа (ПВЗЛ)
 				case 21:
 				case 22:
+				case 23:
 				{
 					var=2;
 					min = RangGlb[num] [0] * RangGlb[num] [2];
@@ -2024,6 +2025,8 @@ static void FuncPressKey(void)
 							case 21: {WorkRate = 1;	MaxNumberInputChar = 3;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 7;} break;
 							// период повтора беглого режима АК (пвзу-е)
 							case 22: {WorkRate = 1;	MaxNumberInputChar = 3;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 8;} break;
+							// Коррекция времени АК (пвзу)
+							case 23: {WorkRate = 1; MaxNumberInputChar = 2; InputParameter = 0x39;	ByteShift = 0;	Discret = 1; 	NumberTransCom = 9;} break;
 						}
 						bInpVal=false;
 					}
@@ -2326,6 +2329,7 @@ void FuncTr(void)
 								case 20:	// параметр ПВЗЛ
 								case 21:
 								case 22:
+								case 23:
 								{
 									TransDataInf(0x39, 0x00);
 								}
@@ -3152,6 +3156,7 @@ static void LCDwork(void)
 								case 20: LCDprint(3, 11, MenuAllLowCF, 1); break;
 								case 21: LCDprint(3, 11, sParamPVZE.periodAC, 1); break;
 								case 22: LCDprint(3, 11, sParamPVZE.periodACre, 1); break;
+								case 23: LCDprint(3, 11, sParamPVZE.timeCorrAC, 1); break;
 							}				
 						}
 						else

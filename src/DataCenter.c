@@ -849,6 +849,12 @@ void fIntCodeToChar(unsigned char *Mass, unsigned char StartAddr,  unsigned char
 			Mass[StartAddr++]='å';
 			Mass[StartAddr++]='ê';
 		} break;
+		case 5: {
+			Mass[StartAddr++]=' ';
+			Mass[StartAddr++]='ì';
+			Mass[StartAddr++]='è';
+			Mass[StartAddr++]='í';
+		} break;
 	}
 }
 
@@ -1186,6 +1192,14 @@ void FParamGlobal(unsigned char command)
 					sParamPVZE.periodACre[2] = '?';
 				} else {
 					fIntCodeToChar(sParamPVZE.periodACre, 0, 4, tmp, RangGlb[22] [1]);
+				}
+				
+				tmp = Rec_buf_data_uart[12];
+				if ( (tmp < RangGlb[23] [0]) || (tmp > RangGlb[23] [1]) ) {
+					sParamPVZE.timeCorrAC[0] = '?';
+					sParamPVZE.timeCorrAC[1] = '?';
+				} else {
+					fIntCodeToChar(sParamPVZE.timeCorrAC, 0, 5, tmp, RangGlb[23] [1]);
 				}
 			}
 			

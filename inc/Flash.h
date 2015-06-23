@@ -244,6 +244,7 @@ __flash unsigned char Menu1019[] =	"Резервирование";		// оптика
 __flash unsigned char Menu1020[] = 	"Снижение ответа АК  ";	// ПВЗЛ				
 __flash unsigned char Menu1021[] =	"Период беглого АК";	// ПВЗУ-Е
 __flash unsigned char Menu1022[] =	"Период повт.бегл. АК";	// ПВЗУ-Е
+__flash unsigned char Menu1023[] =	"Коррекция времени АК";	// ПВЗУ
 __flash unsigned __flash char *Menu10paramAll[] = 
 {	
 	Menu100, 
@@ -269,6 +270,7 @@ __flash unsigned __flash char *Menu10paramAll[] =
 	Menu1020,
 	Menu1021,
 	Menu1022,
+	Menu1023,
 	Menu109_1
 };
 // кол-во общих параметров
@@ -514,6 +516,7 @@ __flash unsigned __flash char *MenuAllParityNum[] =
 __flash unsigned char MenuAllProval[] 	= "??? град";
 __flash unsigned char MenuAllPorog[]	= "??? сек";
 __flash unsigned char MenuAllNoise[] 	= "?? град";
+__flash unsigned char MenuAllTimeCorrAC[]="?? мин"; 
 
 __flash unsigned char MenuAllControl0[] = "????";
 __flash unsigned char MenuAllControl1[] = "тревожный";
@@ -614,7 +617,8 @@ __flash uint RangGlb[NumParamGlb] [3] =
 	0,	1,				1,		// 19 Резервирование (оптика)
 	0,	20, 			1,		// 20 снижение ответа АК (пвзл)
 	1, 	255,			1,		// 21 Период беглого режима АК (пвзу-е)
-	1, 	255,			1		// 22 Период повтора беглого режима АК (пвзу-е)	
+	1, 	255,			1,		// 22 Период повтора беглого режима АК (пвзу-е)	
+	0,	20,				1		// 23 Коррекция времени АК (пвзу)	
 };		
 
 __flash unsigned char Menu16Shift10[] = "0.0..99.9";

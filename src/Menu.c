@@ -107,6 +107,13 @@ void MenuParamGlbCreate(void)
 				if (MenuAllPorog[i] == 0)
 					break;
 			}
+			sMenuGlbParam.punkt[num] = 23; 	sMenuGlbParam.name[num++] = 23;		// Коррекция времени АК
+			for(char i = 0; i < 10; i++)
+			{
+				sParamPVZE.timeCorrAC[i] = MenuAllTimeCorrAC[i];
+				if (MenuAllTimeCorrAC[i] == 0)
+					break;
+			}
 		}
 		break;
 		
@@ -135,6 +142,13 @@ void MenuParamGlbCreate(void)
 			sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;		// Контроль вых.сигнала
 			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
 			sMenuGlbParam.punkt[num] = 15; 	sMenuGlbParam.name[num++] = 15;		// Допустимые провалы
+			sMenuGlbParam.punkt[num] = 23; 	sMenuGlbParam.name[num++] = 23;		// Коррекция времени АК
+			for(char i = 0; i < 10; i++)
+			{
+				sParamPVZE.timeCorrAC[i] = MenuAllTimeCorrAC[i];
+				if (MenuAllTimeCorrAC[i] == 0)
+					break;
+			}
 		}
 		break;
 		

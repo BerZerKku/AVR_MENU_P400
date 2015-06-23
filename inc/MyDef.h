@@ -153,6 +153,7 @@ struct strParamPVZUE
 	uchar autocontrol;	// тип автоконтроля
 	uchar periodAC[10];	// период беглого режима АК
 	uchar periodACre[10];// период повтора беглого режима АК
+	uchar timeCorrAC[10];// время коррекции АК
 };
 
 struct strParamOpt
