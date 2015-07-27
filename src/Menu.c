@@ -143,6 +143,8 @@ void MenuParamGlbCreate(void)
 			sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = NumParamGlb; // Порог ПРЕДУПР по РЗ
 			sMenuGlbParam.punkt[num] = 15; 	sMenuGlbParam.name[num++] = 15;		// Допустимые провалы
 			sMenuGlbParam.punkt[num] = 23; 	sMenuGlbParam.name[num++] = 23;		// Коррекция времени АК
+			sMenuGlbParam.punkt[num] = 11; 	sMenuGlbParam.name[num++] = 11;		// Коррекция напряжения
+			sMenuGlbParam.punkt[num] = 12; 	sMenuGlbParam.name[num++] = 12;		// Коррекция тока
 			for(char i = 0; i < 10; i++)
 			{
 				sParamPVZE.timeCorrAC[i] = MenuAllTimeCorrAC[i];
