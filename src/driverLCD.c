@@ -356,7 +356,7 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
     uchar 	start1 = 48;
 	
 	
-	if  ( (AK > 6) || (AK == 4) || (AK == 0) || (dev > 7) || (iTimeToAKnow > iTimeToAK) )
+	if  ( (AK > 6) || (AK == 4) || (AK == 0) || (dev > 8) || (iTimeToAKnow > iTimeToAK) )
 	{
 		// если ошибочный тип АК или тип удаленного устройства
 		// либо текущий счетчик времени больше времени до АК

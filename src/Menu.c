@@ -45,6 +45,7 @@ void MenuParamGlbCreate(void)
 		
 		case 1:		// ПВЗ-90
 		case 2:		// АВЗК-80	
+		case 8: 	// ПВЗ
 		{
 			sMenuGlbParam.punkt[num] = 0; 	sMenuGlbParam.name[num++] = 0;		// Совместимость
 			sMenuGlbParam.punkt[num] = 2; 	sMenuGlbParam.name[num++] = 2;		// Uвых номинальное
@@ -204,6 +205,7 @@ void MenuParamDefCreate(void)
 		case 1:		// ПВЗ-90 
 		case 2:		// АВЗК-80
 		case 3:		// ПВЗУ-Е
+		case 8:
 		{
 			sMenuDefParam.punkt[num++] = 0;		// Тип Защиты
 			sMenuDefParam.punkt[num++] = 1;		// Тип Линии
@@ -401,8 +403,13 @@ void MenuUprCreate(uint8_t act)
 			case 7: 	// ПВЗУ
 			{	
 				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
-				
 				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
+			}
+			break;
+			
+			case 8:		// ПВЗ
+			{
+				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
 			}
 			break;
 			
@@ -501,6 +508,15 @@ void MenuACCreate(void)
 			dSetACItem(CTRL_COM_AC_CHECK, 				CTRL_NAME_AC_QUICK);
 			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_CHECK);
 			dSetACItem(CTRL_COM_AC_OFF,					CTRL_NAME_AC_OFF);
+		}
+		break;
+		
+		case 8:		// ПВЗ
+		{
+			dSetACItem(CTRL_COM_AC_AUTO_ACCELERATED,	CTRL_NAME_AC_NORMAL);
+			dSetACItem(CTRL_COM_AC_ACCELERATED,			CTRL_NAME_AC_ACCELERATED);
+			dSetACItem(CTRL_COM_AC_OFF,					CTRL_NAME_AC_OFF);
+			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_START);
 		}
 		break;
 		

@@ -2950,28 +2950,19 @@ static void LCDwork(void)
 							{	
 								LCDprintf(3 , 1 , fAk , 1);
 								LCDprintf(3 , 4 , flAutoContorl1[param4[cAutoControl]], 1);
-								if ((FreqNum[7] < '4')      &&
-									(FreqNum[7] > '0')      &&
-									(cAutoControl)        	&&	
-									(CurrentState[0] == 2)	)
+								FuncClearCharLCD(3, 9, 13);
+								if ((FreqNum[7] < '4') && (FreqNum[7] > '0') && (cAutoControl) && (CurrentState[0] == 2))
 								{
-									// Только в ПВЗУ-Е и ПВЗУ при аварии/неисправности выводится время до АК
-									if ( (TypeUdDev != 3) && (TypeUdDev != 7) && (bDefAvar || bGlobalAvar ||  (CurrentState[1] != 1)) )
-										FuncClearCharLCD(3, 9, 13);
-									else
-									{
-										if (TimeError)
-										{
+									// Только в ПВЗУ-Е/ПВЗУ/ПВЗ при аварии/неисправности выводится время до АК
+									if (((!bDefAvar) && (!bGlobalAvar) && (CurrentState[1] == 1)) || ((TypeUdDev == 3) || (TypeUdDev == 7) || (TypeUdDev == 8))) {
+										if (TimeError) {
 											LCDprintf(3 , 15 , Menu11Err , 1);
 											FuncClearCharLCD(3 , 19 , 2);
-										}
-										else
+										} else {
 											LCDprintTimeAK(cAutoControl, TypeUdDev, FreqNum[7] , TimeLCD);
-										
+										}
 									}
 								}
-								else
-									FuncClearCharLCD(3, 9, 13);
 								
 								if (cNumLine == 2)
 									LCDprint(4,1,Measuring[5],1);

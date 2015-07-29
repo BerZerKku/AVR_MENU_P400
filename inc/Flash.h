@@ -285,6 +285,7 @@ __flash uchar TypeUdDev4[] = "ПВЗЛ";
 __flash uchar TypeUdDev5[] = "ЛИНИЯ-Р";	// TODO Не сделано
 __flash uchar TypeUdDev6[] = "ПВЗК";	// TODO Не сделано
 __flash uchar TypeUdDev7[] = "ПВЗУ";
+__flash uchar TypeUdDev8[] = "ПВЗ";
 __flash uchar TypeUdDevX[] = "ошибка";
 __flash unsigned __flash char *fmTypeUdDev[] = 
 {
@@ -296,6 +297,7 @@ __flash unsigned __flash char *fmTypeUdDev[] =
 	TypeUdDev5,
 	TypeUdDev6,
 	TypeUdDev7,
+	TypeUdDev8,
 	TypeUdDevX
 };
 // Кол-во типов совместимости,
