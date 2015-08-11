@@ -823,7 +823,7 @@ __flash unsigned char Menu1PostError400[]	= "Удал.без отв.";	// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostError800[]	= "Неиспр.цепь.ВЫХ ";
 __flash unsigned char Menu1PostError1000[]	= "Удал.обн.пом.";	// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostError2000[]	= "Неиспр.зап. ВЫХ ";
-__flash unsigned char Menu1PostError4000[]	= "Длит. помеха    ";	// ПВЗУ-Е
+__flash unsigned char Menu1PostError4000[]	= "Помеха в линии  ";	// ПВЗУ-Е
 __flash unsigned char Menu1PostError8000[]	= "Неиспр. ДФЗ ";	// ПВЗУ-Е (+ доп. значение)
 __flash unsigned __flash char *Menu1PostErrorT[] =
 {	Menu1PostError1,
