@@ -376,6 +376,10 @@ static void FuncViewValue(uint8_t numparam)
 							max = 54;
 						}
 					}
+					
+					if ((TypeUdDev == 3) && (num == 1)) {
+						max = 8;
+					}
 				}
 				else 
 					var=0;
@@ -440,6 +444,10 @@ static void FuncViewValue(uint8_t numparam)
 					{
 						if (num == 7)
 							max = 2;
+					}
+					
+					if ((TypeUdDev == 3) && (num == 7)) {
+						max = cNumLine;	// В ПВЗУ-Е зависит от Типа линии, может быть от 2 до 8
 					}
 				}
 				break;
@@ -1899,10 +1907,15 @@ static void FuncPressKey(void)
 							MinValue=RangPost[sMenuDefParam.punkt[ShiftMenu]] [0] * RangPost[sMenuDefParam.punkt[ShiftMenu]] [2];
 							MaxValue=RangPost[sMenuDefParam.punkt[ShiftMenu]] [1] * RangPost[sMenuDefParam.punkt[ShiftMenu]] [2];
 							
+							if (TypeUdDev == 3) {
+								if (sMenuDefParam.punkt[ShiftMenu] == 1) {
+									MaxValue = 8;	// в ПВЗУ-Е кол-во концов может быть 8
+								}
+							}
+							
 							if (cTypeLine == 2)
 							{
-								if ((sMenuDefParam.punkt[ShiftMenu] == 3) || (sMenuDefParam.punkt[ShiftMenu] == 4))
-								{
+								if ((sMenuDefParam.punkt[ShiftMenu] == 3) || (sMenuDefParam.punkt[ShiftMenu] == 4))	{
 									MinValue = 0;
 									MaxValue = 54;
 									Discret = 1;
@@ -2037,6 +2050,10 @@ static void FuncPressKey(void)
 									RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
 						MaxValue = 	RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [1] * 
 									RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
+						
+						if ((TypeUdDev == 3) && (sMenuGlbParam.punkt[ShiftMenu] == 7)) {
+							MaxValue = cNumLine;	// В ПВЗУ-Е зависит от Типа линии, может быть от 2 до 8
+						}
 						
 						if ( (TypeUdDev == 4) && (sMenuGlbParam.punkt[ShiftMenu] == 7) )
 						{

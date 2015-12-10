@@ -236,7 +236,14 @@ void FParamDef(unsigned char command)
 			// настроим пункты меню с учетом выбранного значения
 			
 			tmp += 1;
-			if ((tmp < RangPost[1] [0]) || (tmp > RangPost[1] [1])) 
+			
+			uint8_t min = RangPost[1] [0];
+			uint8_t max = RangPost[1] [1];
+			
+			if (TypeUdDev == 3)
+				max = 8;
+			
+			if ((tmp < min) || (tmp > max)) 
 				MenuTypeLine[0] = '?'; 
 			else 
 			{
@@ -384,7 +391,7 @@ void FParamDef(unsigned char command)
 				cAutoControl = tmp;
 				
 				// если тип удаленного аппарата ПВЗ или АВЗК
-				if ( (sMenuGlbParam.dev >= 1) || (sMenuGlbParam.dev <= 7) )
+				if ( (sMenuGlbParam.dev >= 1) || (sMenuGlbParam.dev <= 8) )
 				{
 					long a;
 					
@@ -397,51 +404,6 @@ void FParamDef(unsigned char command)
 					a += Rec_buf_data_uart[8];
 					a = a / 1000;
 					iTimeToAK = a;
-					
-//					switch(sMenuGlbParam.dev)
-//					{
-//						case 1:	// ПВЗ
-//						{
-//							a = Rec_buf_data_uart[5];
-//							a <<= 8;
-//							a += Rec_buf_data_uart[6];
-//							a <<= 8;
-//							a += Rec_buf_data_uart[7];
-//							a <<= 8;
-//							a += Rec_buf_data_uart[8];
-//							a = a / 1000;
-//							iTimeToAK = a;
-//						}
-//						break;
-//						case 2:	// АВЗК
-//						{
-//							a = Rec_buf_data_uart[5];
-//							a <<= 8;
-//							a += Rec_buf_data_uart[6];
-//							a <<= 8;
-//							a += Rec_buf_data_uart[7];
-//							a <<= 8;
-//							a += Rec_buf_data_uart[8];
-//							a = a / 1000;
-//							iTimeToAK = a;
-//						}
-//						break;
-//						case 3: // ПВЗЕ-У
-//						case 4: // ПВЗЛ
-//				  		// Женька посылает время до АК
-//						{
-//							a = Rec_buf_data_uart[5];
-//							a <<= 8;
-//							a += Rec_buf_data_uart[6];
-//							a <<= 8;
-//							a += Rec_buf_data_uart[7];
-//							a <<= 8;
-//							a += Rec_buf_data_uart[8];
-//							a = a / 1000;
-//							iTimeToAK = a;
-//						}
-//						break;
-//					} 
 				}
 			}
 			LCDtimerNew=1;
@@ -1254,13 +1216,19 @@ void FParamGlobal(unsigned char command)
 			LCDtimerNew=1;
 		}break;
 		case 0x3B:{ //номер аппарата (общие)
-			if ((Rec_buf_data_uart[4]<RangGlb[7] [0])||(Rec_buf_data_uart[4]>RangGlb[7] [1])){
+			
+			uint8_t min = RangGlb[7] [0];
+			uint8_t max = RangGlb[7] [1];
+			
+			if (TypeUdDev == 3) {
+				max = cNumLine;
+			}
+				
+			if ((Rec_buf_data_uart[4] < min)||(Rec_buf_data_uart[4] > max)){
 				MenuAllNumDevice[0] = '?';
 				FreqNum[7]='?';
-			}
-			else
-			{
-				MenuAllNumDevice[0] = Rec_buf_data_uart[4]+0x30;
+			} else {
+				MenuAllNumDevice[0] = Rec_buf_data_uart[4] + '0';
 				FreqNum[7] = MenuAllNumDevice[0];
 			}
 			LCDtimerNew=1;
