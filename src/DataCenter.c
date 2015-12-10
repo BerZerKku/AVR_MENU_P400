@@ -96,6 +96,7 @@ extern strParamPVZUE sParamPVZE;
 
 //extern unsigned char Iline1[], Iline2[], Uline[], Usigndef[], Uinkch[], Kd[], Kov[], Pk[];
 extern unsigned char Iline1[], Iline2[], Uline[], Usigndef1[], Usigndef2[], Uinkch1[], Uinkch2[], Kd[], Kov[], Pk[];
+extern unsigned char Uinkch3[], Uinkch4[], Uinkch5[],Uinkch6[],Uinkch7[],Uinkch8[];
 extern unsigned char Iline1H[], PkH[], KovH[];
 extern signed int UlineValue, IlineValue;
 extern unsigned char LCDparam;
@@ -250,6 +251,11 @@ void FParamDef(unsigned char command)
 				MenuTypeLine[0] = tmp + '0';
 				if (cNumLine != tmp)
 				{		
+					//Уберем все Uk кроме 1
+					for(uint8_t i = 2; i <= cNumLine; i++) {
+						bViewParam[5 + i - 1] = false; 
+					}
+					
 					cNumLine = tmp;
 					MenuTestCreate();
 					MenuParamGlbCreate();
@@ -258,6 +264,14 @@ void FParamDef(unsigned char command)
 					MenuACCreate();
 					MenuAKCreate();
 					MenuTestCreate();
+					
+					if (cNumLine == 3) {
+						bViewParam[6] = true;
+					} else if ((TypeUdDev == 3) && (cNumLine > 3)) {
+						for(uint8_t i = 1; i <= cNumLine; i++) {
+							bViewParam[5 + i - 1] = true; 
+						}
+					}
 				}
 			}
 			
@@ -600,18 +614,23 @@ void FGlobalCurrentState(void)
 	GlobalCurrentState[15] = 0x40;
 #endif
 	*/
-	
 	bGlobalAvar = (GlobalCurrentState[12] != 0) || (GlobalCurrentState[13] != 0) ? true : false;
 	bGlobalWarn = (GlobalCurrentState[14] != 0) || (GlobalCurrentState[15] != 0) ? true : false;
 	
 	bDefAvar = (GlobalCurrentState[0] != 0) || (GlobalCurrentState[1] != 0) ? true : false;
 	bDefWarn = (GlobalCurrentState[2] != 0) || (GlobalCurrentState[3] != 0) ? true : false;
+	
 	// в случае Р400 ПВЗУ-Е используется доп.байт с номерами аппарата , передаются битами
 	// 0 бит - 1 аппарат
 	// 1 бит - 2 аппарат
 	// 2 бит - 3 аппарат
-	unsigned char tmp = GlobalCurrentState[4];
-	NumDevError = (tmp <= 7) ? tmp : 7;	// номер аппарата с ошибкой (для ПВЗУ-Е)
+	// ...
+	// 8 бит - 8 аппарат
+	uint8_t mask = 0;
+	for(uint8_t i = 0; i < cNumLine; i++) {
+		mask |= (1 << i);
+	}
+	NumDevError = GlobalCurrentState[4] & mask;
 	
 	// дополнительное значение используемое в неиспрановтси ДФЗ в совместимости ПВЗУ
 	getNumDfzError(GlobalCurrentState[5]);
@@ -960,12 +979,29 @@ void FMeasureParam(void)
 		//контрльная частота
 		if ( (cAutoControl == 4) && (CurrentState[0] < 4) )
 		{   //если АК выкл и не тест то Uk всегда 0
-			Rec_buf_data_uart[13]=0;
-			Rec_buf_data_uart[14]=0;
+			Rec_buf_data_uart[13]=0;	// Uk1
+			Rec_buf_data_uart[14]=0;	// Uk2
+			Rec_buf_data_uart[19]=0;	// UK3
+			Rec_buf_data_uart[20]=0;	// Uk4
+			Rec_buf_data_uart[21]=0;	// Uk5
+			Rec_buf_data_uart[22]=0;	// Uk6
+			Rec_buf_data_uart[23]=0;	// Uk7
+			Rec_buf_data_uart[24]=0;	// Uk8
 		}
 		fDopCodeToChar(Uinkch1,3,1,2,Rec_buf_data_uart[13]);
-		if (cNumLine==3)
+		if (cNumLine==3) {
 			fDopCodeToChar(Uinkch2,3,1,2,Rec_buf_data_uart[14]);
+		} else if ((cNumLine > 3) && (TypeUdDev == 3)) {
+			// в ПВЗУ-Е может быть до 8 Uk
+			fDopCodeToChar(Uinkch2,3,1,2,Rec_buf_data_uart[14]);
+			fDopCodeToChar(Uinkch3,3,1,2,Rec_buf_data_uart[19]);
+			fDopCodeToChar(Uinkch4,3,1,2,Rec_buf_data_uart[20]);
+			fDopCodeToChar(Uinkch5,3,1,2,Rec_buf_data_uart[21]);
+			fDopCodeToChar(Uinkch6,3,1,2,Rec_buf_data_uart[22]);
+			fDopCodeToChar(Uinkch7,3,1,2,Rec_buf_data_uart[23]);
+			fDopCodeToChar(Uinkch8,3,1,2,Rec_buf_data_uart[24]);
+		}
+		
 		
 		//использование динамического диапазона приемника
 		fDopCodeToChar(Kd,3,1,2,Rec_buf_data_uart[15]);
@@ -1488,6 +1524,22 @@ void VersDevice(void)
 		CorrectVers=false;
 	}
 	
+	
+	// проверим совместимость и если не корректная включим АВАНТ
+	if (Rec_buf_data_uart[14] <= 8)	{ // 8 == NumTypeUdDev
+		TypeUdDev = Rec_buf_data_uart[14];
+	}
+	else
+	{
+		CorrectVers = false;
+		TypeUdDev = 0;
+	}
+	
+	// отключим сначала все Uk кроме Uk1
+	for(uint8_t i = 2; i <= 8; i++) {
+		bViewParam[5 + i - 1] = false; 
+	}
+	
 	// Кол-во аппаратов в линии
 	// 2 или 3
 	// в звисимости от этого, корректируются некоторые параметры
@@ -1509,15 +1561,22 @@ void VersDevice(void)
 		// архив для второго приемника. при необходимости
 		if (cNumComR2 != 0)
 			sArchive.Dev[++sArchive.NumDev] = 4;  // второй приемник
-	}
-	else
-	{
-		cNumLine = 2; 
-		cNumComR2 = 0;
-		cNumComR = cNumComR1;
-		
-		if (Rec_buf_data_uart[8] != 2)
-			CorrectVers = false;
+	} else {
+		if ((TypeUdDev == 3) && (Rec_buf_data_uart[8] <= 8)) {
+			cNumLine = Rec_buf_data_uart[8];
+			
+			// в ПВЗУ-Е может быть до 8 Uk
+			for(uint8_t i = 1; i < cNumLine; i++) {
+				bViewParam[5 + i] = true;
+			}
+		} else {
+			cNumLine = 2; 
+			cNumComR2 = 0;
+			cNumComR = cNumComR1;
+			
+			if (Rec_buf_data_uart[8] != 2)
+				CorrectVers = false;
+		}
 	}
 	
 	// Архив приемника
@@ -1548,22 +1607,10 @@ void VersDevice(void)
 	else
 		maxLCDtimer = 3;
 	
-	
 	MyInsertion[1] = (Rec_buf_data_uart[10] << 8) + Rec_buf_data_uart[11];  //версия АТмега БСП
 	MyInsertion[2] = (Rec_buf_data_uart[12] << 8) + Rec_buf_data_uart[13];  //версия DSP
 	MyInsertion[3] = (Rec_buf_data_uart[19] << 4) & 0x0F00;  
 	MyInsertion[3] += Rec_buf_data_uart[19] & 0x0F;	//версия БСЗ ПЛИС
-	
-	// проверим совместимость и если не корректная включим АВАНТ
-	if (Rec_buf_data_uart[14] <= 7)	// 7 == NumTypeUdDev
-	{
-		TypeUdDev = Rec_buf_data_uart[14];
-	}
-	else
-	{
-		CorrectVers = false;
-		TypeUdDev = 0;
-	}
 	
 	//подсичтаем кол-во параметров в меню тест, группа 1
 	if (cTypeLine == 2)   // если ВОЛС

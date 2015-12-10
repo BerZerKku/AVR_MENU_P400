@@ -81,12 +81,52 @@ unsigned char Kov[]=    	"Kov=??% ";
 unsigned char Pk[]=     	"Sд=???  ";
 unsigned char Uline[]=  	"U=??,?B ";
 unsigned char Kd[]=     	"Uш=??дБ ";
-unsigned char Usigndef1[]="Uз=??дБ ";
-unsigned char Usigndef2[]="Uз=??дБ ";
-unsigned char Uinkch1[]= "Uк=??дБ ";
-unsigned char Uinkch2[]= "Uк=??дБ ";
-unsigned char *Measuring[]={Iline1, Iline2, Uline, Usigndef1, Usigndef2, Uinkch1, Uinkch2, Kd,    Kov,  Pk};
-unsigned char bViewParam[]={false,   true,   true,  true,     false,     false,   false,   true,  false,true}; //true - видимый параметр, false -невидимый.
+unsigned char Usigndef1[]=	"Uз=??дБ ";
+unsigned char Usigndef2[]=	"Uз=??дБ ";
+unsigned char Uinkch1[]= 	"Uк=??дБ ";
+unsigned char Uinkch2[]= 	"Uк=??дБ ";
+unsigned char Uinkch3[] = 	"Uк=??дБ ";
+unsigned char Uinkch4[] = 	"Uк=??дБ ";
+unsigned char Uinkch5[] = 	"Uк=??дБ ";
+unsigned char Uinkch6[] = 	"Uк=??дБ ";
+unsigned char Uinkch7[] = 	"Uк=??дБ ";
+unsigned char Uinkch8[] = 	"Uк=??дБ ";
+unsigned char *Measuring[]={
+	Iline1, 	// 0
+	Iline2, 	// 1
+	Uline, 		// 2
+	Usigndef1, 	// 3
+	Usigndef2, 	// 4
+	Uinkch1, 	// 5
+	Uinkch2, 	// 6
+	Uinkch3,	// 7
+	Uinkch4,	// 8
+	Uinkch5,	// 9
+	Uinkch6,	// 10
+	Uinkch7,	// 11
+	Uinkch8,	// 12
+	Kd,    		// 13 was 7
+	Kov,  		// 14 was 8
+	Pk			// 15 was 9
+};
+unsigned char bViewParam[] = {
+	false,		// 0   
+	true,   	// 1
+	true,  		// 2
+	true,     	// 3
+	false,     	// 4
+	false,   	// 5
+	false,   	// 6
+	false,		// 7
+	false,		// 8
+	false,		// 9
+	false,		// 10
+	false,		// 11
+	false,		// 12
+	true,  		// 13 was 7
+	false,		// 14 was 8
+	true		// 15 was 9
+}; //true - видимый параметр, false -невидимый.
 signed int UlineValue, IlineValue;
 
 unsigned char GlobalCurrentState[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x00};
@@ -685,10 +725,10 @@ static void FuncSelectValue(void)
 						bParamView = InputSelectValue;
 						if (bParamView) {
 							bViewParam[0]=true;
-							bViewParam[8]=true;
+							bViewParam[14]=true;
 						} else {
 							bViewParam[0]=false;
-							bViewParam[8]=false;
+							bViewParam[14]=false;
 						}
 					} else if (SelectValue==2) {
 						bParamValue = InputSelectValue;
@@ -1266,7 +1306,7 @@ static void FuncPressKey(void)
 						{
 							if (NumberAskMeasuring>1) 
 								NumberAskMeasuring--; 
-							else NumberAskMeasuring=10;
+							else NumberAskMeasuring=16;
 						}
 						while( !bViewParam[NumberAskMeasuring-1] ); 			// проверка на запрет отображения пар-ра
 						eNumberAskMeasuring[0] = NumberAskMeasuring;
@@ -1623,7 +1663,7 @@ static void FuncPressKey(void)
 					do
 					{
 						NumberAskMeasuring++; 
-						if (NumberAskMeasuring>10) 
+						if (NumberAskMeasuring>16) 
 							NumberAskMeasuring=1;
 					}
 					while( !bViewParam[NumberAskMeasuring-1] ); 				//проверка на запрет отображения пар-ра
@@ -2739,11 +2779,37 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 					// в чистой защите, одна неисправность меняет название
 					// а для неисправностей в совместимости ПВЗУ-Е/ПВЗУ добавляется номер
 					if ((Device == 1) && (sArchive.NumDev == 1)) {
-						if ((TypeUdDev == 3) || (TypeUdDev == 7)) { // добавляем номер уд.аппарата с ошибкой (если не надо - затрется)
+						if (TypeUdDev == 7) { // добавляем номер уд.аппарата с ошибкой (если не надо - затрется)
 							if (temp == 0x8000) {
 								LCDprint(NumString, 17, NumDfzError, 1);
 							} else {
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
+							}
+						} else if (TypeUdDev == 3) {
+							if (cNumLine <= 3) {
+								if (temp == 0x8000) {
+									LCDprint(NumString, 17, NumDfzError, 1);
+								} else {
+									LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
+								}
+							} else {
+								if (temp == 0x8000) {
+									LCDprint(NumString, 17, NumDfzError, 1);
+								} else {
+									LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
+								}
+								
+								FuncClearCharLCD(4, 1, 20);
+								// вывод номеров аппарата в 4-ой строке для определенных неисправностей
+								if ((temp == 0x0010) || (temp == 0x0040) || (temp == 0x0080) || (temp == 0x400) || (temp == 0x1000)) {
+									uint8_t pos = 5;
+									for(uint8_t num = 0; num < cNumLine; num++) {
+										if ((1 << num) & NumDevError) {
+											LCDprintChar(4, pos, num + '1');
+											pos += 2;
+										}
+									}
+								}								
 							}
 						} else {
 							LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
@@ -2816,11 +2882,29 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 						switch(temp)
 						{
 							case 1:
-							if ((Device == 1) && (sArchive.NumDev == 1) && ((TypeUdDev == 3) || (TypeUdDev == 7)) ) {
-								LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
-							} else {
+							if ((Device == 1) && (sArchive.NumDev == 1)) {
+								FuncClearCharLCD(4, 1, 20);
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
-							}
+								if (TypeUdDev == 7) {
+									LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
+								} else if (TypeUdDev == 3) {
+									if (cNumLine <= 3) {
+										LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
+									} else {
+										LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
+										// вывод номеров аппарата в 4-ой строке для определенных неисправностей
+										if (temp == 0x0001) {
+											uint8_t pos = 5;
+											for(uint8_t num = 0; num < cNumLine; num++) {
+												if ((1 << num) & NumDevError) {
+													LCDprintChar(4, pos, num + '1');
+													pos += 2;
+												}
+											}
+										}		
+									}
+								} 
+							} 
 							LCDprintf(NumString, 5, Menu1PostWarning1, 1);
 							break;
 							case 2:
@@ -2968,7 +3052,7 @@ static void LCDwork(void)
 								LCDprintf(3 , 1 , fAk , 1);
 								LCDprintf(3 , 4 , flAutoContorl1[param4[cAutoControl]], 1);
 								FuncClearCharLCD(3, 9, 13);
-								if ((FreqNum[7] < '4') && (FreqNum[7] > '0') && (cAutoControl) && (CurrentState[0] == 2))
+								if ((FreqNum[7] <= '8') && (FreqNum[7] >= '1') && (cAutoControl) && (CurrentState[0] == 2))
 								{
 									// Только в ПВЗУ-Е/ПВЗУ/ПВЗ при аварии/неисправности выводится время до АК
 									if (((!bDefAvar) && (!bGlobalAvar) && (CurrentState[1] == 1)) || ((TypeUdDev == 3) || (TypeUdDev == 7) || (TypeUdDev == 8))) {
@@ -2983,14 +3067,12 @@ static void LCDwork(void)
 								
 								if (cNumLine == 2)
 									LCDprint(4,1,Measuring[5],1);
-								else
-									if (cNumLine == 3)
-									{
+								else if (cNumLine == 3) {
 										LCDprintChar(4 , 1 , '1');
 										LCDprint(4 , 2 , Measuring[5] , 1);
 										LCDprintChar(4 , 11 , '2');
 										LCDprint(4 , 12 , Measuring[6] , 1);
-									}
+								} 
 							}
 						}
 					}
@@ -3684,7 +3766,7 @@ static void LCDwork(void)
 				//выводим на экран измеряемый параметр
 				if ( (LCDparam==1)&&(PCready==0) )
 				{
-					if ( (eNumberAskMeasuring[0] == 0) || (eNumberAskMeasuring[0] > 10) ) 
+					if ( (eNumberAskMeasuring[0] == 0) || (eNumberAskMeasuring[0] > 16) ) 
 						eNumberAskMeasuring[0] = 1;
 					NumberAskMeasuring=eNumberAskMeasuring[0];
 					if (((AvarNoUsp==1)&&(LoopUART==5))||(AvarNoUsp==0))
@@ -3694,25 +3776,25 @@ static void LCDwork(void)
 							while(!bViewParam[NumberAskMeasuring-1])
 							{ //проверка на запрет отображения пар-ра
 								NumberAskMeasuring++;
-								if (NumberAskMeasuring > 10) 
+								if (NumberAskMeasuring > 16) 
 									NumberAskMeasuring=1;
 							}
-							if ((!bParamValue)&&((NumberAskMeasuring==1)||(NumberAskMeasuring==9)))
+							if ((!bParamValue)&&((NumberAskMeasuring==1)||(NumberAskMeasuring==15)))
 							{
 								if (NumberAskMeasuring == 1) 
 									LCDprint(1,13,Iline1H,1);
-								else if (NumberAskMeasuring == 9) 
+								else if (NumberAskMeasuring == 15) 
 									LCDprint(1,13,KovH,1);
 							}
 							else 
 								LCDprint(1,13,Measuring[NumberAskMeasuring-1],1);
 							
-							if (cNumLine==3)
+							if (cNumLine > 2)
 							{ //если трех-концевая линия, то выведем 1 или 2 перед Uк/Uз
 								//   if ((NumberAskMeasuring==4)||(NumberAskMeasuring==5)){  //1 перед Uз
 								//     LCDprintChar(1,12, NumberAskMeasuring-3 + 0x30);
 								//  }else
-								if ((NumberAskMeasuring==6)||(NumberAskMeasuring==7))
+								if ((NumberAskMeasuring>=6)&&(NumberAskMeasuring<=13))
 								{  //1 перед Uк
 									LCDprintChar(1,12, NumberAskMeasuring-5 + 0x30);
 								}

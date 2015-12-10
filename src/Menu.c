@@ -375,7 +375,7 @@ void MenuUprCreate(uint8_t act)
 			case 3:		// ÏÂÇÓ-Å
 			{
 				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
-				if (cNumLine == 3) {
+				if (cNumLine >= 3) {
 					dSetUprItem(CTRL_COM_START_REMOTE,	CTRL_NAME_START_REMOTE_1);
 					dSetUprItem(CTRL_COM_START_REMOTE_2,CTRL_NAME_START_REMOTE_2);
 //					dSetUprItem(CTRL_COM_START_REMOTE_12,CTRL_NAME_START_REMOTE_12);
