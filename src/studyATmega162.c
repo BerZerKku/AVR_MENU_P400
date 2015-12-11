@@ -2770,7 +2770,7 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 			LCDprintHEX(NumString,17,GlobalCurrentState[(Device-1)*4 + 1]);
 		}
 		else
-		{
+		{	
 			tglobal = (GlobalCurrentState[(Device-1)*4]<<8) + GlobalCurrentState[(Device-1)*4 + 1];
 			for(i=0, temp = 1; i < 16; i++, temp *= 2)
 			{
@@ -2799,7 +2799,6 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 									LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
 								}
 								
-								FuncClearCharLCD(4, 1, 20);
 								// вывод номеров аппарата в 4-ой строке для определенных неисправностей
 								if ((temp == 0x0010) || (temp == 0x0040) || (temp == 0x0080) || (temp == 0x400) || (temp == 0x1000)) {
 									uint8_t pos = 5;
@@ -2883,7 +2882,6 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 						{
 							case 1:
 							if ((Device == 1) && (sArchive.NumDev == 1)) {
-								FuncClearCharLCD(4, 1, 20);
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
 								if (TypeUdDev == 7) {
 									LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
@@ -3027,8 +3025,14 @@ static void LCDwork(void)
 					}
 					else
 					{
-						if (bDef) 
+						if (bDef) {
+							// в АВАНТ Р400 в совместимости с ПВЗУ-Е 4-х и более концевом варианте используется последняя строка
+							if ((TypeUdDev == 3) && (cNumLine >= 4)) {
+								FuncClearCharLCD(4, 1, 20);
+							}
+							
 							LCDMenu1(i++,1);
+						}
 						
 						// В 3-х концевой проверяем оба приемника. в 2-х только 1
 						if (cNumLine == 3)
