@@ -334,6 +334,44 @@ void MenuUprCreate(uint8_t act)
 						}
 					}
 				}
+			} else if ((cNumLine == 4) && (TypeUdDev == 3)) {
+				uint8_t num = MenuAllNumDevice[0];
+				if (num != '?') {
+					num -= '0';
+					for(uint8_t i = 0; i < sMenuUpr.num; i++) {
+						if ((sMenuUpr.name[i] == CTRL_NAME_START_REMOTE_1) ||
+							(sMenuUpr.name[i] == CTRL_NAME_START_REMOTE_2))
+						{
+							sMenuUpr.name[i] = (num == 1) ? 
+							CTRL_NAME_START_REMOTE_2 :
+							CTRL_NAME_START_REMOTE_1;
+							sMenuUpr.name[i + 1] = (num <= 2) ? 
+							CTRL_NAME_START_REMOTE_3 :
+							CTRL_NAME_START_REMOTE_2;		
+							sMenuUpr.name[i + 2] = (num == 4) ? 
+							CTRL_NAME_START_REMOTE_3 :
+							CTRL_NAME_START_REMOTE_4;
+							break;
+						}
+					}
+					
+					for(uint8_t i = 0; i < sMenuUpr.num; i++) {
+						if ((sMenuUpr.name[i] == CTRL_NAME_REMOTE_MAN_1) ||
+							(sMenuUpr.name[i] == CTRL_NAME_REMOTE_MAN_2))
+						{
+							sMenuUpr.name[i] = (num == 1) ? 
+							CTRL_NAME_REMOTE_MAN_2 :
+							CTRL_NAME_REMOTE_MAN_1;
+							sMenuUpr.name[i + 1] = (num <= 2) ? 
+							CTRL_NAME_REMOTE_MAN_3 :
+							CTRL_NAME_REMOTE_MAN_2;		
+							sMenuUpr.name[i + 2] = (num == 4) ? 
+							CTRL_NAME_REMOTE_MAN_3 :
+							CTRL_NAME_REMOTE_MAN_4;	
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -375,12 +413,21 @@ void MenuUprCreate(uint8_t act)
 			case 3:		// ÏÂÇÓ-Å
 			{
 				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
-				if (cNumLine >= 3) {
+				if (cNumLine == 3) {
 					dSetUprItem(CTRL_COM_START_REMOTE,	CTRL_NAME_START_REMOTE_1);
 					dSetUprItem(CTRL_COM_START_REMOTE_2,CTRL_NAME_START_REMOTE_2);
 //					dSetUprItem(CTRL_COM_START_REMOTE_12,CTRL_NAME_START_REMOTE_12);
 					dSetUprItem(CTRL_COM_MAN_REMOTE_1,	CTRL_NAME_REMOTE_MAN_1);
 					dSetUprItem(CTRL_COM_MAN_REMOTE_2,	CTRL_NAME_REMOTE_MAN_2);
+					dSetUprItem(CTRL_COM_MAN_REMOTE_12,	CTRL_NAME_REMOTE_MAN_12);
+				} else if (cNumLine > 3) {
+					dSetUprItem(CTRL_COM_START_REMOTE,	CTRL_NAME_START_REMOTE_1);
+					dSetUprItem(CTRL_COM_START_REMOTE_2,CTRL_NAME_START_REMOTE_2);
+					dSetUprItem(CTRL_COM_START_REMOTE_3,CTRL_NAME_START_REMOTE_3);
+//					dSetUprItem(CTRL_COM_START_REMOTE_12,CTRL_NAME_START_REMOTE_12);
+					dSetUprItem(CTRL_COM_MAN_REMOTE_1,	CTRL_NAME_REMOTE_MAN_1);
+					dSetUprItem(CTRL_COM_MAN_REMOTE_2,	CTRL_NAME_REMOTE_MAN_2);
+					dSetUprItem(CTRL_COM_MAN_REMOTE_3,	CTRL_NAME_REMOTE_MAN_3);
 					dSetUprItem(CTRL_COM_MAN_REMOTE_12,	CTRL_NAME_REMOTE_MAN_12);
 				} else {
 					dSetUprItem(CTRL_COM_START_REMOTE,	CTRL_NAME_START_REMOTE);

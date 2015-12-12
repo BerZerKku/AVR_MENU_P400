@@ -68,6 +68,8 @@ enum eMENUctrlName
 	CTRL_NAME_REMOTE_MAN_2,
 	CTRL_NAME_REMOTE_MAN_3,
 	CTRL_NAME_REMOTE_MAN_12,
+	CTRL_NAME_START_REMOTE_4,
+	CTRL_NAME_REMOTE_MAN_4
 };
 
 /**  од команды в меню управлени€
@@ -96,6 +98,8 @@ enum eMENUctrlCom
 	CTRL_COM_MAN_REMOTE_1,		// 10
 	CTRL_COM_MAN_REMOTE_2,		// 11
 	CTRL_COM_MAN_REMOTE_12,		// 12
+	CTRL_COM_START_REMOTE_3,	// 13
+	CTRL_COM_MAN_REMOTE_3		// 14
 };
 
 /** »мена тестовых сигналов (!!! должно совпадать с пор€дком Menu20gr !!!)

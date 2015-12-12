@@ -681,6 +681,8 @@ __flash unsigned char Menu22Shift25[] 	= ".Пуск удал. МАН 1  ";
 __flash unsigned char Menu22Shift26[] 	= ".Пуск удал. МАН 2  ";
 __flash unsigned char Menu22Shift27[] 	= ".Пуск удал. МАН 3  ";
 __flash unsigned char Menu22Shift28[] 	= ".Пуск удал-ых МАН  ";
+__flash unsigned char Menu22Shift29[] 	= ".Пуск удаленного 4 ";
+__flash unsigned char Menu22Shift30[] 	= ".Пуск удал. МАН 4  ";
 // Пункты меню управления
 // должно совпадать с eMENUctrlName
 __flash unsigned __flash char* Menu22upr[] = 
@@ -715,7 +717,9 @@ __flash unsigned __flash char* Menu22upr[] =
 	Menu22Shift25,
 	Menu22Shift26,
 	Menu22Shift27,
-	Menu22Shift28
+	Menu22Shift28,
+	Menu22Shift29,
+	Menu22Shift30
 };
 
 //__flash unsigned char fRes[]	= "Сброс";
