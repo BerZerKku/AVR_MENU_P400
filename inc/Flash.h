@@ -245,6 +245,7 @@ __flash unsigned char Menu1020[] = 	"Снижение ответа АК  ";	// ПВЗЛ
 __flash unsigned char Menu1021[] =	"Период беглого АК";	// ПВЗУ-Е
 __flash unsigned char Menu1022[] =	"Период повт.бегл. АК";	// ПВЗУ-Е
 __flash unsigned char Menu1023[] =	"Коррекция времени АК";	// ПВЗУ
+__flash unsigned char Menu1024[] = 	"Порог аварии по КЧ";	//
 __flash unsigned __flash char *Menu10paramAll[] = 
 {	
 	Menu100, 
@@ -271,10 +272,12 @@ __flash unsigned __flash char *Menu10paramAll[] =
 	Menu1021,
 	Menu1022,
 	Menu1023,
+	Menu1024,
 	Menu109_1
+	
 };
 // кол-во общих параметров
-// - 1 , т.к. 109_1 - просто подбена текста
+// - 1 , т.к. 109_1 - просто подмена текста
 #define NumParamGlb ( (sizeof(Menu10paramAll) / sizeof(Menu10paramAll[0])) - 1)
 
 __flash uchar TypeUdDev0[] = "АВАНТ Р400";
@@ -620,7 +623,8 @@ __flash uint RangGlb[NumParamGlb] [3] =
 	0,	20, 			1,		// 20 снижение ответа АК (пвзл)
 	1, 	255,			1,		// 21 Период беглого режима АК (пвзу-е)
 	1, 	255,			1,		// 22 Период повтора беглого режима АК (пвзу-е)	
-	0,	20,				1		// 23 Коррекция времени АК (пвзу)	
+	0,	20,				1,		// 23 Коррекция времени АК (пвзу)	
+	0,	22,				1		// 24 Порог аварии по КЧ
 };		
 
 __flash unsigned char Menu16Shift10[] = "0.0..99.9";

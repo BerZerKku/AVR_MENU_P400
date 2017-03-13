@@ -228,6 +228,7 @@ unsigned char MenuAllFreq[]		= "??? кГц";
 unsigned char MenuAllNumDevice[]= "?";
 unsigned char MenuAllCF[]		= "?? дБ";
 unsigned char MenuAllLowCF[] 	= "?? дБ";
+unsigned char MenuAllLowCFa[]	= "?? дБ";
 unsigned char MenuAllControlUout= 0x02; //для него используется массив MenuAllSynchrTimerNum
 
 uchar TypeUdDev = 0;	//тип удаленного аппарата, по умолчанию АВАНТ
@@ -474,6 +475,7 @@ static void FuncViewValue(uint8_t numparam)
 				case 21:
 				case 22:
 				case 23:
+				case 24:
 				{
 					var=2;
 					min = RangGlb[num] [0] * RangGlb[num] [2];
@@ -2080,6 +2082,8 @@ static void FuncPressKey(void)
 							case 22: {WorkRate = 1;	MaxNumberInputChar = 3;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 8;} break;
 							// Коррекция времени АК (пвзу)
 							case 23: {WorkRate = 1; MaxNumberInputChar = 2; InputParameter = 0x39;	ByteShift = 0;	Discret = 1; 	NumberTransCom = 9;} break;
+							// Порог аварии по КЧ
+							case 24: {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 30;	ByteShift=0;	Discret = 1;	NumberTransCom = 4;} break;
 						}
 						bInpVal=false;
 					}
@@ -2354,26 +2358,23 @@ void FuncTr(void)
 							//считывание общих параметров
 							switch(sMenuGlbParam.punkt[ShiftMenu])
 							{                	
-								case 0:	//Тип уд.аппарата
-								{
+								case 0:	{ //Тип уд.аппарата
 									TransDataInf(0x37, 0x00);	
 								}
 								break;
-								case 8:	//контроль вых.сигнала
-								{
+								case 8:	{ //контроль вых.сигнала
 									TransDataInf(0x3D,0x00);
 								}
 								break;
 								case 9:
-								case 10:	//порог предупреждения по КЧ
-								{
+								case 10:	// порог предупреждения по КЧ
+								case 24: {	// порог аварии по КЧ
 									TransDataInf(0x3C,0x00);
 								}
 								break;
 								case 11:
 								case 12:	// коррекция тока/напряжения
-								case 19:	// либо параметров ВОЛС
-								{
+								case 19: {	// либо параметров ВОЛС
 									TransDataInf(0x33,0x00);
 								}
 								break;
@@ -2386,13 +2387,11 @@ void FuncTr(void)
 								case 20:	// параметр ПВЗЛ
 								case 21:
 								case 22:
-								case 23:
-								{
+								case 23: {
 									TransDataInf(0x39, 0x00);
 								}
 								break;
-								default:
-								{
+								default: {
 									TransDataInf(0x34 + sMenuGlbParam.punkt[ShiftMenu],0x00);
 								}
 							}
@@ -2714,8 +2713,8 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 			}
 	
 	LCDprintf(NumString,1,Title,1);
-	if (bGlobalAvar)
-	{ //общая авария
+	//общая авария
+	if (bGlobalAvar) { 
 		tglobal = (GlobalCurrentState[12]<<8) + (GlobalCurrentState[13]);
 		for(i=0, temp=1, j = 0; i<16; i++, temp=temp<<1)
 		{
@@ -2750,9 +2749,9 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 				}
 			}
 		}
-	}
-	else if (DevAvar)
-	{  //если авария устройства
+	} 
+	else if (DevAvar) {  
+		//если авария устройства
 		tglobal = (GlobalCurrentState[(Device-1)*4]<<8) + GlobalCurrentState[(Device-1)*4 + 1];
 		for(i=0, temp=1, j = 0; i<16; i++, temp=temp<<1)
 		{
@@ -2885,7 +2884,7 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
 								if (TypeUdDev == 7) {
 									LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
-								} else if (TypeUdDev == 3) {
+								} else if ((TypeUdDev == 3) || (TypeUdDev == 0)) {
 									if (cNumLine <= 3) {
 										LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
 									} else {
@@ -3069,13 +3068,13 @@ static void LCDwork(void)
 									}
 								}
 								
-								if (cNumLine == 2)
+								if (cNumLine == 2) {
 									LCDprint(4,1,Measuring[5],1);
-								else if (cNumLine == 3) {
-										LCDprintChar(4 , 1 , '1');
-										LCDprint(4 , 2 , Measuring[5] , 1);
-										LCDprintChar(4 , 11 , '2');
-										LCDprint(4 , 12 , Measuring[6] , 1);
+								} else if (cNumLine == 3) {
+									LCDprintChar(4 , 1 , '1');
+									LCDprint(4 , 2 , Measuring[5] , 1);
+									LCDprintChar(4 , 11 , '2');
+									LCDprint(4 , 12 , Measuring[6] , 1);
 								} 
 							}
 						}
@@ -3251,12 +3250,14 @@ static void LCDwork(void)
 								case 21: LCDprint(3, 11, sParamPVZE.periodAC, 1); break;
 								case 22: LCDprint(3, 11, sParamPVZE.periodACre, 1); break;
 								case 23: LCDprint(3, 11, sParamPVZE.timeCorrAC, 1); break;
+								// Р400
+								case 24: LCDprint(3, 11, MenuAllLowCFa, 1); break;
 							}				
 						}
 						else
 						{
-							LCDprintf(3,1,ParamRange,1);
-							LCDprint(3,11,cViewParam,1);				
+							LCDprintf(3, 1, ParamRange,1);
+							LCDprint(3, 11, cViewParam,1);				
 						}
 					}
 					LCD2new=0;

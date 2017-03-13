@@ -87,6 +87,7 @@ extern unsigned char MenuAllNumDevice[];
 extern unsigned char MenuAllControlUout;
 extern unsigned char MenuAllCF[];
 extern unsigned char MenuAllLowCF[];
+extern unsigned char MenuAllLowCFa[];
 extern unsigned int MyInsertion[];
 extern __flash uint RangGlb[] [3];
 extern uchar TypeUdDev;
@@ -1270,27 +1271,62 @@ void FParamGlobal(unsigned char command)
 			LCDtimerNew=1;
 		}break;
 		case 0x3C:{ //пороги КЧ
+			uint8_t tmp = 0;
+			
 			//Попрог предупреждения по КЧ
-			if (Rec_buf_data_uart[4]>RangGlb[9] [1]) {MenuAllCF[0]=0x3F;MenuAllCF[1]=0x3F;}
-			else{
-				MenuAllCF[0]=Rec_buf_data_uart[4]/10+0x30;
-				MenuAllCF[1]=Rec_buf_data_uart[4]%10+0x30;
+			tmp = Rec_buf_data_uart[4];
+			if (tmp > RangGlb[9] [1]) {
+				MenuAllCF[0] = 0x3F;
+				MenuAllCF[1] = 0x3F;
 			}
-			//снижение чувствительности по КЧ
-			if (Rec_buf_data_uart[5]>RangGlb[10] [1]){MenuVoltageLimitPRM1[0]=0x3F;MenuVoltageLimitPRM1[1]=0x3F;}
-			else{
-				MenuVoltageLimitPRM1[0]=Rec_buf_data_uart[5]/10+0x30;MenuVoltageLimitPRM1[1]=(Rec_buf_data_uart[5]-(MenuVoltageLimitPRM1[0]-0x30)*10)+0x30;
+			else {
+				MenuAllCF[0] = tmp/10 + '0';
+				MenuAllCF[1] = tmp%10 + '0';
 			}
-			if (cNumLine==3){
-				if (Rec_buf_data_uart[6]>RangGlb[9] [1]){MenuVoltageLimitPRM2[0]=0x3F;MenuVoltageLimitPRM2[1]=0x3F;}
-				else{
-					MenuVoltageLimitPRM2[0]=Rec_buf_data_uart[6]/10+0x30;MenuVoltageLimitPRM2[1]=(Rec_buf_data_uart[6]-(MenuVoltageLimitPRM2[0]-0x30)*10)+0x30;
+			
+			//снижение чувствительности по КЧ (КЧ1)
+			tmp = Rec_buf_data_uart[5];
+			if (tmp > RangGlb[10] [1]) {
+				MenuVoltageLimitPRM1[0] = 0x3F;
+				MenuVoltageLimitPRM1[1] = 0x3F;
+			}
+			else {
+				MenuVoltageLimitPRM1[0] = tmp/10 + '0';
+				MenuVoltageLimitPRM1[1] = tmp%10 + '0';
+			}
+			
+			//снижение чувствительности по КЧ2
+			if (cNumLine == 3) {
+				tmp = Rec_buf_data_uart[6];
+				if (tmp > RangGlb[10] [1]) {
+					MenuVoltageLimitPRM2[0] = 0x3F;
+					MenuVoltageLimitPRM2[1] = 0x3F;
+				}
+				else {
+					MenuVoltageLimitPRM2[0] = tmp/10 + '0';
+					MenuVoltageLimitPRM2[1] = tmp%10 + '0';
 				}
 			}
+			
+			//порог аварии по КЧ
+			tmp = Rec_buf_data_uart[7];
+			if (tmp > RangGlb[24] [1]) {
+				MenuAllLowCFa[0] = '?';
+				MenuAllLowCFa[1] = '?';
+			}
+			else {
+				MenuAllLowCFa[0] = tmp/10 + '0';
+				MenuAllLowCFa[1] = tmp%10 + '0';
+			}
+			
 		}break;
 		case 0x3D:{ //контроль выходного сигнала
-			if (Rec_buf_data_uart[4]>RangGlb[8] [1]) MenuAllControlUout=2;
-			else MenuAllControlUout=Rec_buf_data_uart[4];
+			if (Rec_buf_data_uart[4] > RangGlb[8] [1]) { 
+				MenuAllControlUout = 2;
+			} 
+			else {
+				MenuAllControlUout = Rec_buf_data_uart[4];
+			}
 		}
 	}
 	RecivVar=1;

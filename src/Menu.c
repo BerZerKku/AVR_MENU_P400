@@ -168,6 +168,7 @@ void MenuParamGlbCreate(void)
 				sMenuGlbParam.punkt[num] = 7; 	sMenuGlbParam.name[num++] = 7;	// Номер аппарата
 				sMenuGlbParam.punkt[num] = 8; 	sMenuGlbParam.name[num++] = 8;	// Контроль вых.сигнала
 				sMenuGlbParam.punkt[num] = 9; 	sMenuGlbParam.name[num++] = 9;	// Порог ПРЕДУПР по КЧ
+				sMenuGlbParam.punkt[num] = 24;	sMenuGlbParam.name[num++] = 24; // Порог аварии по КЧ
 				sMenuGlbParam.punkt[num] = 11; 	sMenuGlbParam.name[num++] = 11;	// Коррекция напряжения
 				sMenuGlbParam.punkt[num] = 12; 	sMenuGlbParam.name[num++] = 12;	// Коррекция тока
 			}
@@ -179,7 +180,7 @@ void MenuParamGlbCreate(void)
 				if (cNumComR > 0)
 					sMenuGlbParam.punkt[num] = 5;	sMenuGlbParam.name[num++] = 5;	// Время перезапуска
 				sMenuGlbParam.punkt[num] = 19;	sMenuGlbParam.name[num++] = 19;	// Резервирование
-			}			
+			}	
 		}
 	}
 	
