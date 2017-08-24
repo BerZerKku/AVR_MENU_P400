@@ -362,14 +362,12 @@ void MenuUprCreate(uint8_t act)
 			{
 				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
 				dSetUprItem(CTRL_COM_RESET_REMOTE, 		CTRL_NAME_RESET_REMOTE);	
-				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
 			}
 			break;
 			
 			case 2:		// ÀÂÇÊ-80		
 			{		
 				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
-				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
 			}
 			break;
 			
@@ -407,6 +405,12 @@ void MenuUprCreate(uint8_t act)
 				dSetUprItem(CTRL_COM_START_REMOTE_2,	CTRL_NAME_AC_START_REMOTE);
 				dSetUprItem(CTRL_COM_START_REMOTE_12, 	CTRL_NAME_START_PRD);
 				dSetUprItem(CTRL_COM_CALL,				CTRL_NAME_CALL);
+			}
+			break;
+			
+			case 6:		// ÏÇÂÊ
+			{
+				dSetUprItem(CTRL_COM_RESET_SELF, 		CTRL_NAME_RESET_SELF);
 			}
 			break;
 			
@@ -510,6 +514,12 @@ void MenuACCreate(void)
 			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_START_SELF);
 		}
 		break;
+		
+		case 6:		// ÏÂÇÊ
+		{
+			dSetACItem(CTRL_COM_AC_OFF,					CTRL_NAME_AC_OFF);
+		}
+		break;
 
 		case 7: 	// ÏÂÇÓ
 		{
@@ -526,11 +536,12 @@ void MenuACCreate(void)
 			dSetACItem(CTRL_COM_AC_AUTO_ACCELERATED,	CTRL_NAME_AC_NORMAL);
 			dSetACItem(CTRL_COM_AC_ACCELERATED,			CTRL_NAME_AC_ACCELERATED);
 			dSetACItem(CTRL_COM_AC_OFF,					CTRL_NAME_AC_OFF);
-			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_START);
+			dSetACItem(CTRL_COM_AC_TEST,				CTRL_NAME_AC_REQUEST);
+			dSetACItem(CTRL_COM_AC_RESET,				CTRL_NAME_AC_RESET);
 		}
 		break;
 		
-		default:	// ÀÂÀÍÒ
+		default:	// ÀÂÀÍÒ è Ëèíèÿ-Ð
 		{
 			if (cTypeLine == 1)													
 			{

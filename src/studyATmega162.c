@@ -1708,7 +1708,14 @@ static void FuncPressKey(void)
         case 'C':
 		{
 			switch (MenuLevel)
-			{
+			{	
+				case LVL_START:
+				{	
+					if (bDef) {
+						DopComTrans=5;	
+					}
+				}break;
+				
 				case LVL_MENU: 			Menu_Start(); 	break;					//возврат в начальное меню
 				
 				case LVL_DATA_TIME:
@@ -1880,7 +1887,15 @@ static void FuncPressKey(void)
 		{
 			switch(MenuLevel)
 			{
-				case LVL_START: DopComTrans=1; break; 							//"Пуск" приемника
+				case LVL_START:
+				{	
+					if (bDef) {
+						DopComTrans=4;
+					} else {
+						//"Пуск" приемника
+						DopComTrans=1;
+					}
+				}break; 							
 				
 				case LVL_REGIME:
 				{  //ввод режимов работы
@@ -2329,9 +2344,11 @@ void FuncTr(void)
 					if (DopComTrans==3) DopComTrans=0;
 				}
 				switch (DopComTrans){
-					case 1: {TransDataInf(0x51,0x00);DopComTrans=0;} break; //если нажали на кнопку ПУСК Приемника
-					case 2: {TransDataInf(0x9A,0x00);DopComTrans=3;} break; //сброс индикации ПРМ
-					case 3: {TransDataInf(0xAA,0x00);DopComTrans=0;} break; //сброс индикации ПРД
+					case 1: {TransDataInf(0x51,0x00);DopComTrans=0;} break; 	//если нажали на кнопку ПУСК Приемника
+					case 2: {TransDataInf(0x9A,0x00);DopComTrans=3;} break; 	//сброс индикации ПРМ
+					case 3: {TransDataInf(0xAA,0x00);DopComTrans=0;} break; 	//сброс индикации ПРД
+					case 4:	{TransDataByte(0x8A,0x06); DopComTrans=0;} break;	// АК запрос 
+					case 5:	{TransDataByte(0x72,0x0F); DopComTrans=0;} break;	// АК сброс
 					default:  TransDataByte(0x34, 0x00); //всегда опрашиваем все измеряемые параметры
 				}
             }
@@ -2892,7 +2909,7 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 						// предупреждения защиты
 						switch(temp)
 						{
-							case 1:
+							case 0x01:
 							if ((Device == 1) && (sArchive.NumDev == 1)) {
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
 								if (TypeUdDev == 7) {
@@ -2917,14 +2934,20 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 							} 
 							LCDprintf(NumString, 5, Menu1PostWarning1, 1);
 							break;
-							case 2:
+							case 0x02:
 							LCDprintf(NumString, 5, Menu1PostWarning2, 1);			
 							break;
-							case 4:
+							case 0x04:
 							LCDprintf(NumString, 5, Menu1PostWarning4, 1);
 							break;
-							case 8:
+							case 0x08:
 							LCDprintf(NumString, 5, Menu1PostWarning8, 1);
+							break;
+							case 0x10:
+							LCDprintf(NumString, 5, Menu1PostWarning10, 1);
+							break;
+							case 0x20:
+							LCDprintf(NumString, 5, Menu1PostWarning20, 1);		
 							break;
 							default:
 							temp = 0;
@@ -3593,10 +3616,20 @@ static void LCDwork(void)
 								case 0:{  //журнал событий
 									if ((sArchive.Data[1] > 0) && (sArchive.Data[1] <= dNumSob) )
 									{
-										LCDprintf(3,1,ArchSob[sArchive.Data[1] - 1],1);
-									}
-									else
-									{//если неизвестный код записи
+										
+										if ((bDef) && (TypeUdDev == 8)) {	// В совместимости ПВЗ подменяются 2 события
+											if (sArchive.Data[1] == 4) {
+												LCDprintf(3,1,ArchSob[dNumSob + 1],1);
+											} else if (sArchive.Data[1] == 28) {
+												LCDprintf(3,1,ArchSob[dNumSob + 2],1);
+											} else {
+												LCDprintf(3,1,ArchSob[sArchive.Data[1]],1);
+											}
+										} else {
+											LCDprintf(3,1,ArchSob[sArchive.Data[1]],1);
+										}
+									} else {
+										//если неизвестный код записи
 										FuncClearCharLCD(3,1,10);
 										LCDprintHEX(3,2,sArchive.Data[1]);
 										LCDprintHEX(3,5,sArchive.Data[3]);
@@ -3604,14 +3637,15 @@ static void LCDwork(void)
 									FuncClearCharLCD(3,11,1);
 									FuncClearCharLCD(3,19,2);
 									
-									if (sArchive.Data[2]<0x04){ //значение события
+									if (sArchive.Data[2] < 0x04){ //значение события
 										LCDprintf(3,12,Menu1regime[sArchive.Data[2]],1);
-									}else
-										if (sArchive.Data[2]==0x0A){
-											LCDprintf(3,12,ArchEvV,1);
+									} else {
+										if (sArchive.Data[2] == 0x0A){
+											LCDprintf(3, 12, ArchEvV,1);
 										}else{
-											LCDprintHEX(3,12,sArchive.Data[1]);
+											LCDprintHEX(3, 12, sArchive.Data[1]);
 										}
+									}
 								}break; //конец вывода ждурнала событий
 								case 1: //передатчик
 								case 2:

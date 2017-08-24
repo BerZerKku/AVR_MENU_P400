@@ -69,7 +69,8 @@ enum eMENUctrlName
 	CTRL_NAME_REMOTE_MAN_3,
 	CTRL_NAME_REMOTE_MAN_12,
 	CTRL_NAME_START_REMOTE_4,
-	CTRL_NAME_REMOTE_MAN_4
+	CTRL_NAME_REMOTE_MAN_4,
+	CTRL_NAME_AC_REQUEST
 };
 
 /** Код команды в меню управления
@@ -77,7 +78,7 @@ enum eMENUctrlName
 enum eMENUctrlCom
 {
 	// старший бит 0 , ком. автоконтроля 0x0A
-	CTRL_COM_AC_AUTO_ACCELERATED 	= 1,
+	CTRL_COM_AC_AUTO_ACCELERATED 	 = 1,
 	CTRL_COM_AC_AUTO_NORMAL,		// 2
 	CTRL_COM_AC_ACCELERATED,		// 3
 	CTRL_COM_AC_OFF,				// 4
@@ -86,7 +87,7 @@ enum eMENUctrlCom
 	CTRL_COM_AC_START,				// 7
 	
 	// старший бит 1, ком. управления 0x72
-	CTRL_COM_RESET_SELF 	= 0x81,
+	CTRL_COM_RESET_SELF 	  = 0x81,
 	CTRL_COM_RESET_REMOTE,		// 2
 	CTRL_COM_RESET_REMOTE_2,	// 3
 	CTRL_COM_START_REMOTE,		// 4
@@ -99,7 +100,8 @@ enum eMENUctrlCom
 	CTRL_COM_MAN_REMOTE_2,		// 11
 	CTRL_COM_MAN_REMOTE_12,		// 12
 	CTRL_COM_START_REMOTE_3,	// 13
-	CTRL_COM_MAN_REMOTE_3		// 14
+	CTRL_COM_MAN_REMOTE_3,		// 14
+	CTRL_COM_AC_RESET			// 15
 };
 
 /** Имена тестовых сигналов (!!! должно совпадать с порядком Menu20gr !!!)

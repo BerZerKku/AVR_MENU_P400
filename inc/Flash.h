@@ -675,7 +675,7 @@ __flash unsigned char Menu22Shift15[]	= ".АК нормальный     ";
 __flash unsigned char Menu22Shift16[]	= ".АК беглый         ";	
 __flash unsigned char Menu22Shift17[]	= ".Пуск удален. МАН  ";	
 __flash unsigned char Menu22Shift18[]	= ".АК односторонний  ";
-__flash unsigned char Menu22Shift19[]	= ".Сброс АК          ";
+__flash unsigned char Menu22Shift19[]	= ".АК сброс          ";
 __flash unsigned char Menu22Shift20[]	= ".Пуск АК свой      ";
 __flash unsigned char Menu22Shift21[]	= ".Пуск АК удаленный ";
 __flash unsigned char Menu22Shift22[]	= ".Пуск ПРД          ";
@@ -687,43 +687,45 @@ __flash unsigned char Menu22Shift27[] 	= ".Пуск удал. МАН 3  ";
 __flash unsigned char Menu22Shift28[] 	= ".Пуск удал-ых МАН  ";
 __flash unsigned char Menu22Shift29[] 	= ".Пуск удаленного 4 ";
 __flash unsigned char Menu22Shift30[] 	= ".Пуск удал. МАН 4  ";
+__flash unsigned char Menu22Shift31[]	= ".АК запрос         ";
 // Пункты меню управления
 // должно совпадать с eMENUctrlName
 __flash unsigned __flash char* Menu22upr[] = 
 {
-	Menu22Shift0,
-	Menu22Shift1,
-	Menu22Shift2,
-	Menu22Shift3,
-	Menu22Shift3x,
-	Menu22Shift4,
-	Menu22Shift5,
-	Menu22Shift6,
-	Menu22Shift6x,
-	Menu22Shift7,
-	Menu22Shift8,
-	Menu22Shift9,
-	Menu22Shift10,
-	Menu22Shift11,
-	Menu22Shift12,
-	Menu22Shift13,
-	Menu22Shift14,
-	Menu22Shift15,
-	Menu22Shift16,
-	Menu22Shift17,
-	Menu22Shift18,
-	Menu22Shift19,
-	Menu22Shift20,
-	Menu22Shift21,
-	Menu22Shift22,
-	Menu22Shift23,
-	Menu22Shift24,
-	Menu22Shift25,
-	Menu22Shift26,
-	Menu22Shift27,
-	Menu22Shift28,
-	Menu22Shift29,
-	Menu22Shift30
+	Menu22Shift0,	// CTRL_NAME_RESET_SELF
+	Menu22Shift1,	// CTRL_NAME_RESET_REMOTE
+	Menu22Shift2,	// CTRL_NAME_RESET_REMOTE_1
+	Menu22Shift3,	// CTRL_NAME_RESET_REMOTE_2
+	Menu22Shift3x,	// CTRL_NAME_RESET_REMOTE_3
+	Menu22Shift4,	// CTRL_NAME_START_REMOTE
+	Menu22Shift5,	// CTRL_NAME_START_REMOTE_1
+	Menu22Shift6,	// CTRL_NAME_START_REMOTE_2
+	Menu22Shift6x,	// CTRL_NAME_START_REMOTE_3
+	Menu22Shift7,	// CTRL_NAME_START_REMOTE_12
+	Menu22Shift8,	// CTRL_NAME_AC_AUTO
+	Menu22Shift9,	// CTRL_NAME_AC_ACCELERATED
+	Menu22Shift10,	// CTRL_NAME_AC_OFF
+	Menu22Shift11,	// CTRL_NAME_AC_CHECK
+	Menu22Shift12,	// CTRL_NAME_AC_TEST
+	Menu22Shift13,	// CTRL_NAME_AC_START
+	Menu22Shift14,	// CTRL_NAME_CALL
+	Menu22Shift15,	// CTRL_NAME_AC_NORMAL
+	Menu22Shift16,	// CTRL_NAME_AC_QUICK
+	Menu22Shift17,	// CTRL_NAME_START_REMOTE_MAN
+	Menu22Shift18,	// CTRL_NAME_AC_ONE_SID
+	Menu22Shift19,	// CTRL_NAME_AC_RESET
+	Menu22Shift20,	// CTRL_NAME_AC_START_SELF
+	Menu22Shift21,	// CTRL_NAME_AC_START_REMOTE
+	Menu22Shift22,	// CTRL_NAME_START_PRD
+	Menu22Shift23,	// CTRL_NAME_START_ON
+	Menu22Shift24,	// CTRL_NAME_START_OFF
+	Menu22Shift25,	// CTRL_NAME_REMOTE_MAN_1
+	Menu22Shift26,	// CTRL_NAME_REMOTE_MAN_2
+	Menu22Shift27,	// CTRL_NAME_REMOTE_MAN_3
+	Menu22Shift28,	// CTRL_NAME_REMOTE_MAN_12
+	Menu22Shift29,	// CTRL_NAME_START_REMOTE_4
+	Menu22Shift30,	// CTRL_NAME_REMOTE_MAN_4
+	Menu22Shift31	// CTRL_NAME_AC_REQUEST
 };
 
 //__flash unsigned char fRes[]	= "Сброс";
@@ -820,7 +822,7 @@ __flash unsigned __flash char *Menu1PostErrorDopT[] = {
 __flash unsigned char Menu1PostError1[]		= "Нет блока БСЗ   ";
 __flash unsigned char Menu1PostError2[]		= "Неиспр.верс.БСЗ ";
 __flash unsigned char Menu1PostError4[]		= "Неиспр.перекл.  ";
-__flash unsigned char Menu1PostError8[]		= "Неиспр.зап. БСЗ ";
+__flash unsigned char Menu1PostError8[]		= "Дальний         ";	// ПВЗ
 __flash unsigned char Menu1PostError10[]	= "Нет сигнала ПРМ ";
 __flash unsigned char Menu1PostError20[]	= "Низкий ур. РЗ   ";
 __flash unsigned char Menu1PostError40[]	= "Неиспр.уд.ДФЗ";		// ПВЗУ-Е (+ номер)
@@ -859,6 +861,8 @@ __flash unsigned char Menu1PostWarning1[]	= "АК-Сн.запаса ";	// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostWarning2[] 	= "Нет сигнала МАН ";
 __flash unsigned char Menu1PostWarning4[] 	= "Порог по помехе ";
 __flash unsigned char Menu1PostWarning8[]	= "Автоконтроль    ";
+__flash unsigned char Menu1PostWarning10[]	= "Помеха          ";
+__flash unsigned char Menu1PostWarning20[]	= "Часы            ";
 
 //ошибки Приемника
 __flash unsigned char Menu1PrmError1[]		= "Нет блока БСК   ";
@@ -1032,39 +1036,44 @@ __flash unsigned __flash char *Menu20line4[] = {Menu201line4, Menu202line4};
 
 __flash unsigned char Menu20no[] = "Тест не запущен";
 
-#define dNumSob 31
-__flash unsigned char ArchSob[dNumSob] [11] =
+#define dNumSob 32
+__flash unsigned char ArchSob[] [11] =
 {	
-	"Н.чт.FLASH",	// 1
-	"Н.зп.FLASH",	// 2
-	"Н.чт.PLIS ",	// 3
-	"Н.зп.PLIS ",	// 4
-	"Н.зп.2RAM ",	// 5
-	"Н.чт.2RAM ",	// 6
+	"Ошибка    ",	// 0
+	"Неис.FLASH",	// 1
+	"ВЧ восст. ",	// 2
+	"Неисп.PLIS",	// 3
+	"Автоконтр.",	// 4 Часы <--- ПВЗ
+	"Ток покоя ",	// 5
+	"Неисп.2RAM",	// 6
 	"Н.раб.DSP ",	// 7
 	"Вост.р.DSP",	// 8
 	"Низк. Uвых",	// 9
 	"Выс. Uвых ",	// 10
 	"Н.св. с УМ",	// 11
-	"Н. часов  ",	// 12
+	"Неис.часов",	// 12
 	"Нет бл.БСЗ",	// 13
 	"Н.верс.БСЗ",	// 14
 	"Н.пер. БСЗ",	// 15
 	"Нет с. МАН",	// 16
 	"Перезапуск",	// 17
 	"Изм.режима",	// 18
-	"Ош.записи ",	// 19
-	"Ош.контр. ",	// 20
-	"Сниж.у.ПРМ",	// 21
-	"Нет с. ПРМ",	// 22 <---
+	"Н.цепи ВЫХ",	// 19
+	"Изм. парам",	// 20
+	"АК-сн.зап.",	// 21
+	"АК-нет отв",	// 22 
 	"Нет с.ПУСК",	// 23
 	"нет с.СТОП",	// 24
 	"Выключение",	// 25
-	"Помеха в п",  	// 26
+	"Помеха    ",  	// 26
 	"Неиспр.ДФЗ",  	// 27
-	"Уд: Нет АК",  	// 28 <---
+	"Уд: Нет АК",  	// 28 Дальний <--- ПВЗ
 	"Уд: Помеха",	// 29 <---
 	"Уд: Н. ДФЗ",   // 30 <---
 	"Уд: Н. ВЫХ",   // 31 <---
+	"Пор. помех",	// 32
+	/// замены для ПВЗ
+	"Часы      ",	// dNumSob + 1
+	"Дальний   "	// dNumSob + 2
 };											
 #endif
