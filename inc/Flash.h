@@ -776,7 +776,7 @@ __flash unsigned __flash char *Menu1GlobalErrorT[] =
 	UnknownErrorT
 };
 //в чистой защите вместо "Нет сигнала ПРМ", выведем другое сообщение
-__flash unsigned char Menu1GLobalError20_1[] 	= "АК-Нет ответа   ";
+__flash unsigned char Menu1GLobalError20_1[] 	= "АК-Нет ответа";
 
 //общие предупреждения
 __flash unsigned char Menu1GlobalWarning1[] 	= "Установите часы ";
@@ -823,16 +823,16 @@ __flash unsigned char Menu1PostError4[]		= "Неиспр.перекл.  ";
 __flash unsigned char Menu1PostError8[]		= "Неиспр.зап. БСЗ ";
 __flash unsigned char Menu1PostError10[]	= "Нет сигнала ПРМ ";
 __flash unsigned char Menu1PostError20[]	= "Низкий ур. РЗ   ";
-__flash unsigned char Menu1PostError40[]	= "Неиспр.уд.ДФЗ";	// ПВЗУ-Е (+ номер)
-__flash unsigned char Menu1PostError80[]	= "Неиспр.уд.ВЫХ";	// ПВЗУ-Е (+ номер)
+__flash unsigned char Menu1PostError40[]	= "Неиспр.уд.ДФЗ";		// ПВЗУ-Е (+ номер)
+__flash unsigned char Menu1PostError80[]	= "Неиспр.уд.ВЫХ";		// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostError100[]	= "Неиспр.вход.ПУСК";
 __flash unsigned char Menu1PostError200[]	= "Неиспр.вход.СТОП";
-__flash unsigned char Menu1PostError400[]	= "Удал.без отв.";	// ПВЗУ-Е (+ номер)
+__flash unsigned char Menu1PostError400[]	= "Удал.без отв.";		// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostError800[]	= "Неиспр.цепь.ВЫХ ";
-__flash unsigned char Menu1PostError1000[]	= "Удал.обн.пом.";	// ПВЗУ-Е (+ номер)
+__flash unsigned char Menu1PostError1000[]	= "Удал.обн.пом.";		// ПВЗУ-Е (+ номер)
 __flash unsigned char Menu1PostError2000[]	= "Неиспр.зап. ВЫХ ";
 __flash unsigned char Menu1PostError4000[]	= "Помеха в линии  ";	// ПВЗУ-Е
-__flash unsigned char Menu1PostError8000[]	= "Неиспр. ДФЗ ";	// ПВЗУ-Е (+ доп. значение)
+__flash unsigned char Menu1PostError8000[]	= "Неиспр. ДФЗ ";		// ПВЗУ-Е (+ доп. значение)
 __flash unsigned __flash char *Menu1PostErrorT[] =
 {	Menu1PostError1,
 	Menu1PostError2,

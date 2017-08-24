@@ -2738,9 +2738,15 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 			for(i=0, temp=1; i<16; i++, temp=temp<<1)
 			{
 				if (tglobal & temp)
-				{
+				{	
 					// Для поста (при его наличии) выводится другая расшифровка для кода 0х0020
 					if ((temp == 0x0020) && (Device == 1) && (sArchive.NumDev == 1)) {
+						if (TypeUdDev == 0) {
+							// Р400 добавляется номер для АК-Нет ответа
+								LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
+						} else {
+							LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
+						}
 						LCDprintf(NumString, 5, Menu1GLobalError20_1, 1);
 					} else {
 						LCDprintf(NumString, 5, Menu1GlobalErrorT[i], 1);
@@ -2778,23 +2784,27 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 					// в чистой защите, одна неисправность меняет название
 					// а для неисправностей в совместимости ПВЗУ-Е/ПВЗУ добавляется номер
 					if ((Device == 1) && (sArchive.NumDev == 1)) {
+						
 						if (TypeUdDev == 7) { // добавляем номер уд.аппарата с ошибкой (если не надо - затрется)
 							if (temp == 0x8000) {
 								LCDprint(NumString, 17, NumDfzError, 1);
 							} else {
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
 							}
-						} else if (TypeUdDev == 3) {
+						} 
+						else if (TypeUdDev == 3) {
 							if (cNumLine <= 3) {
 								if (temp == 0x8000) {
 									LCDprint(NumString, 17, NumDfzError, 1);
 								} else {
 									LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
 								}
-							} else {
+							} 
+							else {
 								if (temp == 0x8000) {
 									LCDprint(NumString, 17, NumDfzError, 1);
-								} else {
+								} 
+								else {
 									LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
 								}
 								
@@ -2809,16 +2819,19 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 									}
 								}								
 							}
-						} else {
+						} 
+						else {
 							LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
 						}
 						
 						if (temp == 0x0010) {
 							LCDprintf(NumString, 5, Menu1PostError10_1, 1);
-						} else {
+						} 
+						else {
 							LCDprintf(NumString, 5, MassError[i], 1);
 						}
-					} else {
+					} 
+					else {
 						FuncClearCharLCD(NumString, 17, 4); // сотрем, т.к. часть сообщений на 3-4 символа короче (для ПВЗУ-Е/ПВЗУ)
 						LCDprintf(NumString, 5, MassError[i], 1);
 					}
