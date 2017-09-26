@@ -666,64 +666,67 @@ static void FuncSelectValue(void)
 	FuncClearCharLCD(4, 6, 15); 			//очищаем 4-ую строку
 	LCDprintf(4, 7, MassSelectValue[InputSelectValue], 1);
 	
-	switch(PressKey)
-    {
-        case 'U': 
-		{
+	switch(PressKey) {
+        case 'U': {
             if (InputSelectValue > MinValue) InputSelectValue--;
 
-            if (MenuLevel == LVL_REGIME)
-            {//в меню установки режимов
-                if ((cNumComT == 0) && (!bDef))
-                {  //если нет поста и прд, надо убрать тест 1
+            if (MenuLevel == LVL_REGIME) {
+                if ((cNumComT == 0) && (!bDef)) {  
+					//если нет поста и прд, надо убрать тест 1
                     if (((SelectValue == 1) && (InputSelectValue == 2))||
-                        ((SelectValue == 2) && (InputSelectValue == 1)))
+                        ((SelectValue == 2) && (InputSelectValue == 1))) {
                         InputSelectValue--;
+					}
                 }
-            }
-        }
-		break;
+            } else if (MenuLevel == LVL_GLB_SETUP) {
+				if (MassSelectValue == fmTypeUdDev) {
+					// TODO Из выбора Совместимости убраны ПВЗУ-Е и Линия-Р
+					if ((InputSelectValue == 3) || (InputSelectValue == 5)) {
+						InputSelectValue--;	
+					}
+				}
+			}
+        } break;
 		
-        case 'D': 
-		{
+        case 'D': {
             if (InputSelectValue < MaxValue)  InputSelectValue++;
 		
-            if (MenuLevel == LVL_REGIME)  //в меню установки режимов
-			{
-                if ((cNumComT==0)&&(!bDef)){  //если нет поста и прд, надо убрать тест 1
-                    if (((SelectValue==1)&&(InputSelectValue==2))||((SelectValue==2)&&(InputSelectValue==1))) InputSelectValue++;
+            if (MenuLevel == LVL_REGIME) {
+                if ((cNumComT == 0) && (!bDef)) {  
+					//если нет поста и прд, надо убрать тест 1
+                    if (((SelectValue==1) && (InputSelectValue==2)) || ((SelectValue==2) && (InputSelectValue==1))) {
+						InputSelectValue++;
+					}
                 }
+			} else if (MenuLevel == LVL_GLB_SETUP) {
+				if (MassSelectValue == fmTypeUdDev) {
+					// TODO Из выбора Совместимости убраны ПВЗУ-Е и Линия-Р
+					if ((InputSelectValue == 3) || (InputSelectValue == 5)) {
+						InputSelectValue++;	
+					}
+				}
 			}
-        }
-		break;
+        } break;
 		
-		case 'C': 
-		{
+		case 'C': {
 			WorkRate=0x00; LCDbufClMenu(); LCD2new=1; InputSelectValue=0x00;
 			MaxValue=0; MinValue=0;TrParam=0;
-		}
-		break;
+		} break;
 		
-		case '#': 
-		PressSharp(); 
-		break;
+		case '#': {
+			PressSharp(); 
+		} break;
 		
-		case 'E': 
-		{
-			switch(MenuLevel)
-			{
-				case LVL_PROTOCOL:
-				{
+		case 'E': {
+			switch(MenuLevel) {
+				case LVL_PROTOCOL: {
 					Protocol=InputSelectValue; TrParam=0;
 					eProtocol[0]=Protocol;eWrite=1;eAddressWrite=7;eMassiveWrite=eProtocol;
 					if (Protocol==0) {Tr_buf_data_uart[0]=0x55; Tr_buf_data_uart[1]=0xAA;}
-				}
-				break;
+				} break;
 				
-				case LVL_INFO:
-				{
-					if (SelectValue==1) 
-					{
+				case LVL_INFO: {
+					if (SelectValue==1) {
 						bParamView = InputSelectValue;
 						if (bParamView) {
 							bViewParam[0]=true;
@@ -735,26 +738,21 @@ static void FuncSelectValue(void)
 					} else if (SelectValue==2) {
 						bParamValue = InputSelectValue;
 					}
-				}
-				break;
+				} break;
 				
-				case LVL_AC:
-				case LVL_UPR:
-				{
+				case LVL_AC: // DOWN
+				case LVL_UPR: {
 					TrParam = SelectValue;
-				}
-				break;
+				} break;
 				
-				default:
-				{
+				default: {
 					TrParam = SelectValue; TrValue = InputSelectValue;
 				}
 			}
 			LCDbufClMenu();
 			LCD2new=1;
 			WorkRate=0x00;
-		}
-		break;
+		} break;
     }
 	PressKey=0xF0;
 }
@@ -773,38 +771,29 @@ static void FuncSelectValueList(void)
 	LCDprintf(4, 1, MenuInputData, 1); 	// выводим на экран "Ввод:"
 	LCDprintf(4, 7, MassSelectValueRam[MassItems[InputSelectValue]].name, 1);
 	
-	switch(PressKey)
-	{
-		 case 'U': 
-		{
+	switch(PressKey) {
+		case 'U': {
             if (InputSelectValue > MinValue) 
 				InputSelectValue--;
-        }
-		break;
+        } break;
 		
-		case 'D': 
-		{
+		case 'D': {
             if (InputSelectValue < (MaxValue - 1))
 				InputSelectValue++;
-        }
-		break;
+        } break;
 		
-		case 'C': 
-		{
+		case 'C': {
 			WorkRate=0x00; LCDbufClMenu(); LCD2new=1; InputSelectValue=0x00;
 			MaxValue=0; MinValue=0; TrParam=0;
-		}
-		break;
+		} break;
 		
-		case 'E':
-		{
+		case 'E': {
 			TrParam = SelectValue; 
 			TrValue = MassSelectValueRam[MassItems[InputSelectValue]].val;
 			LCDbufClMenu();
 			LCD2new=1;
 			WorkRate=0x00;
-		}
-		break;
+		} break;
 	}
 	PressKey = 0xF0;
 }
@@ -1783,20 +1772,15 @@ static void FuncPressKey(void)
 						ShiftMenu--; LCD2new=1; LCDbufClMenu(); NumberCom=1;
 					}
 					
-					if ((MenuLevel == LVL_PRM_VIEW) || (MenuLevel == LVL_PRM_SETUP))
-					{  //меню просмотр параметров приемника
-						if (ShiftMenu == 1)
+					if ((MenuLevel == LVL_PRM_VIEW) || (MenuLevel == LVL_PRM_SETUP)) {
+						if (ShiftMenu == 1) {
 							ShiftMenu--;
-						
-					}
-					else if ( (MenuLevel == LVL_PRD_VIEW) || (MenuLevel == LVL_PRD_SETUP) )
-					{
-						if (ShiftMenu == 2)
+						}
+					} else if ((MenuLevel == LVL_PRD_VIEW) || (MenuLevel == LVL_PRD_SETUP)) {
+						if (ShiftMenu == 2) {
 							ShiftMenu--;
-					}
-					
-					
-					
+						}
+					} 
 				}
 				break; //прокрутка меню
 				
@@ -1851,17 +1835,16 @@ static void FuncPressKey(void)
 					{
 						ShiftMenu++; LCD2new=1; LCDbufClMenu(); NumberCom=1;
 					}
-					if ( (MenuLevel == LVL_PRM_VIEW) || (MenuLevel == LVL_PRM_SETUP) )
-					{  //меню просмотр параметров приемника
-						if (ShiftMenu == 1)
+					
+					if ( (MenuLevel == LVL_PRM_VIEW) || (MenuLevel == LVL_PRM_SETUP) ) {
+						if (ShiftMenu == 1) {
 							ShiftMenu++;
-						
-					}
-					else if ( (MenuLevel == LVL_PRD_VIEW) || (MenuLevel == LVL_PRD_SETUP) )
-					{
-						if (ShiftMenu == 2)
+						}
+					} else if ( (MenuLevel == LVL_PRD_VIEW) || (MenuLevel == LVL_PRD_SETUP) ) {
+						if (ShiftMenu == 2) {
 							ShiftMenu++;
-					}
+						}
+					} 
 				}break; //прокрутка меню
 				
 				case LVL_JRN_VIEW:
