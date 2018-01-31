@@ -679,10 +679,12 @@ static void FuncSelectValue(void)
 					}
                 }
             } else if (MenuLevel == LVL_GLB_SETUP) {
-				if (MassSelectValue == fmTypeUdDev) {
+				if (VARIANT == ' ') {
 					// TODO Из выбора Совместимости убраны ПВЗУ-Е и Линия-Р
-					if ((InputSelectValue == 3) || (InputSelectValue == 5)) {
-						InputSelectValue--;	
+					if (MassSelectValue == fmTypeUdDev) {	
+						if ((InputSelectValue == 3) || (InputSelectValue == 5)) {
+							InputSelectValue--;	
+						}
 					}
 				}
 			}
@@ -699,10 +701,12 @@ static void FuncSelectValue(void)
 					}
                 }
 			} else if (MenuLevel == LVL_GLB_SETUP) {
-				if (MassSelectValue == fmTypeUdDev) {
+				if (VARIANT == ' ') {
 					// TODO Из выбора Совместимости убраны ПВЗУ-Е и Линия-Р
-					if ((InputSelectValue == 3) || (InputSelectValue == 5)) {
-						InputSelectValue++;	
+					if (MassSelectValue == fmTypeUdDev) {
+						if ((InputSelectValue == 3) || (InputSelectValue == 5)) {
+							InputSelectValue++;	
+						}
 					}
 				}
 			}
@@ -3494,19 +3498,26 @@ static void LCDwork(void)
 				case LVL_INFO: 		//Меню прошивки
 				{
 					LCDprintf(2,1,Menu19Param[ShiftMenu],1);LCDprintf(3,1,MenuValue,1);
-					if (ShiftMenu<4){
-						LCDprintHEX(3,11,(char) (MyInsertion[ShiftMenu]>>8));
-						LCDprintHEX(3,14,(char) MyInsertion[ShiftMenu]);
-						LCDprintChar(3,13,'.');
-					}else
-						if (ShiftMenu==4){
-							if (bParamView) LCDprintf(3,11,fDopParamViewTrue,1);
-							else LCDprintf(3,11,fDopParamViewFalse,1);
-						}else
-							if (ShiftMenu==5){
-								if (bParamValue) LCDprintf(3,11,fDopParamValueTrue,1);
-								else LCDprintf(3,11,fDopParamValueFalse,1);
-							}
+					FuncClearCharLCD(3, 11, 10);
+					if (ShiftMenu < 4){
+						LCDprintHEX(3, 11, (char) (MyInsertion[ShiftMenu]>>8));
+						LCDprintChar(3, 13, '.');
+						LCDprintHEX(3, 14, (char) MyInsertion[ShiftMenu]);
+						if (ShiftMenu == 0) {
+							// в случае прошивки Меню может отображаться доп.символ
+							LCDprintChar(3, 16, VARIANT);			
+						}
+					} else if (ShiftMenu == 4) {
+						if (bParamView) 
+							LCDprintf(3,11,fDopParamViewTrue,1);
+						else 
+							LCDprintf(3,11,fDopParamViewFalse,1);
+					} else if (ShiftMenu == 5) {
+						if (bParamValue) 
+							LCDprintf(3,11,fDopParamValueTrue,1);
+						else 
+							LCDprintf(3,11,fDopParamValueFalse,1);
+					}
 				}break;
 				case LVL_TEST:  	//меню тестов
 				{ 
