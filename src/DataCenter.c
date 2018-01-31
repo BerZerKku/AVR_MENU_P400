@@ -251,13 +251,22 @@ void FParamDef(unsigned char command)
 			{
 				MenuTypeLine[0] = tmp + '0';
 				if (cNumLine != tmp)
-				{		
-					//Уберем все Uk кроме 1
-					for(uint8_t i = 2; i <= cNumLine; i++) {
-						bViewParam[5 + i - 1] = false; 
+				{
+					cNumLine = tmp;
+					
+					// включим нужные Uk и отключим лишние
+					if ((TypeUdDev == 3) && (cNumLine > 3)) {
+						// в ПВЗУ-Е с кол-вом концов более 3, показывается
+						// столько Uк сколько концов.
+						for(uint8_t i = 1; i <= 8; i++) {
+							bViewParam[4 + i] = (i <= cNumLine) ? true : false;
+						}
+					} else {			
+						for(uint8_t i = 1; i <= 8; i++) {
+							bViewParam[4 + i] = (i < cNumLine) ? true : false;
+						}
 					}
 					
-					cNumLine = tmp;
 					MenuTestCreate();
 					MenuParamGlbCreate();
 					MenuParamDefCreate();
@@ -265,14 +274,6 @@ void FParamDef(unsigned char command)
 					MenuACCreate();
 					MenuAKCreate();
 					MenuTestCreate();
-					
-					if (cNumLine == 3) {
-						bViewParam[6] = true;
-					} else if ((TypeUdDev == 3) && (cNumLine > 3)) {
-						for(uint8_t i = 1; i <= cNumLine; i++) {
-							bViewParam[5 + i - 1] = true; 
-						}
-					}
 				}
 			}
 			
@@ -1572,15 +1573,18 @@ void VersDevice(void)
 	}
 	
 	// отключим сначала все Uk кроме Uk1
-	for(uint8_t i = 2; i <= 8; i++) {
-		bViewParam[5 + i - 1] = false; 
+	for(uint8_t i = 1; i < 8; i++) {
+		bViewParam[5 + i] = false; 
 	}
 	
 	// Кол-во аппаратов в линии
 	// 2 или 3
 	// в звисимости от этого, корректируются некоторые параметры
-	if (Rec_buf_data_uart[8] == 3)
-	{
+	if (Rec_buf_data_uart[8] == 2) {
+		cNumLine = 2; 
+		cNumComR2 = 0;
+		cNumComR = cNumComR1;
+	} else if (Rec_buf_data_uart[8] == 3) {
 		cNumLine = 3; 
 		if ( (cNumComR2) || (bDef) )
 			bViewParam[6] = true;  //если есть приемник по второй линии или защита
@@ -1597,22 +1601,19 @@ void VersDevice(void)
 		// архив для второго приемника. при необходимости
 		if (cNumComR2 != 0)
 			sArchive.Dev[++sArchive.NumDev] = 4;  // второй приемник
-	} else {
-		if ((TypeUdDev == 3) && (Rec_buf_data_uart[8] <= 8)) {
+	} else if ((TypeUdDev == 3) && (Rec_buf_data_uart[8] <= 8)) {
 			cNumLine = Rec_buf_data_uart[8];
 			
 			// в ПВЗУ-Е может быть до 8 Uk
 			for(uint8_t i = 1; i < cNumLine; i++) {
 				bViewParam[5 + i] = true;
 			}
-		} else {
+	} else {
 			cNumLine = 2; 
 			cNumComR2 = 0;
 			cNumComR = cNumComR1;
 			
-			if (Rec_buf_data_uart[8] != 2)
-				CorrectVers = false;
-		}
+			CorrectVers = false;
 	}
 	
 	// Архив приемника
