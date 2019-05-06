@@ -2,50 +2,70 @@
 #include "ina90.h"
 #include "MyDef.h"
 #include "comp_a90.h"
-
+#include "delay.h"
+#include "board.h"
 #include "driverLCD.h"
+ 
+/** Проверка строки на нажатые кнопки.
+ *
+ *  @param[in] row Номер строки.
+ *  @param[out] Считанное с клавиатуры значение.
+ *  @return Если обнаружена нажатая кнопка(и) true, иначе false.
+ */
+static bool checkRow(unsigned char row, unsigned char *key) {
+    DDRC = (1 << row);
+    delay_us(1);
+    *key = PINC;
+    
+    return !(*key == ((unsigned char) ~(1 << row)));
+}
 
+/** Опрос клавиатуры.
+ *
+ *  @return Возвращает код нажатой кнопки.
+ *  @retval 0xF0 Нажатых кнопок нет. 
+ */
 unsigned char InquiryKeyboard(void){
- unsigned  char TempKey;
-
- DDRC=0x01;
- for(TempKey=0; TempKey<10; TempKey++);
- TempKey=PINC;
- DDRC=0x02;
- if (TempKey==0xFE){
-  for(TempKey=0; TempKey<10; TempKey++);
-  TempKey=PINC;
-  DDRC=0x04;
-  if (TempKey==0xFD){
-    for(TempKey=0; TempKey<10; TempKey++);
-    TempKey=PINC;
-    DDRC=0x08;
-    if (TempKey==0xFB){
-      for(TempKey=0; TempKey<10; TempKey++);
-      TempKey=PINC;
-      DDRC=0x00;
+    bool state;
+    unsigned char key;
+    
+    state = checkRow(PIN_ROW1, &key);
+    
+    if (!state) {
+        state = checkRow(PIN_ROW2, &key);
     }
-  }
- }
-
- switch(TempKey){
- case 0x7E: TempKey='C'; break;
- case 0xDE: TempKey='#'; break;
- case 0xBE: TempKey='0'; break;
- case 0xEE: TempKey='M'; break;
- case 0x7D: TempKey='D'; break;
- case 0xDD: TempKey='9'; break;
- case 0xBD: TempKey='8'; break;
- case 0xED: TempKey='7'; break;
- case 0x7B: TempKey='U'; break;
- case 0xDB: TempKey='6'; break;
- case 0xBB: TempKey='5'; break;
- case 0xEB: TempKey='4'; break;
- case 0x77: TempKey='E'; break;
- case 0xD7: TempKey='3'; break;
- case 0xB7: TempKey='2'; break;
- case 0xE7: TempKey='1'; break;
- default: TempKey=0xF0;
- }
- return TempKey;
+    
+    if (!state) {
+        state = checkRow(PIN_ROW3, &key);
+    }
+        
+    if (!state) {
+        state = checkRow(PIN_ROW4, &key);   
+    }
+    
+    if (state) {
+        switch(key){
+            case 0x7E: key='C'; break;
+            case 0xDE: key='#'; break;
+            case 0xBE: key='0'; break;
+            case 0xEE: key='M'; break;
+            case 0x7D: key='D'; break;
+            case 0xDD: key='9'; break;
+            case 0xBD: key='8'; break;
+            case 0xED: key='7'; break;
+            case 0x7B: key='U'; break;
+            case 0xDB: key='6'; break;
+            case 0xBB: key='5'; break;
+            case 0xEB: key='4'; break;
+            case 0x77: key='E'; break;
+            case 0xD7: key='3'; break;
+            case 0xB7: key='2'; break;
+            case 0xE7: key='1'; break;
+            default: key=0xF0;
+        }
+    } else {
+        key = 0xF0;
+    }
+    
+    return key;
 };

@@ -1,13 +1,16 @@
 #include <ioavr.h>
+#include <ina90.h>
 #include <stdint.h>
+
 #include "MyDef.h"
-#include "InterfaceS.h"
+#include "UartBsp.h"
 #include "driverLCD.h"
 #include "modbus.h"
 #include "DataCenter1.h"
 #include "Menu.h"
+#include "UartLs.h"
 
-extern BazaModBus* ModBusBaza;
+extern BazaModBus ModBusBaza;
 extern strMenuGlbParam sMenuGlbParam, sMenuDefParam, sMenuUpr;
 int CRCSum;
 
@@ -78,7 +81,7 @@ extern unsigned char ValuePrdLongCom[];
 extern __flash uint RangPrd[] [3];
 //Параметры Общие
 extern unsigned char MenuAllSynchrTimer;
-extern unsigned char MenuAllLanAddress[];
+extern unsigned char adrLan;
 extern unsigned char MenuAllKeepComPRM[];
 extern unsigned char MenuAllKeepComPRD;
 extern unsigned char MenuAllTimeRerun[];
@@ -109,7 +112,6 @@ extern unsigned char Dop_byte[];
 
 //Архив
 extern unsigned int NumberRecording;
-extern unsigned int NumRecStart;
 extern unsigned char NumberRec;
 extern unsigned char ReadArch;
 extern unsigned int AddressStartRegister;
@@ -218,7 +220,7 @@ void ErrorMessage(char code)
 
 void FParamDef(unsigned char command)
 {
-	u8 min, max;
+	uint8_t min, max;
 	uint8_t tmp = Rec_buf_data_uart[4];
 	
 	switch(command)
@@ -934,7 +936,7 @@ extern strParamOpt	sParamOpt;
 
 void vfOptParam(void)
 {
-	u8 tmp;
+	uint8_t tmp;
 	// протокол обмена
 	
 	tmp = Rec_buf_data_uart[4];
@@ -1081,12 +1083,9 @@ void FParamGlobal(unsigned char command)
 			}
 		}
 		break;
-		case 0x38:
-		{ //адрес аппарата в локальной сети (общие)
-			MenuAllLanAddress[2]=Rec_buf_data_uart[4]%10 + 0x30;
-			Rec_buf_data_uart[4]=Rec_buf_data_uart[4]/10;
-			MenuAllLanAddress[1]=Rec_buf_data_uart[4]%10 + 0x30;
-			MenuAllLanAddress[0]=Rec_buf_data_uart[4]/10 + 0x30;
+		case 0x38: {
+            //адрес аппарата в локальной сети (общие)
+            adrLan = Rec_buf_data_uart[4];
 		}break;
 		case 0x39:
 		{ 	// Оптика - "Время перезапуска"
@@ -1334,20 +1333,21 @@ void FParamGlobal(unsigned char command)
 	LCD2new=1;
 };
 
-void FReadArchEvent(void){
-	
-	NumberRec--; //уменьшаем кол-во считываемых записей
-	NumRecStart++;  //выставляем следующий считываемый номер события архива
-	if ((NumberRec==0)&&(ReadArch==1)){  //если считали всю необходимую информацию, то отправим ответ на ПК
-		for (uint8_t i = StRegister; i < (NumberRegister + StRegister); i++) {
-			ModBusBaza->readarchive(Tr_buf_data_uart1, 3 + (i-StRegister)*2, i);
-		}
-		TransDataInf1(0x03, NumberRegister*2);
-		ReadArch=0;
-		ModBusBaza->ClearJournalMass();
-	}
-	RecivVar=1;
-}
+//void FReadArchEvent(void){
+//	
+//	NumberRec--; //уменьшаем кол-во считываемых записей
+//	NumRecStart++;  //выставляем следующий считываемый номер события архива
+//	if ((NumberRec==0)&&(ReadArch==1)){  //если считали всю необходимую информацию, то отправим ответ на ПК
+//		for (uint8_t i = StRegister; i < (NumberRegister + StRegister); i++) {
+//			ModBusBaza.readarchive(UARTLS_txBuf, 3 + (i-StRegister)*2, i);
+//		}
+//		TransDataInf1(0x03, NumberRegister*2);
+//        
+//		ReadArch=0;
+//		ModBusBaza.ClearJournalMass();
+//	}
+//	RecivVar=1;
+//}
 
 void FArchive(void){
 	bool er=false;
@@ -1479,16 +1479,17 @@ void FTest1(unsigned char com)
 
 /**	Определение типа устройства
  * 	В случае некорректного считанного значения, будет применена установка по умолчанию:
- *	пость : есть
+ *	пост : есть
  *  команды : нет
  *	тип линии связи : ВЧ
  * 	совместимость : АВАНТ - тут вообще не проверяется
  *  кол-во аппаратов в линии : 2
  * 	Ошибка при этом на данный момент не обрабатывается !!!
+ *
  *	@param Нет
- *	@return Нет
+ *	@return True если в принятых данных нет ошибок, иначе false.
  */
-void VersDevice(void)
+bool VersDevice(void)
 {
 	bool CorrectVers = true;
 	//происходит формирование пунтка меню: журнал
@@ -1698,11 +1699,12 @@ void VersDevice(void)
 	MenuTestCreate();
 	
 	bReadVers = true;
+    
+    return CorrectVers;
 }
 
 //обработка принятого сообщения
-void DataModBus(unsigned char NumberByte)
-{
+void DataModBus(unsigned char NumberByte) {
 	//прверка принятого CRC
 	CRCSum = GetCRCSum(Rec_buf_data_uart,NumberByte - 1);
 	if (CRCSum != Rec_buf_data_uart[NumberByte - 1]) 
@@ -1711,8 +1713,8 @@ void DataModBus(unsigned char NumberByte)
 	}
 	else
 	{
-		//for (i_dc=0; i_dc<NumberByte; i_dc++) Tr_buf_data_uart1[i_dc]=Rec_buf_data_uart[i_dc];
-		//TransDataInf1(Tr_buf_data_uart1[2], Tr_buf_data_uart1[3]);
+		//for (i_dc=0; i_dc<NumberByte; i_dc++) UARTLS_txBuf[i_dc]=Rec_buf_data_uart[i_dc];
+		//TransDataInf1(UARTLS_txBuf[2], UARTLS_txBuf[3]);
 		
 #if ( (DEB) && (PK) )	// пересылка сообщений из БСП на ПК
 	#warning Включена пересылка сообщений из БСП на ПК!!!
@@ -1725,8 +1727,8 @@ void DataModBus(unsigned char NumberByte)
 		)
 	{
 		for (i_dc = 0; i_dc < NumberByte; i_dc++) 
-			Tr_buf_data_uart1[i_dc] = Rec_buf_data_uart[i_dc];
-		TransDataInf1(Tr_buf_data_uart1[2], Tr_buf_data_uart1[3]);
+			UARTLS_txBuf[i_dc] = Rec_buf_data_uart[i_dc];
+		TransDataInf1(UARTLS_txBuf[2], UARTLS_txBuf[3]);
 	}
 #endif
 		
@@ -1734,39 +1736,41 @@ void DataModBus(unsigned char NumberByte)
 		{ 
 			// идет работа с ПК
 			for (uint8_t i = 0; i < NumberByte; i++) {
-				Tr_buf_data_uart1[i]=Rec_buf_data_uart[i];
+				UARTLS_txBuf[i] = Rec_buf_data_uart[i];
 			}
-				// При передачи на ПК команды версии аппаратов, добавим версию ПИ
-			if (Tr_buf_data_uart1[2] == 0x3F) {
-				uint8_t crc = Tr_buf_data_uart1[NumberByte - 1];
-				uint8_t num = Tr_buf_data_uart1[3];
+			
+            // При передачи на ПК команды версии аппаратов, добавим версию ПИ
+			if (UARTLS_txBuf[2] == 0x3F) {
+				uint8_t crc = UARTLS_txBuf[NumberByte - 1];
+				uint8_t num = UARTLS_txBuf[3];
 				if (num < 19) {
 					// если в посылке не зарезервировано место под версию ПИ
 					// т.е. передается меньше байт данных, добавим нужное кол-во
 					for(uint8_t i = num + 4; num < 19; i++, num++) {
-						Tr_buf_data_uart1[i] = 0x00;
+						UARTLS_txBuf[i] = 0x00;
 					}
-					crc += 19 - Tr_buf_data_uart1[3];
-					Tr_buf_data_uart1[3] = num;
+					crc += 19 - UARTLS_txBuf[3];
+					UARTLS_txBuf[3] = num;
 					NumberByte = num + 5;
 				} else {
 					// если место под версию ПИ зарезервировано, на всякий случай
 					// учтем изменение контрольной суммы.
-					crc -= Tr_buf_data_uart1[21];
-					crc -= Tr_buf_data_uart1[22];
+					crc -= UARTLS_txBuf[21];
+					crc -= UARTLS_txBuf[22];
 				}
-				crc += (Tr_buf_data_uart1[21] = Hi(Insertion));
-				crc += (Tr_buf_data_uart1[22] = Lo(Insertion));
-				Tr_buf_data_uart1[num + 4] = crc;
+				crc += (UARTLS_txBuf[21] = Hi(Insertion));
+				crc += (UARTLS_txBuf[22] = Lo(Insertion));
+				UARTLS_txBuf[num + 4] = crc;
 				
 			}
+            
 			PCready=3;
 			PCbyte=NumberByte;
 		}
 		else if (PCready==0)
 		{
 			// идет работа с БСП
-			ModBusBaza->writeinf(Rec_buf_data_uart[2], Rec_buf_data_uart);
+			ModBusBaza.writeinf(Rec_buf_data_uart[2], Rec_buf_data_uart);
 			
 			switch(Rec_buf_data_uart[2] & 0xF0)
 			{
@@ -1853,7 +1857,6 @@ void DataModBus(unsigned char NumberByte)
 	}
 	
 	ClearPortError();   	// после начала отправки сообщения очистим регистр приема
-	bUartRcReady1 = false;  // обработка сообщения закончена
 } //end DataModBus
 
 

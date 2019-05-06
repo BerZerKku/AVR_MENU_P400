@@ -1,9 +1,12 @@
-//Библиотека обработки ModBus
+// Обработка принятого сообщения по UART1
+
+#ifndef DATA_CENTER_1_H_
+#define DATA_CENTER_1_H_
+
+#include <stdint.h>
+#include "MyDef.h"
 
 //подпрограмма обработки полученного сообщения
-extern void DataModBus1(unsigned char NumberByte);
-extern void TransDataInf1(unsigned char ByteCommand, unsigned char NumberTransByte);
+extern void DC1_dataProc(protocol_t protocol, uint8_t adr, uint8_t num);
 
-extern void TransDataByte1(unsigned char ByteCommand, unsigned char ByteData);
-extern unsigned char DataMass[];
-extern unsigned char KeyBuf[];
+#endif

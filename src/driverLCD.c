@@ -1,7 +1,9 @@
 //подпрограмма работы с ЖК-индикатором
+#include <stdint.h>
 #include "ioavr.h"
 #include "ina90.h"
 #include "MyDef.h"
+
 
 #define PortLCD PORTA
 
@@ -106,12 +108,24 @@ void LCDprintHEX(unsigned char Line, unsigned char AddressInLine, unsigned char 
   if (LCDbuf[StartChar+1]>9) LCDbuf[StartChar+1]+=0x37;
   else  LCDbuf[StartChar+1]+=0x30;
 }
-//вывод на экран числа в десятичном виде, со сдвигом влево
-void LCDprintDEC(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint){
-  unsigned char StartChar;
-  StartChar=(Line-1)*20+AddressInLine-1;
-  if (CodePrint>9) LCDbuf[StartChar++]=(CodePrint/10)+0x30;
-  LCDbuf[StartChar]=(CodePrint%10)+0x30;
+
+/** Вывод на экран (в буфер экрана) десятичного значения uint8_t.
+ *
+ *  Выводится необходимое количество символов (не меньше одного) со сдвигом 
+ *  в л
+ *
+ *  @param[in] row Строка [1..4].
+ *  @param[in] col Позиция первого символа в строке [1..20]
+ *  @param[in] val Значение [0..255].
+ */
+void LCDprintDEC8(uint8_t row, uint8_t col, uint8_t val) {
+    uint8_t npos = (val >= 100) ? 3 : (val >= 10) ? 2 : 1;
+    uint8_t pos = 20*(row - 1) + (col - 1);
+    
+    for(uint8_t i = npos; i > 0; i--) {
+        LCDbuf[pos + i - 1] = (val % 10) + '0';
+        val /= 10;
+    }
 }
 
 //вывод на экран числа в десятичном виде, со сдвигом вправо

@@ -1,39 +1,32 @@
-#include <stdint.h>
-#include "ioavr.h"
-#include "MyDef.h"
-#include "InterfaceS.h"
+#include <ioavr.h>
+#include <ina90.h>
+
+#include "DataCenter1.h"
+#include "UartBsp.h"
+#include "UartLs.h"
 #include "modbus.h"
 
 extern BazaModBus* ModBusBaza;
 
-unsigned int CRCSum1, CRCread;
 extern unsigned char ePassword[];
-unsigned int PassToPC;
 extern unsigned char eWrite, eRead;
 extern unsigned char *eMassiveWrite, *eMassiveRead;
 extern unsigned int eAddressWrite,eAddressRead;
-extern unsigned char Protocol;
 
 //переменные необходимые для передачи данных по ModBus
-unsigned char NumberRegister; //количество считываемых регистров
 extern unsigned char ReadArch;
-unsigned int AddressStartRegister; //адрес первого регистра
-unsigned int NumRecStart; //номер первой считываемой записи
 extern unsigned char NumberRec; //ко-во считываемых записей
 extern unsigned char ComArch;  //команда считывания архива
-unsigned char StRegister;
 
 extern unsigned char CurrentState[];
 extern unsigned char LCD2new, gr1, gr2;
 
 extern void FTest1(unsigned char com);
 
-//буфер данных для ModBus
-//nsigned int BufModBus[150];
-unsigned char AddressModBus=0x20; //адрес устройства в протоколе ModBus
+void errorMsg(protocol_t prot, uint8_t code, uint8_t byte1, uint8_t byte2);
 
 //массивы для быстрого расчета кода CRC-16
-__flash const unsigned char srCRCHi[256]={
+__flash const uint8_t srCRCHi[256] = {
          0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0,
          0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
          0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
@@ -60,8 +53,9 @@ __flash const unsigned char srCRCHi[256]={
          0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
          0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0,
          0x80, 0x41, 0x00, 0xC1, 0x81, 0x40
-  };
-__flash const unsigned char srCRCLo[256]={
+};
+
+__flash const uint8_t srCRCLo[256] = {
          0x00, 0xC0, 0xC1, 0x01, 0xC3, 0x03, 0x02, 0xC2, 0xC6, 0x06,
          0x07, 0xC7, 0x05, 0xC5, 0xC4, 0x04, 0xCC, 0x0C, 0x0D, 0xCD,
          0x0F, 0xCF, 0xCE, 0x0E, 0x0A, 0xCA, 0xCB, 0x0B, 0xC9, 0x09,
@@ -91,307 +85,314 @@ __flash const unsigned char srCRCLo[256]={
   };
 
 
-//функция вычисляет код CRC-16
-//на входе указатель на начало буфера
-//и количество байт сообщения (без принятого кода CRC-16)
-int GetCRC16(unsigned char *buf, char bufsize)
-{
-  char CRC_Low = 0xFF;
-  char CRC_High = 0xFF;
-  char k;
-  char carry;
-  for (k=0; k<bufsize; k++)
-   {
-    carry = CRC_Low ^ buf[k];
-    CRC_Low = CRC_High ^ srCRCHi[carry];
-    CRC_High = srCRCLo[carry];
-   };
-  //return (CRC_High);
-  return((CRC_High<<8)|CRC_Low);
-}
-
-
-
-//функция вычисляет код CRC-16
-//на входе указатель на начало буфера
-//и количество байт сообщения (без принятого кода CRC-16)
-//но при этом синхробайты не считаются
-unsigned char GetCRCSum1(unsigned char *buf, char bufsize)
-{
-  unsigned char CRCbuf;
-  unsigned char k;
-
-  CRCbuf=0;
-  switch(Protocol)
-  {
-    case 0:
-    {
-      for (k=2; k<bufsize; k++)
-      {
-        CRCbuf+=buf[k];
-      };
+/** Рассчет контрольной суммы CRC-16.
+ *
+ *  Если функция используется для проверки КС принятого сообщения, то 
+ *  из количества байт данных num необходимо исключить байты КС.
+ *
+ *  @param[in] buf
+ *  @param[in] num Количество байт данных.
+ */
+uint16_t MODBUS_calcCRC(uint8_t *buf, uint8_t num) {
+    uint8_t low = 0xFF;
+    uint8_t high = 0xFF;
+    
+    for (uint8_t i = 0; i < num; i++) {
+        uint8_t carry = low ^ buf[i];
+        
+        low = high ^ srCRCHi[carry];
+        high = srCRCLo[carry];
     }
-    break;
-    case 1:
-    {
-      for (k=0;k<bufsize; k++) CRCbuf+=buf[k];
+    
+    return ((high << 8) | low);
+}
+
+
+/** Рассчет контрольной суммы.
+ * 
+ *  Синхробайты не учитываются. 
+ *  Если функция используется для проверки КС принятого сообщения, то 
+ *  из количества байт данных num необходимо исключить байт КС.
+ *
+ *  @param[in] buf
+ *  @param[in] num Количество байт данных.
+ */
+uint8_t STD_calcCrc(uint8_t *buf, uint8_t num) {
+    uint8_t crc = 0;
+    
+    for(uint8_t i = 2; i < num; i++) {
+        crc += buf[i];
     }
-    break;
-  }
-
-  return(CRCbuf);
+    
+    return crc;
 }
 
-//подпрограмма подготовки отпраки одного байта информации по UART
-void TransDataByte1(unsigned char ByteCommand, unsigned char ByteData)
-{
-      Sost1|=CurSost;
-    //байты синхронизации уже лежат в массиве
-      Tr_buf_data_uart1[2]=ByteCommand;
-      Tr_buf_data_uart1[3]=0x01;
-      Tr_buf_data_uart1[4]=ByteData;
-      CRCSum1=GetCRCSum1(Tr_buf_data_uart1,5);
-      Tr_buf_data_uart1[5]=CRCSum1;
-      StartTrans1(6);
+/** Отправка сообщения.
+ *
+ *  @param[in] adr Адрес в локальной сети.
+ *  @param[in] com Команда.
+ *  @param[in] numBytes Количество передаваемых полезных данных.
+ *  @return Нет.
+ */
+void STD_txData(uint8_t adr, uint8_t com, uint8_t numBytes) {
+    uint8_t crc = 0;
+    
+    UARTLS_txBuf[0] = 0x55;
+    UARTLS_txBuf[1] = 0xAA;
+    UARTLS_txBuf[2] = com;
+    UARTLS_txBuf[3] = numBytes;
+    crc = STD_calcCrc(UARTLS_txBuf, 4 + numBytes);
+    UARTLS_txBuf[4 + numBytes] = crc;
+    UARTLS_txStart(5 + numBytes); 
 }
 
-void TransDataInf1(unsigned char ByteCommand, unsigned char NumberTransByte)
-{
-      Sost1|=CurSost;
-      switch(Protocol)
-      {
-        case 0:
-        {
-          //байты синхронизации уже лежат в массиве
-          Tr_buf_data_uart1[2]=ByteCommand;
-          Tr_buf_data_uart1[3]=NumberTransByte;
-          CRCSum1=GetCRCSum1(Tr_buf_data_uart1,4+NumberTransByte);
-          Tr_buf_data_uart1[4+NumberTransByte]=CRCSum1;
-          StartTrans1(5+NumberTransByte);
-        }
-        break;
-        case 1:
-        {
-          //при считывании, в [2] ложится кол-во байт
-          Tr_buf_data_uart1[0]=AddressModBus;
-          Tr_buf_data_uart1[1]=ByteCommand; //команда
-          CRCSum1=GetCRC16(Tr_buf_data_uart1,3+NumberTransByte);
-          Tr_buf_data_uart1[3+NumberTransByte]=CRCSum1;
-          Tr_buf_data_uart1[4+NumberTransByte]=(CRCSum1>>8);
-          StartTrans1(5+NumberTransByte);
-        }
-        break;
-     }
+/** Отправка сообщения.
+ *
+ *  @param[in] adr Адрес в локальной сети.
+ *  @param[in] com Команда.
+ *  @param[in] numBytes Количество передаваемых полезных данных.
+ *  @return Нет.
+ */
+void MODBUS_txData(uint8_t adr, uint8_t com, uint8_t numBytes) {
+    uint16_t crc = 0;
+    
+    UARTLS_txBuf[0] = adr;
+    UARTLS_txBuf[1] = com; 
+    UARTLS_txBuf[2] = numBytes;
+    crc = MODBUS_calcCRC(UARTLS_txBuf, 3 + numBytes);
+    UARTLS_txBuf[3 + numBytes] = crc;
+    UARTLS_txBuf[4 + numBytes] = (crc >> 8);
+    UARTLS_txStart(5 + numBytes);
+}
+
+/** Отправка сообщения об ошибке.
+ *
+ *  Всегда передается два байта данных.
+ *
+ *  @param[in] adr Адрес в локальной сети.
+ *  @param[in] code Код ошибки.
+ *  @param[in] byte1 Байт данных 1.
+ *  @param[in] byte2 Байт данных 2.
+ */
+void STD_txError(uint8_t adr, uint8_t code, uint8_t byte1, uint8_t byte2) {
+    uint16_t crc = 0;
+    
+    UARTLS_txBuf[0] = 0x55;
+    UARTLS_txBuf[1] = 0xAA;
+    UARTLS_txBuf[2] = code;
+    UARTLS_txBuf[3] = 0x02; 
+    crc = STD_calcCrc(UARTLS_txBuf, 6);
+    UARTLS_txBuf[6] = crc;
+    UARTLS_txStart(7);
 }
 
 
-
-//возвращаем сообщение с ошибкой
-void ErrorMessage1(char code)
-{
-      Sost1|=CurSost;
-    //байты синхронизации уже лежат в массиве
-      Tr_buf_data_uart1[2]=code;
-      Tr_buf_data_uart1[3]=0x02; //т.е. посылается два байта данных
-      CRCSum1=GetCRCSum1(Tr_buf_data_uart1,6);
-      Tr_buf_data_uart1[6]=CRCSum1;
-      StartTrans1(7);
+/** Отправка сообщения об ошибке.
+ *
+ *  Всегда передается два байта данных.
+ *
+ *  @param[in] adr Адрес в локальной сети.
+ *  @param[in] code Код ошибки.
+ *  @param[in] byte1 Байт данных 1.
+ *  @param[in] byte2 Байт данных 2.
+ */
+void MODBUS_txError(uint8_t adr, uint8_t code, uint8_t byte1, uint8_t byte2) {
+    uint16_t crc = 0;
+    
+    UARTLS_txBuf[0] = adr; 
+    UARTLS_txBuf[1] = UARTLS_rxBuf[1] | 0x80;
+    UARTLS_txBuf[2] = code;
+    crc = MODBUS_calcCRC(UARTLS_txBuf, 3);
+    UARTLS_txBuf[3] = crc;
+    UARTLS_txBuf[4] = (crc >> 8);
+    UARTLS_txStart(5);
 }
 
-void ErrorMessageModBus(char code)
-{
-  Sost1|=CurSost;
-  Tr_buf_data_uart1[0]=AddressModBus; //адрес устройства
-  Tr_buf_data_uart1[1]=Rec_buf_data_uart1[1]|0x80;
-  Tr_buf_data_uart1[2]=code;
-  CRCSum1=GetCRCSum1(Tr_buf_data_uart1,3);
-  Tr_buf_data_uart1[3]=CRCSum1;
-  Tr_buf_data_uart1[4]=(CRCSum1>>8);
-  StartTrans1(5);
-}
-
-//обработка принятого сообщения
-void DataModBus1(unsigned char NumberByte)
-{
-
-      if (GetSostPort1()&HardError)  //если произошла ошибка приема
-        {
-          Tr_buf_data_uart1[4]=0;
-          Tr_buf_data_uart1[5]=0;
-          ErrorMessage1(0xE1);
-        }
-      else
-        {
-          switch (Protocol)
-          {
-            case 0:
-            {
-              if ((Rec_buf_data_uart1[0]==0x55)&&(Rec_buf_data_uart1[1]==0xAA))  //проверка байт синхронизации
-              {
-                if (Rec_buf_data_uart1[3]!=NumberByte-5) //сравним принятое количество байт данных с заявленным
-                {
-                    Tr_buf_data_uart1[4]=Rec_buf_data_uart1[3]; //заявленное кол-во байт данных
-                    Tr_buf_data_uart1[5]=NumberByte-5; //принятое кол-во байт данных
-                    ErrorMessage1(0xE3);
-                }
-                else
-                {
-                  CRCSum1=GetCRCSum1(Rec_buf_data_uart1,NumberByte-1);
-                  if (CRCSum1!=Rec_buf_data_uart1[NumberByte-1]) //прверка принятого CRC
-                  {
-                    Tr_buf_data_uart1[4]=Rec_buf_data_uart1[NumberByte-1];  //принятая контрольная сумма
-                    Tr_buf_data_uart1[5]=CRCSum1; //вычисленная контрольная сумма
-                    ErrorMessage1(0xE2);
-                  }
-                  else
-                  {
-                    if ((Rec_buf_data_uart1[2]==0x74)||(Rec_buf_data_uart1[2]==0x73))
-                    {
-
-                      if (Rec_buf_data_uart1[2]==0x74){
-                        PassToPC=(ePassword[0]-0x30)*1000+(ePassword[1]-0x30)*100+(ePassword[2]-0x30)*10+(ePassword[3]-0x30);
-                        Tr_buf_data_uart1[4]=Hi(PassToPC);
-                        Tr_buf_data_uart1[5]=Lo(PassToPC);
-                        TransDataInf1(0x72, 2);
-                      }
-                      if (Rec_buf_data_uart1[2]==0x73)
-                      {
-                        PassToPC=(Rec_buf_data_uart1[4]<<8)+Rec_buf_data_uart1[5];
-                        ePassword[0]=PassToPC/1000+0x30;
-                        PassToPC-=(ePassword[0]-0x30)*1000;
-                        ePassword[1]=PassToPC/100+0x30;
-                        PassToPC-=(ePassword[1]-0x30)*100;
-                        ePassword[2]=PassToPC/10+0x30;
-                        PassToPC-=(ePassword[2]-0x30)*10;
-                        ePassword[3]=PassToPC+0x30;
-
-                        TransDataInf1(0x73, 0);
-
-                        //а теперь запишем пароль в EEPROM
-                        eWrite=1;
-                        eAddressWrite=0;
-                        eMassiveWrite=ePassword;
-                      }
-                      PCtime=PC_wait;
-                      EnableReceive1;
-                    }
-                    else
-                    {
-                      for (uint8_t i = 0; i < NumberByte; i++) {
-                        Tr_buf_data_uart[i] = Rec_buf_data_uart1[i];
-                        Rec_buf_data_uart1[i] = 0x00;
-                      }
-                      PCbyte=NumberByte;
-                      PCready=1;
-                      PCtime=PC_wait;
-                    }
-                  }
-                }
-
-              } //end if (col.11)
-              else //если адрес не тот, то опять следим за линией
-              {
-                EnableReceive1;
-              }
+    
+/** Обработка принятого сообщения протокола Стандарт.
+ *    
+ *  @param[in] num Количество принятых байт данных.
+ *  @return Нет.
+ */
+void STD_rxProc(uint8_t adr, uint8_t num) {
+    bool err = false;
+    
+    // Проверка первого синхробайта.
+    err |= (UARTLS_rxBuf[0] != 0x55);
+    
+    // Проверка второго синхробайта.
+    err |= (UARTLS_rxBuf[1] != 0xAA);
+         
+    // Проверка заявленного в сообщении количества байт данных.
+    err |= (UARTLS_rxBuf[3] != (num - 5));
+    
+    // Проверка контрольной суммы.
+    err |= (UARTLS_rxBuf[num - 1] != STD_calcCrc(UARTLS_rxBuf, num - 1));
+    
+    if (err) {
+        UARTLS_rxStart();
+    } else {
+        if (UARTLS_rxBuf[2] == 0x73) {
+            // Изменение пароля.
+            uint16_t pwd = (UARTLS_rxBuf[4] << 8) + UARTLS_rxBuf[5];       
+            for(uint8_t i = 4; i > 0; i--) {
+                ePassword[i - 1] = (pwd % 10) + '0';
+                pwd /= 10;
             }
-            break;
-            case 1:
-            {
-              if (Rec_buf_data_uart1[0]==AddressModBus)
-              {
-                //if ((Rec_buf_data_uart1[1]!=0x03)&&(Rec_buf_data_uart1[1]!=0x06)) ErrorMessageModBus(0x01); //проверка кода команды
-                //else
-                //{
-                  CRCSum1=GetCRC16(Rec_buf_data_uart1,NumberByte-2);
-                  CRCread=(Rec_buf_data_uart1[NumberByte-2])+(Rec_buf_data_uart1[NumberByte-1]<<8);
-                  //************************************************************************************************************8
-                  //**************************************************************** На вреия отладки, затем надо убрать ответ.
-                  //************************************************************************************************************8
-                  if (CRCSum1!=CRCread) {Tr_buf_data_uart1[2]=Lo(CRCSum1); Tr_buf_data_uart1[3]=Hi(CRCSum1); TransDataInf1(0xFF,2-1);}//{EnableReceive1;}//прверка принятого CRC
-                  else{
-                    AddressStartRegister=(Rec_buf_data_uart1[2]<<8)+Rec_buf_data_uart1[3];
-                    NumberRegister=Rec_buf_data_uart1[5];
-                    switch(Rec_buf_data_uart1[1]){
-                      case 0x03:{
-                          if ((NumberRegister>64)||(NumberRegister==0)) ErrorMessageModBus(0x03); //кол-во запрашиваемых данных выходит из допустимого диапазона
-                          else
-                          {
-                            //проверка на достоверность указанных регистров ModBus
-                            if (((AddressStartRegister>=250)&&(AddressStartRegister<1024))||((AddressStartRegister+NumberRegister>250)&&(AddressStartRegister<1024))){
-                              ErrorMessageModBus(0x02);
-                            }else{
-                              Tr_buf_data_uart1[2]=NumberRegister*2;
-                              if (AddressStartRegister<250){ //все кроме архивов
-                                for (uint8_t i = 0; i < NumberRegister; i++) {
-                                    ModBusBaza->readregister(Tr_buf_data_uart1, 3 + i*2, AddressStartRegister + i);
-                                }
-                                TransDataInf1(0x03, NumberRegister*2);
-                              }else
-                                if ((AddressStartRegister>=0x400)&&(AddressStartRegister<0x2200)){  //архив событий
-                                  ReadArch = 1;
-                                  ModBusBaza->NumberRecordingArchive(0); //
-                                  NumberRec = NumberRegister/15;
-                                  if (NumberRec==0) NumberRec++;
-                                  if ((15-(AddressStartRegister-1024)%15)<NumberRegister) NumberRec++;
-                                  NumRecStart=(AddressStartRegister-1024)/15;
-                                  ComArch=0xF2;
-                                  //ErrorMessageModBus(0x03);
-                                }else
-                                  if ((AddressStartRegister>=0x2400)&&(AddressStartRegister<0x4200)){  //архив Поста
-                                    ReadArch = 1;
-                                    ModBusBaza->NumberRecordingArchive(0); //
-                                    NumberRec = NumberRegister/15;
-                                    if (NumberRec==0) NumberRec++;
-                                    StRegister=(AddressStartRegister - 0x2400)%15;
-                                    if ((15-StRegister)<NumberRegister) NumberRec++;
-                                    NumRecStart=(AddressStartRegister-0x2400)/15;
-                                    ComArch=0xC2;
-                                  }else
-                                    if ((AddressStartRegister>=0x4400)&&(AddressStartRegister<0x6200)){  //архив ПРМ
-                                       ReadArch = 1;
-                                      ModBusBaza->NumberRecordingArchive(0); //
-                                      NumberRec = NumberRegister/15;
-                                      if (NumberRec==0) NumberRec++;
-                                      StRegister=(AddressStartRegister - 0x4400)%15;
-                                      if ((15-StRegister)<NumberRegister) NumberRec++;
-                                      NumRecStart=(AddressStartRegister-0x4400)/15;
-                                      ComArch=0xD2;
-                                    }else
-                                      if ((AddressStartRegister>=0x6400)&&(AddressStartRegister<0x8200)){  //архив ПРД
-                                        ReadArch = 1;
-                                        ModBusBaza->NumberRecordingArchive(0); //
-                                        NumberRec = NumberRegister/15;
-                                        if (NumberRec==0) NumberRec++;
-                                        StRegister=(AddressStartRegister - 0x6400)%15;
-                                        if ((15-StRegister)<NumberRegister) NumberRec++;
-                                        NumRecStart=(AddressStartRegister-0x6400)/15;
-                                        ComArch=0xE2;
-                                      }
-                                }
-                          }
-                      }break;
-                      case 0x06:{
-                        ModBusBaza->writetoAT(AddressStartRegister,(Rec_buf_data_uart1[4]<<8) + Rec_buf_data_uart1[5]);
-                        for (uint8_t i = 0; i < 6; i++) {
-							Tr_buf_data_uart1[i] = Rec_buf_data_uart1[i];
-						}
-                        TransDataInf1(0x06, 4-1);
-                      }break;
-                      default:  {ErrorMessageModBus(0x01);} //команда не поддерживается данным устройством
-                    }
-                  }
-                //}
-              }
-              else EnableReceive1;
+            
+            STD_txData(adr, 0x73, 0);
+            
+            // запись пароля в EEPROM
+            eWrite = 1;
+            eAddressWrite = 0;
+            eMassiveWrite = ePassword;
+        } else if (UARTLS_rxBuf[2] == 0x74) {
+            // Считывание пароля.
+            uint16_t pwd = 0;
+            for(uint8_t i = 0; i < 4; i++) {
+                pwd *= 10;
+                pwd += ePassword[i] - '0';
             }
-            break;
-            default:
-            {
-              EnableReceive1;
+            
+            UARTLS_txBuf[4] = (pwd >> 8);
+            UARTLS_txBuf[5] = pwd; 
+            
+            STD_txData(adr, 0x72, 2);
+        } else {
+            // Пересылка сообщения в МК БСП.
+            for (uint8_t i = 0; i < num; i++) {
+                Tr_buf_data_uart[i] = UARTLS_rxBuf[i];
+                UARTLS_rxBuf[i] = 0x00;
             }
-          }
-        }//end else (col.9)
-      ClearPortError1();   //после начала отправки сообщения очистим регистр приема
-} //end DataModBus
+            
+            PCbyte = num;
+            PCready = 1;
+        }
+    }    
+}
+ 
+/** Обработка принятого сообщения протокола Modbus.
+ *
+ *  @param[in] adr Адрес устройства в локальной сети.
+ *  @param[in] num Количество принятых байт данных.
+ *  @return Нет.
+ */
+void MODBUS_rxProc(uint8_t adr, uint8_t num) {
+    uint8_t NumberRegister; //количество считываемых регистров
+    uint8_t StRegister;
+    uint16_t AddressStartRegister; //адрес первого регистра
+    uint16_t NumRecStart; //номер первой считываемой записи
+    
+    
+    // Проверка адреса устройства.
+    if (UARTLS_rxBuf[0] != adr) {
+        UARTLS_rxStart();
+        return;
+    }
+    
+    // Проверка контрольной суммы.
+    uint16_t crcCalc = MODBUS_calcCRC(UARTLS_rxBuf, num - 2);
+    uint16_t crcRead = (UARTLS_rxBuf[num - 1] << 8) + (UARTLS_rxBuf[num - 2]);    
+    if (crcCalc != crcRead) {       
+        UARTLS_rxStart();
+        return;
+    }
+    
+    // FIXME Сделать обработку принятого сообщения Modbus!
+    UARTLS_rxStart();
+
+//    AddressStartRegister=(UARTLS_rxBuf[2]<<8)+UARTLS_rxBuf[3];
+//    NumberRegister=UARTLS_rxBuf[5];
+//    switch(UARTLS_rxBuf[1]){
+//        case 0x03:{
+//            if ((NumberRegister>64)||(NumberRegister==0)) ErrorMessageModBus(0x03); //кол-во запрашиваемых данных выходит из допустимого диапазона
+//            else
+//            {
+//                //проверка на достоверность указанных регистров ModBus
+//                if (((AddressStartRegister>=250)&&(AddressStartRegister<1024))||((AddressStartRegister+NumberRegister>250)&&(AddressStartRegister<1024))){
+//                    ErrorMessageModBus(0x02);
+//                }else{
+//                    UARTLS_txBuf[2]=NumberRegister*2;
+//                    if (AddressStartRegister<250){ //все кроме архивов
+//                        for (uint8_t i = 0; i < NumberRegister; i++) {
+//                            ModBusBaza->readregister(UARTLS_txBuf, 3 + i*2, AddressStartRegister + i);
+//                        }
+//                        TransDataInf1(0x03, NumberRegister*2);
+//                    }else
+//                        if ((AddressStartRegister>=0x400)&&(AddressStartRegister<0x2200)){  //архив событий
+//                            ReadArch = 1;
+//                            ModBusBaza->NumberRecordingArchive(0); //
+//                            NumberRec = NumberRegister/15;
+//                            if (NumberRec==0) NumberRec++;
+//                            if ((15-(AddressStartRegister-1024)%15)<NumberRegister) NumberRec++;
+//                            NumRecStart=(AddressStartRegister-1024)/15;
+//                            ComArch=0xF2;
+//                            //ErrorMessageModBus(0x03);
+//                        }else
+//                            if ((AddressStartRegister>=0x2400)&&(AddressStartRegister<0x4200)){  //архив Поста
+//                                ReadArch = 1;
+//                                ModBusBaza->NumberRecordingArchive(0); //
+//                                NumberRec = NumberRegister/15;
+//                                if (NumberRec==0) NumberRec++;
+//                                StRegister=(AddressStartRegister - 0x2400)%15;
+//                                if ((15-StRegister)<NumberRegister) NumberRec++;
+//                                NumRecStart=(AddressStartRegister-0x2400)/15;
+//                                ComArch=0xC2;
+//                            }else
+//                                if ((AddressStartRegister>=0x4400)&&(AddressStartRegister<0x6200)){  //архив ПРМ
+//                                    ReadArch = 1;
+//                                    ModBusBaza->NumberRecordingArchive(0); //
+//                                    NumberRec = NumberRegister/15;
+//                                    if (NumberRec==0) NumberRec++;
+//                                    StRegister=(AddressStartRegister - 0x4400)%15;
+//                                    if ((15-StRegister)<NumberRegister) NumberRec++;
+//                                    NumRecStart=(AddressStartRegister-0x4400)/15;
+//                                    ComArch=0xD2;
+//                                }else
+//                                    if ((AddressStartRegister>=0x6400)&&(AddressStartRegister<0x8200)){  //архив ПРД
+//                                        ReadArch = 1;
+//                                        ModBusBaza->NumberRecordingArchive(0); //
+//                                        NumberRec = NumberRegister/15;
+//                                        if (NumberRec==0) NumberRec++;
+//                                        StRegister=(AddressStartRegister - 0x6400)%15;
+//                                        if ((15-StRegister)<NumberRegister) NumberRec++;
+//                                        NumRecStart=(AddressStartRegister-0x6400)/15;
+//                                        ComArch=0xE2;
+//                                    }
+//                }
+//            }
+//        }break;
+//        case 0x06:{
+//            ModBusBaza->writetoAT(AddressStartRegister,(UARTLS_rxBuf[4]<<8) + UARTLS_rxBuf[5]);
+//            for (uint8_t i = 0; i < 6; i++) {
+//                UARTLS_txBuf[i] = UARTLS_rxBuf[i];
+//            }
+//            TransDataInf1(0x06, 4-1);
+//        }break;
+//        default:  {ErrorMessageModBus(0x01);} //команда не поддерживается данным устройством
+//    }  
+}
+
+/** Обработка принятых данных.
+ *
+ *  @param[in] protocol Протокол работы в локальной сети.
+ *  @param[in] adr Адрес устройства в локальной сети.
+ *  @param[in] num Количество принятых байт данных.
+ */
+void DC1_dataProc(protocol_t protocol, uint8_t adr, uint8_t num) {
+    switch (protocol) {
+        case PROTOCOL_S: {
+            STD_rxProc(adr, num);
+        } break;
+        
+        case PROTOCOL_MODBUS: {
+            MODBUS_rxProc(adr, num);
+        } break;
+        
+        default: {
+            UARTLS_rxStart();
+        }
+    }
+}
 
 

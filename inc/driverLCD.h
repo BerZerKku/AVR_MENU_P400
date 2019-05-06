@@ -10,10 +10,13 @@
 //0х20 - курсор в нуле, память DDRAM с нуля
 //если надо перекодировать русские буквы Windows в русские буквы LCD надо convers=1, иначе 0
 
-//используется таймер 2
-#define LCDclear FuncCommandLCD(0x01) //очистка экрана LCD
-#define LCDinit  FuncInitLCD  //начальная
+#ifndef DRIVER_LCD_H_
+#define DRIVER_LCD_H_
 
+#include <stdint.h>
+
+// Вывод на экран (в буфер экрана) десятичного значения uint8_t.
+void LCDprintDEC8(uint8_t row, uint8_t col, uint8_t val);
 
 extern unsigned char LCDstat;
 
@@ -26,7 +29,6 @@ extern void LCDbufClear(void);
 extern void LCDbufClMenu(void);
 extern void LCDprintHEX(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
 extern void FuncClearCharLCD(unsigned char Line, unsigned char AddressInLine, unsigned char NumberChar);
-extern void LCDprintDEC(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
 extern void LCDprintDEC1(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
 extern void LCDprintDEC2(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
 extern void LCDprintBits(unsigned char Line, unsigned char AddressLine, unsigned char CodePrint);
@@ -39,3 +41,5 @@ extern void LCDprintTime(unsigned char Adr, unsigned char* Mass);
 extern void LCDprintBitMask(unsigned char Adr, unsigned char Val, unsigned char Mask);
 extern void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned char* Time);
 extern void LCDprintUkDef(unsigned char AKdecrease);
+
+#endif

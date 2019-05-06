@@ -149,11 +149,11 @@
         <option>
           <name>Input variant</name>
           <version>36</version>
-          <state>6</state>
+          <state>8</state>
         </option>
         <option>
           <name>Input description</name>
-          <state>No specifier n, no float nor long long, no scan set, no assignment suppressing.</state>
+          <state></state>
         </option>
         <option>
           <name>Output variant</name>
@@ -402,7 +402,6 @@
         <option>
           <name>newCCIncludePaths</name>
           <state>$PROJ_DIR$\INC</state>
-          <state>$PROJ_DIR$\SRC</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -430,7 +429,7 @@
         </option>
         <option>
           <name>PreInclude</name>
-          <state>type.h</state>
+          <state></state>
         </option>
         <option>
           <name>CCOverrideModuleTypeDefault</name>
@@ -2008,6 +2007,9 @@
     <group>
       <name>inc</name>
       <file>
+        <name>$PROJ_DIR$\inc\board.h</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\inc\DataCenter.h</name>
       </file>
       <file>
@@ -2023,9 +2025,6 @@
         <name>$PROJ_DIR$\inc\Flash.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\inc\InterfaceS.h</name>
-      </file>
-      <file>
         <name>$PROJ_DIR$\inc\Menu.h</name>
       </file>
       <file>
@@ -2035,10 +2034,13 @@
         <name>$PROJ_DIR$\inc\MyDef.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\inc\StartSetup.h</name>
+        <name>$PROJ_DIR$\inc\peripheral.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\inc\WatchDog.h</name>
+        <name>$PROJ_DIR$\inc\UartBsp.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\inc\UartLs.h</name>
       </file>
     </group>
     <group>
@@ -2056,24 +2058,21 @@
         <name>$PROJ_DIR$\src\drvKeyboard.cpp</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\src\InterfaceS.c</name>
-      </file>
-      <file>
         <name>$PROJ_DIR$\src\ModBus.cpp</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\src\StartSetup.c</name>
+        <name>$PROJ_DIR$\src\peripheral.cpp</name>
       </file>
       <file>
         <name>$PROJ_DIR$\src\studyATmega162.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\src\WatchDog.c</name>
+        <name>$PROJ_DIR$\src\UartBsp.cpp</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\src\UartLs.cpp</name>
       </file>
     </group>
-    <file>
-      <name>$PROJ_DIR$\inc\type.h</name>
-    </file>
   </group>
   <file>
     <name>$PROJ_DIR$\doc\readme_P400.txt</name>

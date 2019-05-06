@@ -1,7 +1,7 @@
-#ifndef __MY_DEF
-#define __MY_DEF
+#ifndef MY_DEF_H_
+#define MY_DEF_H_
 // версия прошивки, если первый ноль - то убираем
-#define Insertion 0x0765
+#define Insertion 0x0766
 // вариант прошивки 'f' - полная, ' ' - урезанная
 #define VARIANT 'f'	
 
@@ -37,42 +37,18 @@
 //флаг показывает, что сообщение принято
 #define DataRead  0x08
 
-#define AddressDevice 0x01
-
-//размер буфера принимаемых по UART данных
-#define MaxLenghtRecBuf 128
 //размер буфера передаваемых по UART данных
+#define MaxLenghtRecBuf 128
 #define MaxLenghtTrBuf 128
-#define MaxLenghtTrBuf1 255
-//5 //максимальное расстояние между байтами *1000мкс
-#define MaxPause 30
-#define MaxPause1 5
+
 //наличие аппаратных ошибок приема
 #define HardError 0x01
   //запретить прерывание приема
   #define DisableReceive ClrBit(UCSR0B,RXEN0); ClrBit(UCSR0B,RXCIE0)
   //разрешить прерывание приема
   #define EnableReceive SetBit(UCSR0B,RXEN0); SetBit(UCSR0B,RXCIE0)
-  //проверка на разрешение прерывания приема
-  #define TestReceive TestBit(UCSR0B,RXCIE0)
-  //разрешить прерывание по освобождению буфера передачи, начать передачу
-  #define GoTrans SetBit(UCSR0B,TXEN0); SetBit(UCSR0B,UDRIE0)
   //запретить прерывание по освобождению буфера передачи, остановка передачи
   #define StopTrans ClrBit(UCSR0B,TXEN0); ClrBit(UCSR0B,UDRIE0)
-  //проверка на разрешение прерывания передачи
-  #define TestTrans TestBit(UCSR0B,UDRIE0)
-  //запретить прерывание приема
-  #define DisableReceive1 ClrBit(UCSR1B,RXEN1); ClrBit(UCSR1B,RXCIE1)
-  //разрешить прерывание приема
-  #define EnableReceive1 SetBit(UCSR1B,RXEN1); SetBit(UCSR1B,RXCIE1)
-  //проверка на разрешение прерывания приема
-  #define TestReceive1 TestBit(UCSR1B,RXCIE1)
-  //разрешить прерывание по освобождению буфера передачи, начать передачу
-  #define GoTrans1 SetBit(UCSR1B,TXEN1); SetBit(UCSR1B,UDRIE1)
-  //запретить прерывание по освобождению буфера передачи, остановка передачи
-  #define StopTrans1 ClrBit(UCSR1B,TXEN1); ClrBit(UCSR1B,UDRIE1)
-  //проверка на разрешение прерывания передачи
-  #define TestTrans1 TestBit(UCSR1B,UDRIE1)
 //остановка таймера 0
 #define StopT0 TCCR0=0
 
@@ -94,18 +70,27 @@ struct strArchive{
   unsigned char Data[16];
 };
 
-struct strCorrParam{
-  unsigned char Print[7]; //массив для выода коррекции на экран
-  signed int Corr;  //текущая коррекция
+struct strCorrParam {
+    unsigned char Print[7]; //массив для выода коррекции на экран
+    signed int Corr;  //текущая коррекция
 };
 
-struct strMenuGlbParam
-{
+struct strMenuGlbParam {
 	uchar dev;			// тип удаленного аппарата
 	uchar num;			// кол-во пунктов
 	uchar punkt[20];	// номера пунктов, по номерам совпадают с порядком массива во flash
 	uchar name[20];		// номер названия , из списка во флэш
 };
+
+/** Список поддерживаемых протоколов работы по локальной сети.
+ *
+ *  Список должен соответстовать Menu18Param.
+ */
+typedef enum {
+    PROTOCOL_S = 0,     // Стандартный протокол
+    PROTOCOL_MODBUS,    // ModBus
+    PROTOCOL_MAX        // Количество элементов перечисления. 
+} protocol_t;
 
 //struct strTest
 //{

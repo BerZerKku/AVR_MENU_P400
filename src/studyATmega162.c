@@ -1,16 +1,19 @@
 #include <ioavr.h>
 #include <ina90.h>
 #include <stdint.h>
-#include "StartSetup.h"
-#include "InterfaceS.h"
+
+#include "board.h"
+#include "peripheral.h"
+#include "UartBsp.h"
 #include "MyDef.h"
 #include "DataCenter.h"
 #include "DataCenter1.h"
 #include "driverLCD.h"
-#include "WatchDog.h"
 #include "ModBus.h"
 #include "Flash.h"
 #include "Menu.h"
+#include "UartLs.h"
+
 
 static char itoa					(uint8_t start, uint16_t val, uint8_t buf[]);
 static void FuncViewValue			(uint8_t numparam);
@@ -133,7 +136,8 @@ unsigned char GlobalCurrentState[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x00
 unsigned char CurrentState[]={0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x00};
 unsigned char Dop_byte[]={0x3F, 0x3F, 0x3F, 0x3F};
 
-unsigned char Protocol;
+// Текущий протокол работы (Стандарт, Modbus)
+protocol_t Protocol;
 //Тесты
 unsigned int TestDelay=0; //блок клаиватуры после входа в тестовый режим
 //задержка x*100мс
@@ -222,7 +226,7 @@ unsigned char ValuePrdLongCom[4]={'?','?','?','?'};
 unsigned char MenuAllSynchrTimer=0x02;  //для него используется массив MenuAllSynchrTimerNum
 unsigned char MenuAllKeepComPRM[]="?? В";
 uchar MenuAllKeepComPRD = 0x02;
-unsigned char MenuAllLanAddress[]="???";
+unsigned char adrLan = 0;
 unsigned char MenuAllTimeRerun[]= "? сек";
 unsigned char MenuAllFreq[]		= "??? кГц";
 unsigned char MenuAllNumDevice[]= "?";
@@ -303,7 +307,6 @@ unsigned char PosModBusInfill = 0, ModBusInfill = 0;
 unsigned int NumberRecording;
 unsigned char NumberRec;
 unsigned char ReadArch = 0; // 1 - означает идет чтение архива, 2 - чтение закончено, 0 - архив не нужен
-extern unsigned int NumRecStart;
 unsigned char ComArch; //номер команды для считывания необходимого архива
 strArchive sArchive;  //структура архива
 
@@ -335,7 +338,7 @@ bool bUartTrReady1=false;
 strMenuTest sMenuTest;
 
 //создадим побъект работы с классом BazaModBus
-BazaModBus* ModBusBaza;
+BazaModBus ModBusBaza(DataM, JournalM, ePassword);
 
 
 uint8_t cViewParam[11]="          ";
@@ -724,9 +727,16 @@ static void FuncSelectValue(void)
 		case 'E': {
 			switch(MenuLevel) {
 				case LVL_PROTOCOL: {
-					Protocol=InputSelectValue; TrParam=0;
-					eProtocol[0]=Protocol;eWrite=1;eAddressWrite=7;eMassiveWrite=eProtocol;
-					if (Protocol==0) {Tr_buf_data_uart[0]=0x55; Tr_buf_data_uart[1]=0xAA;}
+					Protocol = (protocol_t) InputSelectValue; 
+                    TrParam = 0;
+					eProtocol[0] = Protocol;
+                    eWrite = 1;
+                    eAddressWrite = 7;
+                    eMassiveWrite = eProtocol;
+					if (Protocol == PROTOCOL_S) {
+                        Tr_buf_data_uart[0] = 0x55; 
+                        Tr_buf_data_uart[1] = 0xAA;
+                    }
 				} break;
 				
 				case LVL_INFO: {
@@ -1132,7 +1142,7 @@ static void FuncInputData(void)
 			//ввели новый пароль
 			if (PressPassword==1){
 				ePassword[0]=InputValue[0];ePassword[1]=InputValue[1];ePassword[2]=InputValue[2];ePassword[3]=InputValue[3];
-				ModBusBaza->NewPass(ePassword);
+				ModBusBaza.NewPass(ePassword);
 				//а теперь запишем пароль в EEPROM
 				eWrite=1;eAddressWrite=0;eMassiveWrite=ePassword;
 				PressPassword=2;
@@ -2172,7 +2182,7 @@ static void FuncPressKey(void)
 //опрос параметров для заполнения массива ModBus
 static void ModBusOpros(void)
 {
-	if (ModBusBaza->status(0)!=2){
+	if (ModBusBaza.status(0)!=2){
 		if (ReadArch==0){ //проверяем идет ли считывание архива
 			PosModBusInfill++;
 			if(PosModBusInfill<0x10){ //Общие параметры
@@ -2255,14 +2265,14 @@ static void ModBusOpros(void)
 				}
 			}
 		}else{
-			Tr_buf_data_uart[4]=Lo(NumRecStart);
-			Tr_buf_data_uart[5]=Hi(NumRecStart);
-			TransDataInf(ComArch,0x02); //считываем архив
+//			Tr_buf_data_uart[4]=Lo(NumRecStart);
+//			Tr_buf_data_uart[5]=Hi(NumRecStart);
+//			TransDataInf(ComArch,0x02); //считываем архив
 		}
 	}else{
-		ModBusBaza->writeregister(Tr_buf_data_uart);
-		TransDataInf(ModBusBaza->trans(1), ModBusBaza->trans(2));
-		ModBusBaza->status(1);
+		ModBusBaza.writeregister(Tr_buf_data_uart);
+		TransDataInf(ModBusBaza.trans(1), ModBusBaza.trans(2));
+		ModBusBaza.status(1);
 	}
 }
 
@@ -2999,7 +3009,7 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 					(CurrentState[(Device - 1) * 2 + 1] == 2)	||
 						(CurrentState[(Device - 1) * 2 + 1] == 7)	)  
 				{
-					LCDprintDEC(NumString,19,Dop_byte[Device-1]);
+					LCDprintDEC8(NumString, 19, Dop_byte[Device-1]);
 				}
 			}
 			if(Device == 3)
@@ -3007,7 +3017,7 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 				//передача КЧ или Команды
 				if ( (CurrentState[(Device - 1) * 2 + 1] == 1) 	||
 					(CurrentState[(Device - 1) * 2 + 1] == 2)	) 
-					LCDprintDEC(NumString,19,Dop_byte[Device-1]);
+					LCDprintDEC8(NumString, 19, Dop_byte[Device-1]);
 			}
 		}
 	}
@@ -3252,7 +3262,7 @@ static void LCDwork(void)
 								case 1: LCDprintf(3, 11, MenuAllSynchrTimerNum[MenuAllSynchrTimer], 1); break;					
 								case 2: LCDprint(3, 11, MenuAllKeepComPRM, 1); break;					
 								case 3: LCDprintf(3, 11, MenuAllSynchrTimerNum[MenuAllKeepComPRD], 1); break;	
-								case 4: LCDprint(3, 11, MenuAllLanAddress, 1); break;
+								case 4: LCDprintDEC8(3, 11, adrLan); break;
 								case 5: LCDprint(3, 11, MenuAllTimeRerun, 1); break;
 								case 6: LCDprint(3, 11, MenuAllFreq, 1); break;
 								case 7: LCDprint(3, 11, MenuAllNumDevice, 1); break;
@@ -3339,7 +3349,7 @@ static void LCDwork(void)
 						}else{
 							LCDprintf(2,1,TestDelayMline2,1);
 							LCDprintf(3,1,TestDelayMline3,1);
-							LCDprintDEC(3,13,TestDelay/10);
+							LCDprintDEC8(3, 13, TestDelay/10);
 						}
 						LCD2new=0;
 					}
@@ -3389,12 +3399,12 @@ static void LCDwork(void)
 						if (tNumComR <= 8)
 						{	
 							LCDprintDEC1(2, 15, tNumComR);
-							LCDprintDEC(2, 19, 1);
+							LCDprintDEC8(2, 19, 1);
 						}
 						else
 						{
 							LCDprintDEC1(2, 15, (NumberCom - 1) * 8 + 8);
-							LCDprintDEC(2, 19, (NumberCom - 1) * 8 + 1);
+							LCDprintDEC8(2, 19, (NumberCom - 1) * 8 + 1);
 						}	
 					}
 					
@@ -3452,12 +3462,12 @@ static void LCDwork(void)
 						if (cNumComT <= 8)
 						{	
 							LCDprintDEC1(2, 15, cNumComT);
-							LCDprintDEC(2, 19, 1);
+							LCDprintDEC8(2, 19, 1);
 						}
 						else
 						{
 							LCDprintDEC1(2, 15, (NumberCom - 1) * 8 + 8);
-							LCDprintDEC(2, 19, (NumberCom - 1) * 8 + 1);
+							LCDprintDEC8(2, 19, (NumberCom - 1) * 8 + 1);
 						}	
 					}
 					
@@ -3659,7 +3669,7 @@ static void LCDwork(void)
 									if ((sArchive.Data[1]==0)||(sArchive.Data[1]>32)){  //ошибочное значение команды
 										LCDprintHEX(3,i,sArchive.Data[1]); i+=2;
 									}else{
-										LCDprintDEC(3,i,sArchive.Data[1]);
+										LCDprintDEC8(3,i,sArchive.Data[1]);
 										if (sArchive.Data[1]<10) i+=1;
 										else i+=2;
 									}
@@ -3879,18 +3889,21 @@ __C_task main(void)
 {
 	for(unsigned i=30000; i > 1; i--); //стратовая задержка, для того чтобы индикатор успел включиться
 	
-	StartSetup(); 		//начальные установки
-	ModBusBaza = new BazaModBus(DataM, JournalM, ePassword);
+	PERIF_setup(); 		//начальные установки
+    
 	ClearPortError(); 	//очитска ошибок УАПП
 	StartUART();  		//запуск УАПП
-	ClearPortError1(); 	//очитска ошибок УАПП
-	StartUART1();
-	LCDbufClear();  	//очистка соджержимого буфера LCD
+    
+	UARTLS_setup();
+    UARTLS_rxStart();
+	
+    LCDbufClear();  	//очистка соджержимого буфера LCD
 	FuncInitLCD();  	//инициализация ЖК-индикатора
-	WatchDogInit();  	//инициализация сторожевого таймера
-	TCCR2 = 0x04;
-	TCCR1B = 0x05;  
-	_SEI(); //установка бита разрешения прерываний
+	
+    PERIF_wdStart();
+	PERIF_timer1Start();
+    PERIF_timer2Start();      		  
+    PERIF_intrEnable(); 
 	
 	// скопируем пароль из EEPROM во флэш
 	eRead = 1;
@@ -3922,37 +3935,63 @@ __C_task main(void)
 	while(eRead);
 	
 	// в случае сбоя EEPROM, будет выставляться Стандартный
-	Protocol = (eProtocol[0] < 2) ? eProtocol[0] : 0; 
-	
-	while(1)
-	{
-		if (bUartRcReady1) 
+	Protocol = (eProtocol[0] < PROTOCOL_MAX) ? (protocol_t) eProtocol[0] : PROTOCOL_S; 
+    
+	while(1) {
+		if (uart0rxReady)  {
 			DataModBus(cNumRecByte);
-		
+            uart0rxReady = false;
+        }
+        
+        if (UARTLS_isRxData()) {
+            PCtime = PC_wait;
+            DC1_dataProc(Protocol, adrLan, UARTLS_getDataLen());
+        }
+        
 		if (bLCDwork) 
 			LCDwork();
 		
 		if (bUartTrReady1) 
 			FuncTr();
+        
+        // В случае протокола MODBUS работаем с RS-485, иначе RS-232.
+        // FIXME На время отладки все общение сделано через RS-485
+        PORTD = (1 << PIN_SWMUX);
+//        if (Protocol == PROTOCOL_MODBUS) {
+//            PORTD = (1 << PIN_SWMUX);
+//        } else {
+//            PORTD &= ~(1 << PIN_SWMUX);
+//        }
+        
+        PERIF_wdReset();
 	}
 }
 
-#pragma vector=TIMER1_OVF_vect
-__interrupt void Timer1ovf(void)
-{
-	_SEI();
-	TCNT1H=0xF9;  //
-	TCNT1L=0xF0;  //было E5 установка 0.1с при делителе 1024
+#pragma vector=TIMER1_COMPA_vect
+__interrupt void TIMER1_COMPA_interrupt(void) {	
+	if (TestDelay > 0) {
+        TestDelay--; 
+        PressKey=0xF0;
+    }
 	
-	if (TestDelay>0) {TestDelay--; PressKey=0xF0;}
-	//работа с ПК
-	if (PCready==1) {StartTrans(PCbyte);PCready=2;}
-	if (PCready==3) {StartTrans1(PCbyte);PCready=4;}
+    //работа с ПК
+	if (PCready == 1) {
+        StartTrans(PCbyte);
+        PCready = 2;
+    } else if (PCready == 3) {
+        UARTLS_txStart(PCbyte);
+        PCready = 4;
+    }
+    
 	//если счетчик дошел до 0, значит с ПК больше не идут запросы
 	PCtime--;
-	if (PCtime==0) {
-		if (PCready!=0) {PCready=0; EnableReceive1; FuncClearCharLCD(2,4,14);}
-		PCtime=PC_wait;
+	if (PCtime == 0) {
+		if (PCready != 0) {
+            PCready = 0; 
+            UARTLS_rxStart(); 
+            FuncClearCharLCD(2, 4, 14);
+        }        
+		PCtime = PC_wait;
 	}
 	
 	LoopUART++; //говорим что прошло еще 100мс
@@ -3972,7 +4011,7 @@ __interrupt void Timer1ovf(void)
 	}
 	//проверяем прошла ли у нас 1сек
 	if (LoopUART < LoopUARTtime) 
-		bUartTrReady1=true;
+		bUartTrReady1 = true;
 	
 	//это делаетс каждые 0.1с
 	//теперь смотрим, надо ли нам обновить информацию на экране LCD
