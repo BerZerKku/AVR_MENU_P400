@@ -202,7 +202,7 @@ __flash unsigned __flash char *Menu8paramPRM[] =
 	Menu85
 };
 // кол-во параметров приемника
-#define NumParamPrm (sizeof(Menu8paramPRM) / sizeof(Menu8paramPRM[0]))
+#define dNumParamPrm (sizeof(Menu8paramPRM) / sizeof(Menu8paramPRM[0]))
 
 //Параметры Передатчика
 __flash unsigned char Menu93[] = "Время на повт. ком. ";
@@ -217,7 +217,7 @@ __flash unsigned __flash char *Menu9paramPRD[] =
 	Menu95
 };
 // кол-во параметров передатчика
-#define NumParamPrd (sizeof(Menu9paramPRD) / sizeof(Menu9paramPRD[0]))
+#define dNumParamPrd (sizeof(Menu9paramPRD) / sizeof(Menu9paramPRD[0]))
 
 //Общие параметры
 __flash unsigned char Menu100[] =	"Совместимость";
@@ -233,7 +233,7 @@ __flash unsigned char Menu109[]	=	"Порог ПРЕДУПР по КЧ ";
 __flash unsigned char Menu1010[] =	"Загр чувствит по  КЧ";
 __flash unsigned char Menu1011[] =	"Коррекция напряжения";
 __flash unsigned char Menu1012[] =	"Коррекция тока";
-__flash unsigned char Menu109_1[]=	"Порог ПРЕДУПР по РЗ ";	// номер NumParamGlb
+__flash unsigned char Menu109_1[]=	"Порог ПРЕДУПР по РЗ ";	// номер dNumParamGlb
 __flash unsigned char Menu1013[] =	"Протокол обмена";		// ПВЗУ-Е
 __flash unsigned char Menu1014[] =	"Признак четности"; 	// ПВЗУ-Е
 __flash unsigned char Menu1015[] =	"Допустимые провалы"; 	// ПВЗУ-Е 
@@ -278,18 +278,18 @@ __flash unsigned __flash char *Menu10paramAll[] =
 };
 // кол-во общих параметров
 // - 1 , т.к. 109_1 - просто подмена текста
-#define NumParamGlb ( (sizeof(Menu10paramAll) / sizeof(Menu10paramAll[0])) - 1)
+#define dNumParamGlb (SIZE_OF(Menu10paramAll) - 1)
 
-__flash uchar TypeUdDev0[] = "АВАНТ Р400";
-__flash uchar TypeUdDev1[] = "ПВЗ-90";
-__flash uchar TypeUdDev2[] = "АВЗК-80";
-__flash uchar TypeUdDev3[] = "ПВЗУ-Е";
-__flash uchar TypeUdDev4[] = "ПВЗЛ";
-__flash uchar TypeUdDev5[] = "ЛИНИЯ-Р";	// TODO Не сделано
-__flash uchar TypeUdDev6[] = "ПВЗК";	// TODO Не сделано
-__flash uchar TypeUdDev7[] = "ПВЗУ";
-__flash uchar TypeUdDev8[] = "ПВЗ";
-__flash uchar TypeUdDevX[] = "ошибка";
+__flash uint8_t TypeUdDev0[] = "АВАНТ Р400";
+__flash uint8_t TypeUdDev1[] = "ПВЗ-90";
+__flash uint8_t TypeUdDev2[] = "АВЗК-80";
+__flash uint8_t TypeUdDev3[] = "ПВЗУ-Е";
+__flash uint8_t TypeUdDev4[] = "ПВЗЛ";
+__flash uint8_t TypeUdDev5[] = "ЛИНИЯ-Р";	// TODO Не сделано
+__flash uint8_t TypeUdDev6[] = "ПВЗК";	// TODO Не сделано
+__flash uint8_t TypeUdDev7[] = "ПВЗУ";
+__flash uint8_t TypeUdDev8[] = "ПВЗ";
+__flash uint8_t TypeUdDevX[] = "ошибка";
 __flash unsigned __flash char *fmTypeUdDev[] = 
 {
 	TypeUdDev0, 
@@ -537,12 +537,12 @@ __flash unsigned __flash char *MenuAllControlNum[] =
 };
 
 /*************************/
-__flash uchar MenuAllFreq0[] = "-1000 Гц";
-__flash uchar MenuAllFreq1[] = "-500 Гц";
-__flash uchar MenuAllFreq2[] = "+0 Гц";
-__flash uchar MenuAllFreq3[] = "+500 Гц";
-__flash uchar MenuAllFreq4[] = "+1000 Гц";
-__flash uchar MenuAllFreq5[] = "ошибка";
+__flash uint8_t MenuAllFreq0[] = "-1000 Гц";
+__flash uint8_t MenuAllFreq1[] = "-500 Гц";
+__flash uint8_t MenuAllFreq2[] = "+0 Гц";
+__flash uint8_t MenuAllFreq3[] = "+500 Гц";
+__flash uint8_t MenuAllFreq4[] = "+1000 Гц";
+__flash uint8_t MenuAllFreq5[] = "ошибка";
 #define dMaxMenuAllFreq 5
 __flash unsigned __flash char *fmMenuAllFreq[] = 
 {
@@ -559,7 +559,7 @@ __flash unsigned char NoData[]		= "нет данных";
 __flash unsigned char List[]		= "список";
 
 //	диапазон значений для Поста //меню 13
-__flash uint RangPost[NumParamDef + 1] [3] = 
+__flash uint16_t RangPost[NumParamDef + 1] [3] = 
 {  /* +1  - это автоконтроль, который всегда будет находится в конце*/
 	0,	MaxNumTypeDefend,	1,  /*тип защиты*/ /*тут не диапазон значений, а мах и мин номер массива"*/
 	2,	3,		1,  	// тип линии
@@ -578,7 +578,7 @@ __flash uint RangPost[NumParamDef + 1] [3] =
 };
 
 //диапазон значений для Приемника
-__flash uint RangPrm[NumParamPrm] [3] = 
+__flash uint16_t RangPrm[dNumParamPrm] [3] = 
 {
 	0 , 10,   	1,    	// задержка на включение
 	1,  50,   	10,   	// длительность команды
@@ -588,7 +588,7 @@ __flash uint RangPrm[NumParamPrm] [3] =
 };  	
 
 //диапазон значений для Передатчика
-__flash uint RangPrd[NumParamPrd] [3] = 
+__flash uint16_t RangPrd[dNumParamPrd] [3] = 
 {
 	0 , 10,   	1,  	// задержка на выкл
 	1,  50,  	10,  	// длительность команды
@@ -598,7 +598,7 @@ __flash uint RangPrd[NumParamPrd] [3] =
 }; 	
 
 //диапазон значение для Общих параметров
-__flash uint RangGlb[NumParamGlb] [3] = 
+__flash uint16_t RangGlb[dNumParamGlb] [3] = 
 {	
 	0,	NumTypeUdDev-1,	1,		// 0  тип уд.аппарата	
 	0,	1,    			1,		// 1  синхронизация часов  

@@ -1,6 +1,8 @@
 #ifndef __MENU_H
 #define __MENU_H
 
+#include <stdint.h>
+
 /**	Уровни меню
  * 	На данный момент важен порядок следования уровней просмотра/установки параметров
  * 	и их подпунктов.
@@ -148,6 +150,51 @@ enum eMENUtestSignals
 	SIGN_COM31,
 	SIGN_COM32
 };
+
+extern void MenuACCreate(void);
+extern void MenuAKCreate(void);
+extern void MenuParamDefCreate(void);
+extern void MenuParamGlbCreate(void);
+extern void MenuTestCreate(void);
+extern void MenuUprCreate(uint8_t act);
+
+extern void PressInMenuAC(char key);
+extern void PressInMenuDataTime(char Key);
+extern void PressInMenuJournal(char Key);
+extern void PressInMenuReset(char key);
+
+extern void Menu_AC(void);
+extern void Menu_DataTime(void);
+extern void Menu_Info(void);
+extern void Menu_Journal(void);
+extern void Menu_ParamSetup(eMENUlvl Menu);
+extern void Menu_ParamSetup_Def(eMENUlvl lvl);
+extern void Menu_ParamSetup_Global(eMENUlvl lvl);
+extern void Menu_ParamSetup_Prm(eMENUlvl lvl);
+extern void Menu_ParamSetup_Prd(eMENUlvl lvl);
+extern void Menu_Protocol(void);
+extern void Menu_Second(void);
+extern void Menu_Setup(void);
+extern void Menu_Setup_Regime(void);
+extern void Menu_Setup_Test(void);
+extern void Menu_Start(void);
+extern void Menu_Upr(void);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif
 

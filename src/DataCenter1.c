@@ -4,26 +4,95 @@
 #include "DataCenter1.h"
 #include "UartBsp.h"
 #include "UartLs.h"
-#include "modbus.h"
 
-extern BazaModBus* ModBusBaza;
+/// Максимальное количество регистров доступных для чтения в одном запрсе.
+#define MAX_NUM_HOLDING_REG 32
 
-extern unsigned char ePassword[];
-extern unsigned char eWrite, eRead;
-extern unsigned char *eMassiveWrite, *eMassiveRead;
-extern unsigned int eAddressWrite,eAddressRead;
+/// Максимальное количество флагов доступных для чтения в одном запросе.
+#define MAX_NUM_COILS 64
+
+extern unsigned char PCready;
+extern unsigned char PCbyte;
+extern unsigned char PCtime;
 
 //переменные необходимые для передачи данных по ModBus
-extern unsigned char ReadArch;
-extern unsigned char NumberRec; //ко-во считываемых записей
-extern unsigned char ComArch;  //команда считывания архива
+extern bool     bDefAvar;
+extern bool     bDefWarn;
+extern bool     bGlobalAvar;
+extern bool     bGlobalWarn;
+extern uint8_t  CurrentState[];
+extern uint8_t  DataLCD[];
+extern uint16_t eAddressWrite;
+extern uint8_t *eMassiveWrite;
+extern uint8_t  ePassword[];
+extern uint8_t  eWrite;
+extern uint8_t  GlobalCurrentState[];
+extern int16_t  IlineValue;
+extern uint16_t MyInsertion[];
+extern uint8_t  TimeLCD[];
+extern int8_t   ucf1;
+extern int8_t   ucf2;
+extern int8_t   udef1;
+extern int8_t   udef2;
+extern int16_t  UlineValue;
 
-extern unsigned char CurrentState[];
-extern unsigned char LCD2new, gr1, gr2;
+/// Команды доступные в Modbus.
+typedef enum {
+    COM_01H_READ_COILS 				= 0x01,	///< Чтение флагов.
+    COM_03H_READ_HOLDING_REGISTERS 	= 0x03,	///< Чтение внутренних регистров.
+//    COM_06H_WRITE_SINGLE_REGISTER 	= 0x06	///< Запись одного внутреннего регистра.
+} com_t;
 
-extern void FTest1(unsigned char com);
+/// Коды исключения
+typedef enum {
+    EXCEPTION_01H_ILLEGAL_FUNCTION 	= 0x01,	///< Код функции не поддерживается
+    EXCEPTION_02H_ILLEGAL_DATA_ADR 	= 0x02,	///< Неверный адрес регистра
+    EXCEPTION_03H_ILLEGAL_DATA_VAL 	= 0x03,	///< Неверное значение поля данных
+    EXCEPTION_04H_DEVICE_FAILURE 	= 0x04	///< В устройстве произошла ошибка
+} exception_t;
 
-void errorMsg(protocol_t prot, uint8_t code, uint8_t byte1, uint8_t byte2);
+/// Адреса регистров.
+typedef enum {
+    ADR_HOLDING_REG_MIN         = 0,
+    // Дата и время
+    ADR_HOLDING_REG_YEAR        = 1,    ///< Год.
+    ADR_HOLDING_REG_MONTH,			    ///< Месяц.
+    ADR_HOLDING_REG_DAY,			    ///< День.
+    ADR_HOLDING_REG_HOUR,			    ///< Часы.
+    ADR_HOLDING_REG_MINUTE,			    ///< Минуты.
+    ADR_HOLDING_REG_SECOND,		        ///< Секунды.
+    // Текущее состояние 
+    ADR_HOLDING_REG_GLB_FAULT   = 10,   ///< Код неисправности Общий.
+    ADR_HOLDING_REG_GLB_WARNING,		///< Код предупреждения Общий.
+    ADR_HOLDING_REG_DEF_FAULT   = 22,	///< Код неисправности Защиты.
+    ADR_HOLDING_REG_DEF_WARNING,		///< Код предупреждения Защиты.
+    ADR_HOLDING_REG_DEF_REGIME,			///< Режим Защиты.
+    ADR_HOLDING_REG_DEF_STATE,			///< Состояние Защиты.
+    // Измрения
+    ADR_HOLDING_REG_MEAS_U_OUT 	= 123,	///< Выходное напряжение.
+    ADR_HOLDING_REG_MEAS_I_OUT,			///< Выходной ток.
+    ADR_HOLDING_REG_MEAS_UC1,			///< Запас по Uк (Uк1).
+    ADR_HOLDING_REG_MEAS_UC2,			///< Запас по Uк2.
+    ADR_HOLDING_REG_MEAS_UD1    = 129,	///< Запас по Uз (Uз1).
+    ADR_HOLDING_REG_MEAS_UD2,			///< Запас по Uз2.
+    // Версии прошивок
+    ADR_HOLDING_REGIC_BSP_MCU 	= 156,	///< Версия прошивки МК платы БСП.
+    ADR_HOLDING_REGIC_BSP_DSP,			///< Версия прошивки DSP платы БСП.
+    ADR_HOLDING_REGIC_PI_MCU,			///< Версия прошивки МК платы ПИ.
+    ADR_HOLDING_REGIC_BSZ       = 163,	///< Версия прошивки ПЛИС блока БСЗ.
+    // Максимальное кол-во используемых адресов регистров
+    ADR_HOLDING_REG_MAX
+} adrHoldingReg_t;
+
+/// Адреса флагов.
+typedef enum {
+    ADR_COIL_MIN        = 200,
+    // Текущее состояние
+    ADR_COIL_FAULT 		= 201,	///< Наличие неисправности.
+	ADR_COIL_WARNING,			///< Наличие предупреждения.
+    //
+    ADR_COIL_MAX 
+} adrCoil_t;
 
 //массивы для быстрого расчета кода CRC-16
 __flash const uint8_t srCRCHi[256] = {
@@ -82,7 +151,7 @@ __flash const uint8_t srCRCLo[256] = {
          0x8A, 0x4A, 0x4E, 0x8E, 0x8F, 0x4F, 0x8D, 0x4D, 0x4C, 0x8C,
          0x44, 0x84, 0x85, 0x45, 0x87, 0x47, 0x46, 0x86, 0x82, 0x42,
          0x43, 0x83, 0x41, 0x81, 0x80, 0x40
-  };
+};
 
 
 /** Рассчет контрольной суммы CRC-16.
@@ -132,7 +201,6 @@ uint8_t STD_calcCrc(uint8_t *buf, uint8_t num) {
  *  @param[in] adr Адрес в локальной сети.
  *  @param[in] com Команда.
  *  @param[in] numBytes Количество передаваемых полезных данных.
- *  @return Нет.
  */
 void STD_txData(uint8_t adr, uint8_t com, uint8_t numBytes) {
     uint8_t crc = 0;
@@ -147,17 +215,20 @@ void STD_txData(uint8_t adr, uint8_t com, uint8_t numBytes) {
 }
 
 /** Отправка сообщения.
+ *    
+ *  Структура отправляемых данных:
+ *  - адрес (adr);
+ *  - команда (com);
+ *  - количество передаваемых байт данных (numBytes);
+ *  - crc (2 байта).  
  *
- *  @param[in] adr Адрес в локальной сети.
- *  @param[in] com Команда.
  *  @param[in] numBytes Количество передаваемых полезных данных.
- *  @return Нет.
  */
-void MODBUS_txData(uint8_t adr, uint8_t com, uint8_t numBytes) {
+void MODBUS_txData(uint8_t numBytes) {
     uint16_t crc = 0;
     
-    UARTLS_txBuf[0] = adr;
-    UARTLS_txBuf[1] = com; 
+    UARTLS_txBuf[0] = UARTLS_rxBuf[0];
+    UARTLS_txBuf[1] = UARTLS_rxBuf[1];
     UARTLS_txBuf[2] = numBytes;
     crc = MODBUS_calcCRC(UARTLS_txBuf, 3 + numBytes);
     UARTLS_txBuf[3 + numBytes] = crc;
@@ -186,33 +257,43 @@ void STD_txError(uint8_t adr, uint8_t code, uint8_t byte1, uint8_t byte2) {
     UARTLS_txStart(7);
 }
 
+/**	Возвращает стартовый адрес регистра/флага в посылке.
+*
+* 	@return Стартовый адрес регистра или флага в принятой посылке.
+*/
+uint16_t MODBUS_getStartAddress() {
+		return ((uint16_t) UARTLS_rxBuf[2] << 8) + UARTLS_rxBuf[3] + 1;
+}
+
+/**	Возвращает количество регистров/флагов в посылке.
+*
+* 	@return Количество регистров/флагов в посылке.
+*/
+uint16_t MODBUS_getNumOfAddress() {
+    return ((uint16_t) UARTLS_rxBuf[4] << 8) + UARTLS_rxBuf[5];
+}
 
 /** Отправка сообщения об ошибке.
  *
  *  Всегда передается два байта данных.
  *
- *  @param[in] adr Адрес в локальной сети.
  *  @param[in] code Код ошибки.
- *  @param[in] byte1 Байт данных 1.
- *  @param[in] byte2 Байт данных 2.
  */
-void MODBUS_txError(uint8_t adr, uint8_t code, uint8_t byte1, uint8_t byte2) {
+void MODBUS_txError(exception_t exception) {
     uint16_t crc = 0;
     
-    UARTLS_txBuf[0] = adr; 
+    UARTLS_txBuf[0] = UARTLS_rxBuf[0];
     UARTLS_txBuf[1] = UARTLS_rxBuf[1] | 0x80;
-    UARTLS_txBuf[2] = code;
+    UARTLS_txBuf[2] = exception;
     crc = MODBUS_calcCRC(UARTLS_txBuf, 3);
     UARTLS_txBuf[3] = crc;
     UARTLS_txBuf[4] = (crc >> 8);
     UARTLS_txStart(5);
 }
-
-    
+   
 /** Обработка принятого сообщения протокола Стандарт.
  *    
  *  @param[in] num Количество принятых байт данных.
- *  @return Нет.
  */
 void STD_rxProc(uint8_t adr, uint8_t num) {
     bool err = false;
@@ -270,7 +351,268 @@ void STD_rxProc(uint8_t adr, uint8_t num) {
         }
     }    
 }
- 
+
+/** Считывание регистров даты и времени.
+ *
+ *  По-умолчанию возвращает 0xFFFF.
+ *
+ *  @param[in] reg Адрес регистра.
+ *  @return Значение регистра.
+ */
+uint16_t MODBUS_readHoldingRegDateTime(adrHoldingReg_t reg) {
+    uint16_t val = 0xFFFF;
+    
+    switch(reg) {
+        case ADR_HOLDING_REG_YEAR: {     
+            if ((DataLCD[6] != '?') && (DataLCD[7] != '?')) {                
+                val = (DataLCD[6] - '0')*10 + (DataLCD[7] - '0');
+            }
+        } break;
+        
+        case ADR_HOLDING_REG_MONTH: {
+            if ((DataLCD[3] != '?') && (DataLCD[4] != '?')) {                
+                val = (DataLCD[3] - '0')*10 + (DataLCD[4] - '0');
+            }
+        } break;
+        
+        case ADR_HOLDING_REG_DAY: {
+            if ((DataLCD[0] != '?') && (DataLCD[1] != '?')) {                
+                val = (DataLCD[0] - '0')*10 + (DataLCD[1] - '0');
+            }
+        } break;
+        
+        case ADR_HOLDING_REG_HOUR: {
+            if ((TimeLCD[0] != '?') && (TimeLCD[1] != '?')) {                
+                val = (TimeLCD[0] - '0')*10 + (TimeLCD[1] - '0');
+            }
+        } break;
+        
+        case ADR_HOLDING_REG_MINUTE: {
+            if ((TimeLCD[3] != '?') && (TimeLCD[4] != '?')) {                
+                val = (TimeLCD[3] - '0')*10 + (TimeLCD[4] - '0');
+            }
+        } break;
+        
+        case ADR_HOLDING_REG_SECOND: {
+            if ((TimeLCD[6] != '?') && (TimeLCD[7] != '?')) {                
+                val = (TimeLCD[6] - '0')*10 + (TimeLCD[7] - '0');
+            }
+        } break;
+    }
+    
+    return val;
+}
+
+/** Считывание регистров состояния.
+ *
+ *  По-умолчанию возвращает 0xFFFF.
+ *
+ *  @param[in] reg Адрес регистра.
+ *  @return Значение регистра.
+ */
+uint16_t MODBUS_readHoldingRegState(adrHoldingReg_t reg) {
+    uint16_t val = 0xFFFF;
+    
+    switch(reg) {
+        case ADR_HOLDING_REG_GLB_FAULT: {
+            val = (GlobalCurrentState[12] << 8) + GlobalCurrentState[13];
+        } break;
+        
+        case ADR_HOLDING_REG_GLB_WARNING: {
+            val = (GlobalCurrentState[14] << 8) + GlobalCurrentState[15];
+        } break;
+        
+        case ADR_HOLDING_REG_DEF_FAULT: {
+            val = (GlobalCurrentState[0] << 8) + GlobalCurrentState[1];
+        } break;
+        
+        case ADR_HOLDING_REG_DEF_WARNING: {
+            val = (GlobalCurrentState[2] << 8) + GlobalCurrentState[3];
+        } break;
+        
+        case ADR_HOLDING_REG_DEF_REGIME: {
+            val = CurrentState[0];
+        } break;
+        
+        case ADR_HOLDING_REG_DEF_STATE: {
+            val = CurrentState[1];
+        } break;
+    }
+    
+    return val;
+}
+
+/** Считывание регистров измеряемых параметров.
+ *
+ *  По-умолчанию возвращает 0xFFFF.
+ *
+ *  @param[in] reg Адрес регистра.
+ *  @return Значение регистра.
+ */
+uint16_t MODBUS_readHoldingRegMeasure(adrHoldingReg_t reg) {
+    uint16_t val = 0xFFFF;
+    
+    switch(reg) {
+        case ADR_HOLDING_REG_MEAS_U_OUT: {
+            val = UlineValue;
+        } break;            
+        
+        case ADR_HOLDING_REG_MEAS_I_OUT: {
+            val = IlineValue;
+        } break;
+        
+        case ADR_HOLDING_REG_MEAS_UC1: {
+            val = ucf1;
+        } break;
+        case ADR_HOLDING_REG_MEAS_UC2: {
+            val = ucf2;
+        } break;
+        case ADR_HOLDING_REG_MEAS_UD1: {
+            val = udef1;
+        } break;
+        case ADR_HOLDING_REG_MEAS_UD2: {
+            val = udef2;
+        } break;
+    }
+    
+    return val;
+}
+
+/** Считывание регистров версий прошивок.
+ *
+ *  По-умолчанию возвращает 0xFFFF.
+ *
+ *  @param[in] reg Адрес регистра.
+ *  @return Значение регистра.
+ */
+uint16_t MODBUS_readHoldingRegVersionIC(adrHoldingReg_t reg) {
+    uint16_t val = 0xFFFF;
+    
+    switch(reg) {
+        case ADR_HOLDING_REGIC_BSP_MCU: {
+            val = MyInsertion[1];
+        } break;
+        case ADR_HOLDING_REGIC_BSP_DSP: {
+            val = MyInsertion[2];
+        } break;
+        case ADR_HOLDING_REGIC_PI_MCU: {
+            val = MyInsertion[0];
+        } break;
+        case ADR_HOLDING_REGIC_BSZ: {
+            val = MyInsertion[3];
+        } break;
+    }
+    
+    return val;
+}
+
+/** Считывание флагов состояния.
+ *
+ *  По-умолчанию будет возвращено false.
+ *
+ *  @param[in] coil Адрес флага.
+ *  @return Значение флага.
+ */
+bool MODBUS_readCoilState(adrCoil_t coil) {
+    bool val = false;
+    
+    switch(coil) {
+        case ADR_COIL_FAULT: {
+            val = bGlobalAvar | bDefAvar;
+        } break;
+        
+        case ADR_COIL_WARNING: {
+            val = bGlobalWarn | bDefWarn;
+        } break;
+    }
+    
+    return val;
+}
+
+/// Чтение флагов.
+void MODBUS_readCoils() {
+    uint16_t adr = MODBUS_getStartAddress();	// начальный адрес
+	uint16_t num = MODBUS_getNumOfAddress();	// кол-во адресов
+    
+    // проверка количества флагов
+	if ((num == 0) || (num > MAX_NUM_COILS)) {
+        MODBUS_txError(EXCEPTION_03H_ILLEGAL_DATA_VAL);
+		return;
+	} 
+    
+    // проверка адреса первого флага
+    if ((adr <= ADR_COIL_MIN) || ((adr + num - 1) >= ADR_COIL_MAX)) {
+        MODBUS_txError(EXCEPTION_02H_ILLEGAL_DATA_ADR);
+		return;
+    }
+    
+    for(uint8_t i = 0; i < num; i++) {
+        bool val = false;
+        
+        adrCoil_t coil = (adrCoil_t) (adr + i);
+        
+        if (coil >= ADR_COIL_FAULT) {
+            val = MODBUS_readCoilState(coil);
+        }
+        
+        // обнуление для последующей записи установленных флагов
+        if ((i % 8) == 0) {
+            UARTLS_txBuf[3 + i/8] = 0x00;
+        }
+        
+        if (val) {
+            UARTLS_txBuf[3 + i/8] |= (1 << (i % 8));
+        }
+    }
+    
+    MODBUS_txData((num + 7) / 8);
+}
+
+/// Чтение регистров.
+void MODBUS_readHoldingRegs(void) {
+    uint16_t adr = MODBUS_getStartAddress();	// начальный адрес
+	uint16_t num = MODBUS_getNumOfAddress();	// кол-во адресов
+    
+    // проверка количества регистров
+	if ((num == 0) || (num > MAX_NUM_HOLDING_REG)) {
+        MODBUS_txError(EXCEPTION_03H_ILLEGAL_DATA_VAL);
+		return;
+	}    
+    
+    // проверка адресов регистров
+    if ((adr <= ADR_HOLDING_REG_MIN) || ((adr + num - 1) >= ADR_HOLDING_REG_MAX)) {
+        MODBUS_txError(EXCEPTION_02H_ILLEGAL_DATA_ADR);
+		return;
+    }
+
+    for(uint8_t i = 0; i < num; i++) {
+        uint16_t val = 0xFFFF;
+        
+        adrHoldingReg_t reg = (adrHoldingReg_t) (adr + i);
+        
+        if (reg >= ADR_HOLDING_REGIC_BSP_MCU) {
+            val = MODBUS_readHoldingRegVersionIC(reg);
+        } else if (reg >= ADR_HOLDING_REG_MEAS_U_OUT) {
+            val = MODBUS_readHoldingRegMeasure(reg);
+        } else if (reg >= ADR_HOLDING_REG_GLB_FAULT) {
+            val = MODBUS_readHoldingRegState(reg);
+        } else if (reg >= ADR_HOLDING_REG_YEAR) {
+            val = MODBUS_readHoldingRegDateTime(reg);            
+        }
+        
+        UARTLS_txBuf[3 + i*2] = val >> 8;
+        UARTLS_txBuf[4 + i*2] = val;
+    }
+    
+    MODBUS_txData(num * 2);
+}
+
+/// Запись регистра.
+void MODBUS_writeSingleReg(void) {
+        
+    UARTLS_rxStart();
+}
+
 /** Обработка принятого сообщения протокола Modbus.
  *
  *  @param[in] adr Адрес устройства в локальной сети.
@@ -278,99 +620,47 @@ void STD_rxProc(uint8_t adr, uint8_t num) {
  *  @return Нет.
  */
 void MODBUS_rxProc(uint8_t adr, uint8_t num) {
-    uint8_t NumberRegister; //количество считываемых регистров
-    uint8_t StRegister;
-    uint16_t AddressStartRegister; //адрес первого регистра
-    uint16_t NumRecStart; //номер первой считываемой записи
-    
-    
+    bool err = false;
+      
     // Проверка адреса устройства.
-    if (UARTLS_rxBuf[0] != adr) {
-        UARTLS_rxStart();
+    err |= (UARTLS_rxBuf[0] != adr);
+    
+    if (err) {
+        MODBUS_txError((exception_t) adr);
         return;
     }
     
     // Проверка контрольной суммы.
     uint16_t crcCalc = MODBUS_calcCRC(UARTLS_rxBuf, num - 2);
-    uint16_t crcRead = (UARTLS_rxBuf[num - 1] << 8) + (UARTLS_rxBuf[num - 2]);    
-    if (crcCalc != crcRead) {       
-        UARTLS_rxStart();
+    uint16_t crcRead = (UARTLS_rxBuf[num - 1] << 8) + (UARTLS_rxBuf[num - 2]);
+    err |= (crcCalc != crcRead);
+    
+    if (crcCalc != crcRead) {
+        MODBUS_txError((exception_t) 0xF2);
         return;
     }
     
-    // FIXME Сделать обработку принятого сообщения Modbus!
-    UARTLS_rxStart();
-
-//    AddressStartRegister=(UARTLS_rxBuf[2]<<8)+UARTLS_rxBuf[3];
-//    NumberRegister=UARTLS_rxBuf[5];
-//    switch(UARTLS_rxBuf[1]){
-//        case 0x03:{
-//            if ((NumberRegister>64)||(NumberRegister==0)) ErrorMessageModBus(0x03); //кол-во запрашиваемых данных выходит из допустимого диапазона
-//            else
-//            {
-//                //проверка на достоверность указанных регистров ModBus
-//                if (((AddressStartRegister>=250)&&(AddressStartRegister<1024))||((AddressStartRegister+NumberRegister>250)&&(AddressStartRegister<1024))){
-//                    ErrorMessageModBus(0x02);
-//                }else{
-//                    UARTLS_txBuf[2]=NumberRegister*2;
-//                    if (AddressStartRegister<250){ //все кроме архивов
-//                        for (uint8_t i = 0; i < NumberRegister; i++) {
-//                            ModBusBaza->readregister(UARTLS_txBuf, 3 + i*2, AddressStartRegister + i);
-//                        }
-//                        TransDataInf1(0x03, NumberRegister*2);
-//                    }else
-//                        if ((AddressStartRegister>=0x400)&&(AddressStartRegister<0x2200)){  //архив событий
-//                            ReadArch = 1;
-//                            ModBusBaza->NumberRecordingArchive(0); //
-//                            NumberRec = NumberRegister/15;
-//                            if (NumberRec==0) NumberRec++;
-//                            if ((15-(AddressStartRegister-1024)%15)<NumberRegister) NumberRec++;
-//                            NumRecStart=(AddressStartRegister-1024)/15;
-//                            ComArch=0xF2;
-//                            //ErrorMessageModBus(0x03);
-//                        }else
-//                            if ((AddressStartRegister>=0x2400)&&(AddressStartRegister<0x4200)){  //архив Поста
-//                                ReadArch = 1;
-//                                ModBusBaza->NumberRecordingArchive(0); //
-//                                NumberRec = NumberRegister/15;
-//                                if (NumberRec==0) NumberRec++;
-//                                StRegister=(AddressStartRegister - 0x2400)%15;
-//                                if ((15-StRegister)<NumberRegister) NumberRec++;
-//                                NumRecStart=(AddressStartRegister-0x2400)/15;
-//                                ComArch=0xC2;
-//                            }else
-//                                if ((AddressStartRegister>=0x4400)&&(AddressStartRegister<0x6200)){  //архив ПРМ
-//                                    ReadArch = 1;
-//                                    ModBusBaza->NumberRecordingArchive(0); //
-//                                    NumberRec = NumberRegister/15;
-//                                    if (NumberRec==0) NumberRec++;
-//                                    StRegister=(AddressStartRegister - 0x4400)%15;
-//                                    if ((15-StRegister)<NumberRegister) NumberRec++;
-//                                    NumRecStart=(AddressStartRegister-0x4400)/15;
-//                                    ComArch=0xD2;
-//                                }else
-//                                    if ((AddressStartRegister>=0x6400)&&(AddressStartRegister<0x8200)){  //архив ПРД
-//                                        ReadArch = 1;
-//                                        ModBusBaza->NumberRecordingArchive(0); //
-//                                        NumberRec = NumberRegister/15;
-//                                        if (NumberRec==0) NumberRec++;
-//                                        StRegister=(AddressStartRegister - 0x6400)%15;
-//                                        if ((15-StRegister)<NumberRegister) NumberRec++;
-//                                        NumRecStart=(AddressStartRegister-0x6400)/15;
-//                                        ComArch=0xE2;
-//                                    }
-//                }
-//            }
-//        }break;
-//        case 0x06:{
-//            ModBusBaza->writetoAT(AddressStartRegister,(UARTLS_rxBuf[4]<<8) + UARTLS_rxBuf[5]);
-//            for (uint8_t i = 0; i < 6; i++) {
-//                UARTLS_txBuf[i] = UARTLS_rxBuf[i];
-//            }
-//            TransDataInf1(0x06, 4-1);
-//        }break;
-//        default:  {ErrorMessageModBus(0x01);} //команда не поддерживается данным устройством
-//    }  
+    if (err) {       
+        UARTLS_rxStart();         
+    } else {
+        switch((com_t) UARTLS_rxBuf[1]){
+            case COM_01H_READ_COILS: {
+                MODBUS_readCoils();
+            } break;
+            
+            case COM_03H_READ_HOLDING_REGISTERS: {
+                MODBUS_readHoldingRegs();
+            } break;
+            
+//            case COM_06H_WRITE_SINGLE_REGISTER:{
+//                MODBUS_writeSingleReg();
+//            } break;
+//            
+            default:  {
+                MODBUS_txError(EXCEPTION_01H_ILLEGAL_FUNCTION);
+            } 
+        }  
+    }
 }
 
 /** Обработка принятых данных.

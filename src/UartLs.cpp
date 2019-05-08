@@ -153,7 +153,7 @@ uint8_t UARTLS_getDataLen(void) {
     return rxCounter;
 }
 
-/// Инициализация и запуск работы приемопередатчика UART1
+/// Инициализация и запуск работы приемопередатчика UART1.
 void UARTLS_setup(void) {
     UBRR1L = 51;
     

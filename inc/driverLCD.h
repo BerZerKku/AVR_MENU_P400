@@ -15,8 +15,15 @@
 
 #include <stdint.h>
 
-// Вывод на экран (в буфер экрана) десятичного значения uint8_t.
-void LCDprintDEC8(uint8_t row, uint8_t col, uint8_t val);
+// Инициализация ЖКИ.
+extern void LCD_initStart(void);
+// Очистка буфера дисплея.
+extern void LCD_clear(void);
+// Вывод на дисплей (в буфер экрана) десятичного значения uint8_t.
+extern void LCDprintDEC8(uint8_t row, uint8_t col, uint8_t val);
+// Основная функция работы с ЖКИ.
+extern void LCD_main(void);
+
 
 extern unsigned char LCDstat;
 
@@ -39,7 +46,9 @@ extern void LCDptinrArchCount(unsigned char AddressInLine, unsigned int Count, u
 extern void LCDprintData(unsigned char Adr, unsigned char* Mass);
 extern void LCDprintTime(unsigned char Adr, unsigned char* Mass);
 extern void LCDprintBitMask(unsigned char Adr, unsigned char Val, unsigned char Mask);
-extern void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned char* Time);
+extern void LCDprintTimeAK(unsigned char AK, uint8_t dev, unsigned char Num, unsigned char* Time);
 extern void LCDprintUkDef(unsigned char AKdecrease);
+
+
 
 #endif

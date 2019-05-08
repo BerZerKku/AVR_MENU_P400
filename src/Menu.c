@@ -1,43 +1,80 @@
 /*****************************************
 переходы между меню
 *****************************************/
+#include "MyDef.h"
 #include "Menu.h"
+#include "driverLCD.h"
 
 #define dSetUprItem(com,nameItem) sMenuUpr.punkt[num] = com; sMenuUpr.name[num++] = nameItem 
 #define dSetACItem(com,nameItem)  sMenuAC.punkt[num] = com; sMenuAC.name[num++] = nameItem 
 
-void MenuParamGlbCreate	(void);
-void MenuParamDefCreate	(void);
-void MenuUprCreate 		(uint8_t act);
-void MenuAKCreate		(void);
-void MenuTestCreate		(void);
 
-static void Menu_Start				(void);
-static void Menu_Second				(void);
-static void Menu_DataTime			(void);
-static void Menu_Journal			(void);
-static void Menu_Setup				(void);
-static void Menu_ParamSetup			(eMENUlvl Menu);
-static void Menu_ParamSetup_Def		(eMENUlvl lvl);
-static void Menu_ParamSetup_Prm		(eMENUlvl lvl);
-static void Menu_ParamSetup_Prd 	(eMENUlvl lvl);
-static void Menu_ParamSetup_Global	(eMENUlvl lvl);
-static void Menu_Setup_Regime		(void);
-static void Menu_Protocol			(void);
-static void Menu_Info				(void);
-static void Menu_Setup_Test			(void);
-static void PressInMenuJournal		(char Key);
-static void Menu_Upr				(void);
-static void PressInMenuDataTime		(char Key);
-static void PressInMenuReset		(char key);
+extern bool bAllDevice;
+extern bool bDef;
+
+extern eMENUlvl MenuLevel;
+
+extern strArchive sArchive;
+
+extern strMenuGlbParam sMenuAC;
+extern strMenuGlbParam sMenuDefParam;
+extern strMenuGlbParam sMenuGlbParam;
+extern strMenuGlbParam sMenuUpr;
+
+extern strMenuTest sMenuTest;
+
+extern strParamPVZUE sParamPVZE;
+
+extern uint8_t *ChangeMass;
+extern uint8_t cNumComR;
+extern uint8_t cNumComT;
+extern uint8_t cNumLine;
+extern uint8_t cNumParam;
+extern uint8_t cTypeLine;
+extern uint8_t CurrentState[];
+extern uint8_t DataLCD[];
+extern uint8_t Discret;
+extern uint8_t InputDataTime[];
+extern uint8_t InputParameter;
+extern uint8_t InputSelectValue;
+extern uint8_t LCD2new;
+extern uint8_t LCDtimerNew;
+extern uint8_t LineInMenu6;
+extern uint8_t MaxDisplayLine;
+extern uint8_t MaxShiftMenu;
+extern uint8_t MenuAllNumDevice[];
+extern uint8_t NumberCom;
+extern uint8_t NumParamGlb;
+extern uint8_t NumParamPrd;
+extern uint8_t NumParamPrm;
+extern uint8_t param4[];
+extern uint8_t SelectValue;
+extern uint8_t ShiftMenu;
+extern uint8_t TimeLCD[];
+extern uint8_t TrValue;
+extern uint8_t TypeUdDev;
+extern uint8_t ValueVsRange;
+extern uint8_t WorkRate;
+
+extern uint16_t MaxValue;
+extern uint16_t MinValue;
+
+extern uint8_t __flash* __flash *MassSelectValue;
+extern __flash unsigned __flash char *fReset[];
+
+extern __flash uint8_t MenuAllNoise[];
+extern __flash uint8_t MenuAllPorog[];
+extern __flash uint8_t MenuAllProval[];
+extern __flash uint8_t MenuAllTimeCorrAC[];
+
+extern __flash uint16_t *RangPrd[];
 
 
 /** Формирование списка параметров Общих в зависимости от совместимости
 *	@param Нет
 *	@return Нет
 */
-void MenuParamGlbCreate(void)
-{
+void MenuParamGlbCreate(void) {
 	char num = 0;
 	
 	switch(TypeUdDev)
@@ -668,8 +705,7 @@ void MenuTestCreate(void)
 }
 
 
-static void Menu_Start(void)
-{
+void Menu_Start(void) {
 	MenuLevel = LVL_START;
 	LCDbufClMenu();
 	LCDtimerNew=1;
@@ -681,8 +717,7 @@ static void Menu_Start(void)
 	else MaxShiftMenu=0;
 }
 
-static void Menu_Second(void)
-{
+void Menu_Second(void) {
 	MenuLevel = LVL_MENU;
 	LCDbufClMenu();
 	LCDtimerNew=1;
@@ -692,15 +727,13 @@ static void Menu_Second(void)
 	LCD2new=1;
 }
 
-static void Menu_DataTime(void)
-{
+void Menu_DataTime(void) {
 	MenuLevel = LVL_DATA_TIME;
 	LCDbufClMenu();
 	LCD2new=1;
 }
 
-static void Menu_Journal(void)
-{
+void Menu_Journal(void) {
 	MenuLevel = LVL_JOURNAL;
 	LCDbufClMenu();
 	ShiftMenu=0;
@@ -713,8 +746,7 @@ static void Menu_Journal(void)
 	LCD2new=1;
 }
 
-static void Menu_Setup(void)
-{
+void Menu_Setup(void) {
 	MenuLevel = LVL_SETUP;
 	LCDbufClMenu();
 	ShiftMenu=0;
@@ -727,8 +759,7 @@ static void Menu_Setup(void)
 }
 
 //меню/просмотр параметров
-static void Menu_ParamSetup(eMENUlvl Menu)
-{
+void Menu_ParamSetup(eMENUlvl Menu) {
 	MenuLevel = Menu; // 6 и 12
 	LCDbufClMenu();
 	ShiftMenu=0;
@@ -744,8 +775,7 @@ static void Menu_ParamSetup(eMENUlvl Menu)
 	LCD2new=1;
 }
 
-static void Menu_ParamSetup_Def(eMENUlvl lvl)
-{
+void Menu_ParamSetup_Def(eMENUlvl lvl) {
   	MenuLevel = lvl; 
   	LCDbufClMenu();
   	ShiftMenu = 0;
@@ -755,8 +785,7 @@ static void Menu_ParamSetup_Def(eMENUlvl lvl)
   	cNumParam = 0x20;
 }
 
-static void Menu_ParamSetup_Prm(eMENUlvl lvl)
-{
+void Menu_ParamSetup_Prm(eMENUlvl lvl) {
 	MenuLevel = lvl; 
 	LCDbufClMenu();
 	ShiftMenu=0;
@@ -767,8 +796,7 @@ static void Menu_ParamSetup_Prm(eMENUlvl lvl)
 	cNumParam=0x40;
 }
 
-static void Menu_ParamSetup_Prd(eMENUlvl lvl)
-{
+void Menu_ParamSetup_Prd(eMENUlvl lvl) {
 	MenuLevel = lvl; 
 	LCDbufClMenu();
 	ShiftMenu=0;
@@ -779,8 +807,7 @@ static void Menu_ParamSetup_Prd(eMENUlvl lvl)
 	cNumParam=0x60;
 }
 
-static void Menu_ParamSetup_Global(eMENUlvl lvl)
-{
+void Menu_ParamSetup_Global(eMENUlvl lvl) {
   	MenuLevel = lvl; 
   	LCDbufClMenu();
   	ShiftMenu = 0;
@@ -791,8 +818,7 @@ static void Menu_ParamSetup_Global(eMENUlvl lvl)
   	cNumParam = 0x80;
 }
 
-static void Menu_Setup_Regime(void)
-{
+void Menu_Setup_Regime(void) {
 	MenuLevel = LVL_REGIME;
 	LCDbufClMenu();
 	ShiftMenu=0;
@@ -801,8 +827,7 @@ static void Menu_Setup_Regime(void)
 	LCD2new=1;
 }
 
-static void Menu_Protocol(void)
-{
+void Menu_Protocol(void) {
 	MenuLevel = LVL_PROTOCOL;
 	LCDbufClMenu();
 	ShiftMenu=0;
@@ -811,8 +836,7 @@ static void Menu_Protocol(void)
 	LCD2new=1;
 }
 
-static void Menu_Info(void)
-{
+void Menu_Info(void) {
 	MenuLevel = LVL_INFO;
 	LCDbufClMenu();
 	ShiftMenu=0;
@@ -821,8 +845,7 @@ static void Menu_Info(void)
 	LCD2new=1;
 }
 
-static void Menu_Setup_Test(void)
-{
+void Menu_Setup_Test(void) {
 	if ( (cNumComR) && (CurrentState[2] < 0x04) )
 		return;   //если есть приемник, и он не в Тест
   	if ( (cNumComT) && (CurrentState[4]  <0x04) )
@@ -842,8 +865,8 @@ static void Menu_Setup_Test(void)
    	LCD2new=1;
 }
 
-static void PressInMenuJournal(char Key)
-{  //нажатие в меню Журна -> переход в подпункты журнала
+void PressInMenuJournal(char Key) {
+ //нажатие в меню Журна -> переход в подпункты журнала
 	Key-=0x31;
 	if (sArchive.NumDev>=Key)
 	{ //если есть устройство
@@ -858,8 +881,7 @@ static void PressInMenuJournal(char Key)
 	}
 }
 
-static void Menu_Upr(void)
-{
+void Menu_Upr(void) {
 	MenuLevel = LVL_UPR;
   	LCDbufClMenu();
   	ShiftMenu = 0;
@@ -871,7 +893,7 @@ static void Menu_Upr(void)
   	LCD2new=1;
 }
 
-static void Menu_AC(void)
+void Menu_AC(void)
 {
 	MenuLevel = LVL_AC;
   	LCDbufClMenu();
@@ -884,8 +906,8 @@ static void Menu_AC(void)
   	LCD2new=1;
 }
 
-static void PressInMenuDataTime(char Key)
-{ //нажатеи в меню Дата/Время
+void PressInMenuDataTime(char Key) {
+ //нажатеи в меню Дата/Время
 	WorkRate=0x03;
 	InputParameter=Key;
 	if (Key==1) ChangeMass=DataLCD;
@@ -898,8 +920,7 @@ static void PressInMenuDataTime(char Key)
 *	@param key Код нажатой кнопки
 *	@return Нет
 */
-static void PressInMenuReset(char key)
-{  
+void PressInMenuReset(char key) {  
 	if (key >= sMenuUpr.num)
 		return;
 	
@@ -918,7 +939,7 @@ static void PressInMenuReset(char key)
 *	@param key Код нажатой кнопки
 *	@return Нет
 */
-static void PressInMenuAC(char key)
+void PressInMenuAC(char key)
 {  	
 	key--;
 	if (key >= sMenuAC.num)

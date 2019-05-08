@@ -25,11 +25,31 @@ extern unsigned char Tr_buf_data_uart [MaxLenghtTrBuf] ; //буфер передаваемых да
 extern char Sost;
 //extern unsigned char DataRec; //=1, когда получено сообщение
 
-extern unsigned char PCready;
-extern unsigned char PCbyte;
-extern unsigned char PCtime;
-
 extern bool uart0rxReady; //true - принята посылка, надо обработать
 extern unsigned char cNumRecByte;  //кол-во принятых байт
+
+//// Буфер принимаемых по UART данных.
+//extern unsigned char UARTBSP_rxBuf[]; 
+//
+//// Буфер передаваемых по UART данных.
+//extern unsigned char UARTBSP_txBuf[]; 
+//
+//// Проверка наличия принятого сообщения.
+//extern bool UARTBSP_isRxData(void);
+//
+//// Возвращает количество принятых байт данных.
+//extern uint8_t UARTBSP_getDataLen(void);
+//
+//// Запуск работы приемника UART.
+//extern void UARTBSP_rxStart(void);
+
+// Настройка UART.
+extern void UARTBSP_setup(void);
+
+//// Счетчик паузы между принятыми байтами.
+//extern void UARTBSP_tick(void);
+//
+//// Старт передачи данных.
+//extern void UARTBSP_txStart(uint8_t len);
 
 #endif

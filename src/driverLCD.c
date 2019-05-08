@@ -1,30 +1,34 @@
 //подпрограмма работы с ЖК-индикатором
-#include <stdint.h>
-#include "ioavr.h"
-#include "ina90.h"
-#include "MyDef.h"
+#include <ioavr.h>
+#include <ina90.h>
 
+#include "MyDef.h"
+#include "delay.h"
+#include "driverLCD.h"
+
+#define NUM_CHARS_LCD 80
 
 #define PortLCD PORTA
 
-#define SetE PORTB|=1<<5
-#define ClrE PORTB&=~(1<<5)
-#define SetRS PORTB|=0x40
-#define ClrRS PORTB&=0xBF
+#define SetE PORTB |= (1 << 5)
+#define ClrE PORTB &= ~(1 << 5)
+#define SetRS PORTB |= 0x40
+#define ClrRS PORTB &= 0xBF
 
 #define WriteLCDdata(data); SetRS; SetE; PortLCD=data; ClrE;
 #define WriteLCDcommand(data); ClrRS; SetE; PortLCD=data; ClrE;
 
-unsigned char LCDbuf[80];
+unsigned char LCDbuf[NUM_CHARS_LCD];
 unsigned char i1,i3;
 unsigned char CommandLCD;
 unsigned char LCDstat;
 
-__flash unsigned char InitLCD[6]={0x38, 0x0C, 0x01,0x80, 0x02, 0x00};  //инициализация LCD для HD44780
+// последовательность инициализации инициализация LCD для HD44780
+__flash unsigned char InitLCD[]={0x38, 0x0C, 0x01, 0x02};  
 //__flash unsigned char InitLCD[5]={0x3A, 0x0F, 0x01,0x06, 0x00};  //инициализация LCD для S6A0069
 
 //                                             A    Б   В     Г   Д     Е   Ж     З   И     й   К     Л   М     Н   О     П
-__flash const unsigned char CodeLetterLCD[]={0x41,0xA0,0x42,0xA1,0xE0,0x45,0xA3,0xA4,0xA5,0xA6,0x4B,0xA7,0x4D,0x48,0x4F,0xA8,
+__flash const unsigned char CodeLetterLCD[] = {0x41,0xA0,0x42,0xA1,0xE0,0x45,0xA3,0xA4,0xA5,0xA6,0x4B,0xA7,0x4D,0x48,0x4F,0xA8,
 //                                             Р     С   Т     У    Ф    Х   Ц     Ч   Ш     Щ   Ъ     Ы    Ь    Э   Ю     Я
                                              0x50,0x43,0x54,0xA9,0xAA,0x58,0xE1,0xAB,0xAC,0xE2,0xAD,0xAE,0x62,0xAF,0xB0,0xB1,
 //                                             а     б    в    г   д     е   ж     з    и    й   к     л   м     н   о     п
@@ -32,33 +36,59 @@ __flash const unsigned char CodeLetterLCD[]={0x41,0xA0,0x42,0xA1,0xE0,0x45,0xA3,
 //                                             р    с   т     у   ф     х   ц     ч   ш     щ   ъ     ы    ь    э    ю    я
                                              0x70,0x63,0xBF,0x79,0xE4,0x78,0xE5,0xC0,0xC1,0xE6,0xC2,0xC3,0xC4,0xC5,0xC6,0xC7};
 
-#pragma vector=TIMER2_OVF_vect
-__interrupt void Timer2_ovf(void){
-  switch(LCDstat){
-    case 2:{
-      TCNT2=243;
-      WriteLCDdata(LCDbuf[i1]);
-      if (i1<79) i1++; else i1=0;
-      switch(i1){
-        case 0: {CommandLCD=0x80; LCDstat=1;} break;
-        case 20: {CommandLCD=0xC0; LCDstat=1;} break;
-        case 40: {CommandLCD=0x94; LCDstat=1;} break;
-        case 60: {CommandLCD=0xD4; LCDstat=1;} break;
-      }
-    }break;
-    case 1:{
-      if (CommandLCD==0x01) TCNT2=48;
-      else TCNT2=243;
-      WriteLCDcommand(CommandLCD);
-      LCDstat=2;
-    }break;
-    case 3:{ //инициализация ЖК
-      if (InitLCD[i3]==0x01) TCNT2=48;
-      else TCNT2=243;
-      if (InitLCD[i3]!=0x00)  {WriteLCDcommand(InitLCD[i3]); i3++;}
-      else{LCDstat=2;i3=0;i1=0;}
-    }break;
-  }
+
+/** Инициализация ЖКИ/
+ *
+ *  ЖКИ HD44780.    
+ *  Запустить до включения прерываний! Занимает порядка 200мс.
+ */
+void LCD_initStart(void) {
+    delay_ms(150);
+    WriteLCDcommand(0x30);
+    delay_ms(20);
+    WriteLCDcommand(0x30);
+    delay_us(200);
+    WriteLCDcommand(0x30);
+    
+    FuncInitLCD();
+}
+
+/** Основная функция работы с ЖКИ.
+ *
+ *  Необходимо вызывать раз в 1 мс.
+ */
+void LCD_main(void) {
+    switch(LCDstat){
+        case 2: { // отправка данных
+            WriteLCDdata(LCDbuf[i1++]);
+            if (i1 >= NUM_CHARS_LCD)
+                i1 = 0;
+            
+            switch(i1) {
+                case  0: {CommandLCD = 0x80; LCDstat=1;} break;
+                case 20: {CommandLCD = 0xC0; LCDstat=1;} break;
+                case 40: {CommandLCD = 0x94; LCDstat=1;} break;
+                case 60: {CommandLCD = 0xD4; LCDstat=1;} break;
+            }        
+        } break;
+        
+        case 1: { //отправка команды
+            WriteLCDcommand(CommandLCD);
+            LCDstat=2;
+        } break;
+        
+        case 3: { //инициализация ЖК
+            if (i3 < SIZE_OF(InitLCD)) {
+                WriteLCDcommand(InitLCD[i3++]);
+            } 
+            
+            if (i3 >= SIZE_OF(InitLCD)) {
+                LCDstat = 2;
+                i3 = 0;
+                i1 = 0;
+            }
+        } break;
+    }
 }
 
 void LCDprint(unsigned char Line, unsigned char AddressInLine, unsigned char* bufer, unsigned char convers){
@@ -73,23 +103,29 @@ void LCDprint(unsigned char Line, unsigned char AddressInLine, unsigned char* bu
   }
 }
 
-void LCDbufClear(void){
-  for (unsigned char i4=0;i4<80;i4++) LCDbuf[i4]=0x20;  //записывем пробел
-  i1=0;
+/// Очистка буфера дисплея.
+void LCD_clear(void) {
+    for(uint8_t i = 0; i < NUM_CHARS_LCD; i++) {
+        LCDbuf[i] = ' ';
+    }
+    
+    i1 = 0;
 }
 
 void LCDbufClMenu(void){  //очистка 3 нижних строк
-  for (unsigned char i4=20;i4<80;i4++) LCDbuf[i4]=0x20;
+    for (uint8_t i = 20; i < NUM_CHARS_LCD; i++) {
+      LCDbuf[i] = ' ';
+    }
 }
 
 void FuncInitLCD(void){
-  i3=0;
-  LCDstat=3;
+    i3 = 0;
+    LCDstat = 3;
 }
 
 void FuncCommandLCD(unsigned char com){
-  CommandLCD=com;
-  LCDstat=1;
+  CommandLCD = com;
+  LCDstat = 1;
 }
 
 void FuncClearCharLCD(unsigned char Line, unsigned char AddressInLine, unsigned char NumberChar){
@@ -109,10 +145,10 @@ void LCDprintHEX(unsigned char Line, unsigned char AddressInLine, unsigned char 
   else  LCDbuf[StartChar+1]+=0x30;
 }
 
-/** Вывод на экран (в буфер экрана) десятичного значения uint8_t.
+/** Вывод на дисплей (в буфер экрана) десятичного значения uint8_t.
  *
  *  Выводится необходимое количество символов (не меньше одного) со сдвигом 
- *  в л
+ *  в лево.
  *
  *  @param[in] row Строка [1..4].
  *  @param[in] col Позиция первого символа в строке [1..20]
@@ -343,9 +379,9 @@ void LCDprintBitMask(unsigned char Adr, unsigned char Val, unsigned char Mask){
   }while(temp>0);
 }
 
-extern uchar cNumLine;
+extern uint8_t cNumLine;
 extern unsigned int iTimeToAKnow, iTimeToAK;
-void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned char* Time)
+void LCDprintTimeAK(unsigned char AK, uint8_t dev, unsigned char Num, unsigned char* Time)
 {
   	//			АВАНТ			ПВЗ-90 / АВЗК		ПВЗЛ
 	//AK = 1 - авто ускор 		нормальный			нормальный
@@ -364,10 +400,10 @@ void LCDprintTimeAK(unsigned char AK, uchar dev, unsigned char Num, unsigned cha
 	// dev = 6 - ПВЗК	
 	// dev = 7 - ПВЗУ
 	
-    uchar 	time1 = 59,	// минуты
+    uint8_t 	time1 = 59,	// минуты
 	time2 = 0, 	// секунды
 	time3 = 0;	// часы
-    uchar 	start1 = 48;
+    uint8_t 	start1 = 48;
 	
 	
 	if  ( (AK > 6) || (AK == 4) || (AK == 0) || (dev > 8) || (iTimeToAKnow > iTimeToAK) )

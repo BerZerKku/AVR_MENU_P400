@@ -5,14 +5,16 @@
 #include "MyDef.h"
 #include "UartBsp.h"
 #include "driverLCD.h"
-#include "modbus.h"
 #include "DataCenter1.h"
 #include "Menu.h"
 #include "UartLs.h"
 
-extern BazaModBus ModBusBaza;
 extern strMenuGlbParam sMenuGlbParam, sMenuDefParam, sMenuUpr;
 int CRCSum;
+
+extern unsigned char PCready;
+extern unsigned char PCbyte;
+extern unsigned char PCtime;
 
 extern unsigned char Temp_uart1[];
 
@@ -40,7 +42,7 @@ extern unsigned char MenuVoltageLimit2[];
 extern unsigned char cAutoControl;
 extern unsigned int iTimeToAK, iTimeToAKnow;
 extern unsigned char MenuAKdecrease;
-extern uchar MenuFreqPRD, MenuFreqPRM;
+extern uint8_t MenuFreqPRD, MenuFreqPRM;
 extern unsigned char MenuDefShftFront[];
 extern unsigned char MenuDefShftBack[];
 extern unsigned char MenuDefShftPrm[];
@@ -49,7 +51,7 @@ extern unsigned char* MenuDefShft[];
 extern unsigned char NumDevError;
 extern unsigned char NumDfzError[];
 
-extern __flash uint RangPost[] [3];
+extern __flash uint16_t RangPost[] [3];
 //параметры ПРМ-ка
 extern unsigned char MenuPrmTimeOn[];
 extern unsigned char MenuPrmTimeCom[];
@@ -69,7 +71,7 @@ extern unsigned char ValuePrmLongCom2[];
 extern unsigned char MenuVoltageLimitPRM12[];
 extern unsigned char MenuVoltageLimitPRM22[];
 
-extern __flash uint RangPrm[] [3];
+extern __flash uint16_t RangPrm[] [3];
 //параметры ПРД-ка
 extern unsigned char MenuPrdTimeOn[];
 extern unsigned char MenuPrdTimeCom[];
@@ -78,7 +80,7 @@ extern unsigned char MenuPrdBlockCom[];
 extern unsigned char MenuPrdLongCom[];
 extern unsigned char ValuePrdBlockCom[];
 extern unsigned char ValuePrdLongCom[];
-extern __flash uint RangPrd[] [3];
+extern __flash uint16_t RangPrd[] [3];
 //Параметры Общие
 extern unsigned char MenuAllSynchrTimer;
 extern unsigned char adrLan;
@@ -92,8 +94,8 @@ extern unsigned char MenuAllCF[];
 extern unsigned char MenuAllLowCF[];
 extern unsigned char MenuAllLowCFa[];
 extern unsigned int MyInsertion[];
-extern __flash uint RangGlb[] [3];
-extern uchar TypeUdDev;
+extern __flash uint16_t RangGlb[] [3];
+extern uint8_t TypeUdDev;
 ///// ПВЗУ-Е
 extern strParamPVZUE sParamPVZE;	
 /////
@@ -114,7 +116,6 @@ extern unsigned char Dop_byte[];
 extern unsigned int NumberRecording;
 extern unsigned char NumberRec;
 extern unsigned char ReadArch;
-extern unsigned int AddressStartRegister;
 extern unsigned char NumberRegister;
 extern unsigned char StRegister;
 extern strArchive sArchive;
@@ -124,7 +125,7 @@ extern unsigned char gr1, gr2, gr21, gr22;
 
 
 //переменные проверки достоверности даты и времени
-unsigned char TrDataTimeMass[]={0x30,0x30,0x30,0x30,0x30,0x30};;
+unsigned char TrDataTimeMass[]={0x30,0x30,0x30,0x30,0x30,0x30};
 unsigned char DataError=9;
 unsigned char TimeError=9;
 unsigned int Pk_temp=0;
@@ -152,16 +153,14 @@ extern unsigned __flash char  *mMenu6point[]; //массив строк для меню просмотр п
 extern unsigned char  __flash* Param4;
 extern __flash unsigned __flash char* flAutoSinch[];
 extern __flash unsigned __flash char* flAutoContorl[];
-extern  uchar   cNumKF;
+extern  uint8_t   cNumKF;
 
-extern void MenuParamGlbCreate(void);
-extern void MenuParamDefCreate(void);
-extern void MenuUprCreate(uint8_t act);
-extern void MenuACCreate(void);
-extern void MenuAKCreate(void);
-extern void MenuTestCreate(void);
 extern unsigned char MaxShiftMenu, ShiftMenu;
 
+extern int8_t ucf1;
+extern int8_t ucf2;
+extern int8_t udef1;
+extern int8_t udef2;
 
 void getNumDfzError(uint8_t val);
 
@@ -672,19 +671,19 @@ void getNumDfzError(uint8_t val) {
 }
 
 void FDataTime(void){
-	DataLCD[7]=(Rec_buf_data_uart[4]&0x0F)+0x30; //1-цы лет
-	DataLCD[6]=(Rec_buf_data_uart[4]>>4)+0x30;  //10-ки лет
-	DataLCD[4]=(Rec_buf_data_uart[5]&0x0F)+0x30;  //1-цы мес
-	DataLCD[3]=(Rec_buf_data_uart[5]>>4)+0x30;  //10-и мес
-	DataLCD[1]=(Rec_buf_data_uart[6]&0x0F)+0x30;  //1-цы дней
-	DataLCD[0]=(Rec_buf_data_uart[6]>>4)+0x30;  //10-и дней
+	DataLCD[7] = (Rec_buf_data_uart[4]&0x0F)+0x30; //1-цы лет
+	DataLCD[6] = (Rec_buf_data_uart[4]>>4)+0x30;  //10-ки лет
+	DataLCD[4] = (Rec_buf_data_uart[5]&0x0F)+0x30;  //1-цы мес
+	DataLCD[3] = (Rec_buf_data_uart[5]>>4)+0x30;  //10-и мес
+	DataLCD[1] = (Rec_buf_data_uart[6]&0x0F)+0x30;  //1-цы дней
+	DataLCD[0] = (Rec_buf_data_uart[6]>>4)+0x30;  //10-и дней
 	
-	TimeLCD[1]=(Rec_buf_data_uart[7]&0x0F)+0x30; //1-цы час
-	TimeLCD[0]=(Rec_buf_data_uart[7]>>4)+0x30;  //10-ки час
-	TimeLCD[4]=(Rec_buf_data_uart[8]&0x0F)+0x30;  //1-цы мин
-	TimeLCD[3]=(Rec_buf_data_uart[8]>>4)+0x30;  //10-и мин
-	TimeLCD[7]=(Rec_buf_data_uart[9]&0x0F)+0x30;  //1-цы сек
-	TimeLCD[6]=(Rec_buf_data_uart[9]>>4)+0x30;  //10-и сек
+	TimeLCD[1] = (Rec_buf_data_uart[7]&0x0F)+0x30; //1-цы час
+	TimeLCD[0] = (Rec_buf_data_uart[7]>>4)+0x30;  //10-ки час
+	TimeLCD[4] = (Rec_buf_data_uart[8]&0x0F)+0x30;  //1-цы мин
+	TimeLCD[3] = (Rec_buf_data_uart[8]>>4)+0x30;  //10-и мин
+	TimeLCD[7] = (Rec_buf_data_uart[9]&0x0F)+0x30;  //1-цы сек
+	TimeLCD[6] = (Rec_buf_data_uart[9]>>4)+0x30;  //10-и сек
 	
 	//Проверка на достовереность
 	for (uint8_t i = 0; i < 8; i++){
@@ -960,7 +959,7 @@ void FMeasureParam(void)
 		HexToViewHex(Iline1H,3,Rec_buf_data_uart[5]);
 		HexToViewHex(Iline1H,5,Rec_buf_data_uart[6]);
 		//ток первый
-		IlineValue=(Rec_buf_data_uart[7]<<8)+Rec_buf_data_uart[8];  //значение для вычисления коррекции
+		IlineValue = (Rec_buf_data_uart[7] << 8) + Rec_buf_data_uart[8];  //значение для вычисления коррекции
 		fIntCodeToChar(Iline2,3,1,IlineValue,999);
 		//напряжение на линии
 		Uline[5]=Rec_buf_data_uart[10] / 10;
@@ -976,9 +975,12 @@ void FMeasureParam(void)
 			Uline[5]+=0x30;
 		}
 		//напряжение защиты
-		fDopCodeToChar(Usigndef1,3,1,2,Rec_buf_data_uart[11]);
-		if (cNumLine==3)
-			fDopCodeToChar(Usigndef2,3,1,2,Rec_buf_data_uart[12]);
+        udef1 = Rec_buf_data_uart[11];
+		fDopCodeToChar(Usigndef1, 3, 1, 2, udef1);        
+		if (cNumLine==3) {
+            udef2 = Rec_buf_data_uart[12];
+			fDopCodeToChar(Usigndef2, 3, 1, 2, udef2);
+        }
 		
 		//контрльная частота
 		if ( (cAutoControl == 4) && (CurrentState[0] < 4) )
@@ -992,9 +994,12 @@ void FMeasureParam(void)
 			Rec_buf_data_uart[23]=0;	// Uk7
 			Rec_buf_data_uart[24]=0;	// Uk8
 		}
-		fDopCodeToChar(Uinkch1,3,1,2,Rec_buf_data_uart[13]);
-		if (cNumLine==3) {
-			fDopCodeToChar(Uinkch2,3,1,2,Rec_buf_data_uart[14]);
+        
+        ucf1 = Rec_buf_data_uart[13];
+		fDopCodeToChar(Uinkch1, 3, 1, 2, ucf1);
+		if (cNumLine == 3) {
+            ucf2 = Rec_buf_data_uart[14];
+			fDopCodeToChar(Uinkch2, 3, 1, 2, ucf2);
 		} else if ((cNumLine > 3) && (TypeUdDev == 3)) {
 			// в ПВЗУ-Е может быть до 8 Uk
 			fDopCodeToChar(Uinkch2,3,1,2,Rec_buf_data_uart[14]);
@@ -1090,7 +1095,7 @@ void FParamGlobal(unsigned char command)
 		case 0x39:
 		{ 	// Оптика - "Время перезапуска"
 			// ВЧ - параметры ПВЗУ-Е
-			uchar tmp;
+			uint8_t tmp;
 			
 			if (cTypeLine == 2)
 			{
@@ -1332,22 +1337,6 @@ void FParamGlobal(unsigned char command)
 	RecivVar=1;
 	LCD2new=1;
 };
-
-//void FReadArchEvent(void){
-//	
-//	NumberRec--; //уменьшаем кол-во считываемых записей
-//	NumRecStart++;  //выставляем следующий считываемый номер события архива
-//	if ((NumberRec==0)&&(ReadArch==1)){  //если считали всю необходимую информацию, то отправим ответ на ПК
-//		for (uint8_t i = StRegister; i < (NumberRegister + StRegister); i++) {
-//			ModBusBaza.readarchive(UARTLS_txBuf, 3 + (i-StRegister)*2, i);
-//		}
-//		TransDataInf1(0x03, NumberRegister*2);
-//        
-//		ReadArch=0;
-//		ModBusBaza.ClearJournalMass();
-//	}
-//	RecivVar=1;
-//}
 
 void FArchive(void){
 	bool er=false;
@@ -1768,10 +1757,7 @@ void DataModBus(unsigned char NumberByte) {
 			PCbyte=NumberByte;
 		}
 		else if (PCready==0)
-		{
-			// идет работа с БСП
-			ModBusBaza.writeinf(Rec_buf_data_uart[2], Rec_buf_data_uart);
-			
+		{		
 			switch(Rec_buf_data_uart[2] & 0xF0)
 			{
 				case 0x00:	// параметры защиты

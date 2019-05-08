@@ -9,7 +9,6 @@
 #include "DataCenter.h"
 #include "DataCenter1.h"
 #include "driverLCD.h"
-#include "ModBus.h"
 #include "Flash.h"
 #include "Menu.h"
 #include "UartLs.h"
@@ -23,7 +22,6 @@ static void FuncSelectValue			(void);
 static void FuncInputDataTime		(void);
 static void FuncInputData			(void);
 static void FuncPressKey			(void);
-static void ModBusOpros				(void);
 static void FuncTr					(void);
 static void LCDMenu1				(uint8_t NumString, uint8_t Device);
 static void LCDwork					(void);
@@ -35,14 +33,19 @@ static void LCDwork					(void);
 //массив "дата/время" передаваемый в USP
 extern unsigned char TrDataTimeMass[];
 
-//внешние переменные для записи в EEPROM
-extern unsigned char eWrite, eRead;
-extern unsigned char *eMassiveWrite, *eMassiveRead;
-extern unsigned int eAddressWrite,eAddressRead;
+//переменные общения с EEPROM
+unsigned char ew,er;
+unsigned char eWrite, eRead;
+unsigned char* eMassiveWrite;
+unsigned char* eMassiveRead;
+unsigned int eAddressWrite, eAddressRead;
 
 unsigned char PressKey;
 unsigned char eNumberAskMeasuring[]={0x00,0x00};
 unsigned char eProtocol[]={0x00,0x00};
+extern unsigned char InquiryKeyboard(void);
+unsigned char TempPressKey, NewPressKey;
+int TimerPressKey;
 
 unsigned int MyInsertion[]={Insertion, 0x0000, 0x0000, 0x0000};
 
@@ -64,6 +67,10 @@ unsigned char PreduprMenu1[4]={0x01,0x01,0x01,0x00};
 unsigned char AvarMenu1[4]={0x01,0x01,0x01,0x00};
 
 bool TimeWink;
+
+unsigned char PCready = 0;
+unsigned char PCtime = 20;
+unsigned char PCbyte = 0;
 
 unsigned char NumberCom=1;
 
@@ -130,7 +137,19 @@ unsigned char bViewParam[] = {
 	false,		// 14 was 8
 	true		// 15 was 9
 }; //true - видимый параметр, false -невидимый.
-signed int UlineValue, IlineValue;
+
+// Напряжение в линии.
+int16_t UlineValue;
+// Ток в линии.
+int16_t IlineValue;
+// Уровень контрольной частоты первой линии.
+int8_t ucf1;
+// Уровень контрольной частоты второй линии.
+int8_t ucf2;
+// Запас по затуханию для второго приемника.
+int8_t udef1;
+// Запас по затуханию для первого приемника.
+int8_t udef2;
 
 unsigned char GlobalCurrentState[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x00};
 unsigned char CurrentState[]={0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x00};
@@ -175,8 +194,8 @@ unsigned int iTimeToAK = 0, iTimeToAKnow = 0;
 unsigned char MenuAKdecrease=2;  //снижение АК, изначально хз че
 unsigned char NumDevError = '?'; // Номер аппарата с ошибкой (для ПВЗУ-Е)
 unsigned char NumDfzError[] = "???";	// Дополнительное значение для "Неисправность ДФЗ" в ПВЗУ
-uchar MenuFreqPRD = dMaxMenuAllFreq;
-uchar MenuFreqPRM = dMaxMenuAllFreq;
+uint8_t MenuFreqPRD = dMaxMenuAllFreq;
+uint8_t MenuFreqPRM = dMaxMenuAllFreq;
 strMenuGlbParam sMenuDefParam, sMenuUpr, sMenuAC;
 
 //параметры Приемника
@@ -225,7 +244,7 @@ unsigned char ValuePrdLongCom[4]={'?','?','?','?'};
 //Параметры Общие
 unsigned char MenuAllSynchrTimer=0x02;  //для него используется массив MenuAllSynchrTimerNum
 unsigned char MenuAllKeepComPRM[]="?? В";
-uchar MenuAllKeepComPRD = 0x02;
+uint8_t MenuAllKeepComPRD = 0x02;
 unsigned char adrLan = 0;
 unsigned char MenuAllTimeRerun[]= "? сек";
 unsigned char MenuAllFreq[]		= "??? кГц";
@@ -235,7 +254,7 @@ unsigned char MenuAllLowCF[] 	= "?? дБ";
 unsigned char MenuAllLowCFa[]	= "?? дБ";
 unsigned char MenuAllControlUout= 0x02; //для него используется массив MenuAllSynchrTimerNum
 
-uchar TypeUdDev = 0;	//тип удаленного аппарата, по умолчанию АВАНТ
+uint8_t TypeUdDev = 0;	//тип удаленного аппарата, по умолчанию АВАНТ
 strMenuGlbParam sMenuGlbParam;
 strParamPVZUE sParamPVZE;
 strParamOpt	sParamOpt;
@@ -293,7 +312,6 @@ unsigned char NumberAskMeasuring=0x01;
 //переменные выбора значения параметра из списка
 unsigned char InputSelectValue;
 unsigned char SelectValue;
-//unsigned char MaxSelectValue, MinSelectValue;
 unsigned char __flash* __flash *MassSelectValue;
 strNameToVal __flash *MassSelectValueRam; 
 uint8_t *MassItems;
@@ -331,14 +349,15 @@ unsigned char cNumPrm;  //выбор 1/2 приемника в 3-х концевой версии
 unsigned char LineInMenu6=0; //кол-во строк в меню просмотр параметров/ установить параметры
 unsigned __flash char  *mMenu6point[5]; //массив строк для меню просмотр параметров/ установить параметры
 unsigned char param4[10];
-uchar   cNumKF;         /*кол-во контрольных частот */
+uint8_t   cNumKF;         /*кол-во контрольных частот */
 
 bool bUartTrReady1=false;
 
 strMenuTest sMenuTest;
 
-//создадим побъект работы с классом BazaModBus
-BazaModBus ModBusBaza(DataM, JournalM, ePassword);
+uint8_t NumParamGlb = dNumParamGlb;
+uint8_t NumParamPrd = dNumParamPrd;
+uint8_t NumParamPrm = dNumParamPrm;
 
 
 uint8_t cViewParam[11]="          ";
@@ -351,7 +370,7 @@ uint8_t cViewParam[11]="          ";
 * - зарезервировано на случай, если параметров будет больше 15
 младшая тетрада - номер параметра в группе
 */
-uchar cNumParam;
+uint8_t cNumParam;
 
 /**	Преобразование целого числа в строку
  *	@param start Начальный адрес вывода в массиве
@@ -389,10 +408,10 @@ static char itoa(uint8_t start, uint16_t val, uint8_t buf[])
 //формирует строку подсказки диапазона разрешенных значений
 static void FuncViewValue(uint8_t numparam)
 {
-	uchar i=0;
-	uchar var=0;  //0- ошибочное значение, 1 - список, 2 - целое
-	uchar num;
-	uint min, max;
+	uint8_t i=0;
+	uint8_t var=0;  //0- ошибочное значение, 1 - список, 2 - целое
+	uint8_t num;
+	uint16_t min, max;
 	
 	num = numparam & 0x1F;
 	numparam = numparam & 0xE0;
@@ -568,8 +587,6 @@ static void PressSharp(void)
 	}
 }
 
-#include "Menu.c"
-
 //функция ввода значений коррецкий тока/напряжения, с учетом знака
 static void FuncInpCorrParam(void)
 {
@@ -729,10 +746,12 @@ static void FuncSelectValue(void)
 				case LVL_PROTOCOL: {
 					Protocol = (protocol_t) InputSelectValue; 
                     TrParam = 0;
-					eProtocol[0] = Protocol;
+					
+                    eProtocol[0] = Protocol;
                     eWrite = 1;
                     eAddressWrite = 7;
                     eMassiveWrite = eProtocol;
+                    
 					if (Protocol == PROTOCOL_S) {
                         Tr_buf_data_uart[0] = 0x55; 
                         Tr_buf_data_uart[1] = 0xAA;
@@ -1142,7 +1161,6 @@ static void FuncInputData(void)
 			//ввели новый пароль
 			if (PressPassword==1){
 				ePassword[0]=InputValue[0];ePassword[1]=InputValue[1];ePassword[2]=InputValue[2];ePassword[3]=InputValue[3];
-				ModBusBaza.NewPass(ePassword);
 				//а теперь запишем пароль в EEPROM
 				eWrite=1;eAddressWrite=0;eMassiveWrite=ePassword;
 				PressPassword=2;
@@ -2179,106 +2197,10 @@ static void FuncPressKey(void)
 	PressKey=0xF0;
 }
 
-//опрос параметров для заполнения массива ModBus
-static void ModBusOpros(void)
-{
-	if (ModBusBaza.status(0)!=2){
-		if (ReadArch==0){ //проверяем идет ли считывание архива
-			PosModBusInfill++;
-			if(PosModBusInfill<0x10){ //Общие параметры
-				switch(PosModBusInfill)
-				{
-					case 1:
-					case 2: {TransDataInf(0x30-1+PosModBusInfill, 0x00);} break;
-					case 3:
-					case 4:
-					case 5:
-					case 6:
-					case 7: {TransDataInf(0x30 + 2 + PosModBusInfill, 0x00);} break;
-					case 8: {TransDataInf(0x3D,0x00);} break;
-					case 9: {TransDataInf(0xF1,0x00);} break;
-					case 10: {TransDataInf(0x33, 0x00);} break;					// опрос коррекции тока/напряжени или параметров ВОЛС
-					default: PosModBusInfill=0x10;
-				}
-			}
-			if ((PosModBusInfill>=0x10)&&(PosModBusInfill<0x20))				//параметры УМ
-			{  				
-				if (cTypeLine == 1)
-				{  																//если свзяь по ЛЭП
-					switch(PosModBusInfill){
-						case 0x10: {TransDataByte(0x34, 0x00);} break;
-						case 0x11:
-						case 0x12: {TransDataInf(0x30+PosModBusInfill-7, 0x00);} break;
-						default: PosModBusInfill=0x20;
-					}
-				}
-				else 
-					PosModBusInfill=0x20;
-			}
-			
-			if ((PosModBusInfill>=0x20)&&(PosModBusInfill<0x30))				//параметры Защиты
-			{  
-				if (bDef)
-				{
-					switch(PosModBusInfill)
-					{
-						case 0x20:
-						case 0x21:
-						case 0x22:
-						case 0x23:
-						case 0x24:
-						case 0x25:
-						case 0x26:{TransDataInf(0x01+PosModBusInfill-0x20, 0x00);} break;
-						case 0x27: {TransDataInf(0xC1,0x00);} break;
-						case 0x28: {TransDataInf(0x0A, 0x00);} break; //опрос скорости автоконтроля
-						default: PosModBusInfill=0x30;
-					}
-				}
-				else PosModBusInfill=0x30;
-			}
-			
-			if (PosModBusInfill>=0x30){  //параметры ПРМ и ПРД
-				if ( (cNumComR1 == 0) && (PosModBusInfill < 0x36) ) PosModBusInfill=0x40;  //если нет ПРМ1
-				if ( (cNumComR2 == 0) && (PosModBusInfill == 0x36) ) PosModBusInfill=0x40;  //если нет ПРМ2
-				if ( (cNumComT == 0) && (PosModBusInfill > 0x3F) ) PosModBusInfill=0x00;  //если нет ПРД
-				
-				switch(PosModBusInfill){
-					case 0x30:
-					case 0x31:
-					case 0x32:
-					case 0x33:
-					case 0x34: {TransDataInf(0x11+PosModBusInfill-0x30, 0x00);} break; //параметры ПРМ
-					case 0x35: {TransDataInf(0xD1,0x00);} break; //кол-во записей в архиве ПРМ
-					case 0x36:
-					case 0x37:
-					case 0x38:
-					case 0x39:
-					case 0x3A: {TransDataInf(0x18+PosModBusInfill-0x36, 0x00);} break;  //параметры второго ПРМ
-					case 0x3B: PosModBusInfill=0x40;
-					case 0x40:
-					case 0x41:
-					case 0x42:
-					case 0x43:
-					case 0x44: {TransDataInf(0x21+PosModBusInfill-0x40, 0x00);} break;
-					case 0x45: {TransDataInf(0xE1,0x00);} break; //параметры ПРД
-					default: PosModBusInfill=0x00;
-				}
-			}
-		}else{
-//			Tr_buf_data_uart[4]=Lo(NumRecStart);
-//			Tr_buf_data_uart[5]=Hi(NumRecStart);
-//			TransDataInf(ComArch,0x02); //считываем архив
-		}
-	}else{
-		ModBusBaza.writeregister(Tr_buf_data_uart);
-		TransDataInf(ModBusBaza.trans(1), ModBusBaza.trans(2));
-		ModBusBaza.status(1);
-	}
-}
-
-void FuncTr(void)
-{
-	if (PCready==0){  //связь с БСП
+void FuncTr(void) {
+    static uint8_t cnt = 0;
+    
+	if (PCready==0) {  //связь с БСП
         if(RecivVar==0){
 			if (NumberLostLetter<5) NumberLostLetter++; //если у нас меньше 5 потерянных посылок, то увеличим счетчик
         }else {NumberLostLetter=0;RecivVar=0;} //иначе пишем в потерянные посылки 0 и обнуляем переменную полученных данных
@@ -2472,7 +2394,7 @@ void FuncTr(void)
 						TransDataInf(0x31, 0x00); 	//посылаем запрос общего текущего состояния
 					}
 				}
-				else{
+				else {
 					switch(MenuLevel)
 					{
 						case LVL_REGIME:
@@ -2658,22 +2580,49 @@ void FuncTr(void)
             }
 			else if (LoopUART == 5)
 			{	
-				//опрос типа АК, если Защита и нулевое меню
-				if ( (bDef) && (cNumComR == 0) && (MenuLevel == LVL_START) )
-					TransDataInf(0x0A, 0x00);
-				else  ModBusOpros();
+                //опрос типа АК, если Защита и нулевое меню
+                if ( (bDef) && (cNumComR == 0) && (MenuLevel == LVL_START) )
+                    TransDataInf(0x0A, 0x00);
 			}
 			else if (LoopUART == 6)
 			{	
-				//опрос типа удаленного аппарата (совместимость), если еще не известно
-				if (sMenuGlbParam.dev == 0xFF)
-					TransDataInf(0x37, 0x00);
-				else
-					ModBusOpros();
-			}
-			else 
-			{
-				ModBusOpros();
+                cnt++;
+                
+                // опрос значений для Modbus
+				switch(cnt % 6) {
+                    case 0: {
+                        // текущее состояние
+                        TransDataInf(0x30, 0x00);
+                    } break;
+                    
+                    case 1: {
+                        // общее текущее состояние
+                        TransDataInf(0x31, 0x00);
+                    } break;
+                    
+                    case 2: {
+                        // дата/время
+                        TransDataInf(0x32, 0x00);
+                    } break;
+                    
+                    case 3: {
+                         // измеряемые параметры
+                        TransDataByte(0x34, 0x00);
+                    } break;
+                    
+                    case 4: {
+                        // опрос типа удаленного аппарата 
+                        // это не для Modbus, но было удобно вставить сюда
+                        TransDataInf(0x37, 0x00);
+                    } break;
+                    
+                    case 5: {
+                        // адреса аппарата в локальной сети
+                        TransDataInf(0x38, 0x00);
+                    } break;
+                        
+                    
+                }
 			}
         }
 		else
@@ -3873,7 +3822,7 @@ static void LCDwork(void)
 		//вывод на индикатор "Связь с ПК..."
 		if ((LoopUART==0)||(LoopUART==5))
 		{
-			LCDbufClear();
+			LCD_clear();
 			LCDprintf(2,4,PCconnect,1);
 			PCconn++;
 			if (PCconn>3) PCconn=1;
@@ -3892,17 +3841,20 @@ __C_task main(void)
 	PERIF_setup(); 		//начальные установки
     
 	ClearPortError(); 	//очитска ошибок УАПП
-	StartUART();  		//запуск УАПП
+	UARTBSP_setup();
     
 	UARTLS_setup();
     UARTLS_rxStart();
 	
-    LCDbufClear();  	//очистка соджержимого буфера LCD
-	FuncInitLCD();  	//инициализация ЖК-индикатора
+    LCD_initStart();
+    LCD_clear();  	
 	
     PERIF_wdStart();
+    
+    PERIF_timer0Start();
 	PERIF_timer1Start();
-    PERIF_timer2Start();      		  
+    PERIF_timer2Start();  
+    
     PERIF_intrEnable(); 
 	
 	// скопируем пароль из EEPROM во флэш
@@ -3944,7 +3896,10 @@ __C_task main(void)
         }
         
         if (UARTLS_isRxData()) {
-            PCtime = PC_wait;
+            if (Protocol == PROTOCOL_S) {
+                // при работе с ПК запросы необходимо передать в БСП
+                PCtime = PC_wait;
+            }            
             DC1_dataProc(Protocol, adrLan, UARTLS_getDataLen());
         }
         
@@ -3955,16 +3910,19 @@ __C_task main(void)
 			FuncTr();
         
         // В случае протокола MODBUS работаем с RS-485, иначе RS-232.
-        // FIXME На время отладки все общение сделано через RS-485
-        PORTD = (1 << PIN_SWMUX);
-//        if (Protocol == PROTOCOL_MODBUS) {
-//            PORTD = (1 << PIN_SWMUX);
-//        } else {
-//            PORTD &= ~(1 << PIN_SWMUX);
-//        }
+        if (Protocol == PROTOCOL_MODBUS) {
+            PORTD |= (1 << PIN_SWMUX);
+        } else {
+            PORTD &= ~(1 << PIN_SWMUX);
+        }
         
         PERIF_wdReset();
 	}
+}
+
+#pragma vector=TIMER0_COMP_vect  
+__interrupt void TIMER0_COMP_interrupt(void){          
+    UARTLS_tick();   
 }
 
 #pragma vector=TIMER1_COMPA_vect
@@ -4057,5 +4015,61 @@ __interrupt void TIMER1_COMPA_interrupt(void) {
 	if (LoopUART == 5) 
 		TimeWink = !TimeWink;
 }
+
+#pragma vector=TIMER2_COMP_vect
+__interrupt void TIMER2_COMP_interrupt(void) {
+    LCD_main();
+    
+    //запись в EEPROM
+    if (((EECR & (1<<EEWE)) == 0) && (eWrite == 1)){
+        EEAR = eAddressWrite;
+        EEDR = eMassiveWrite[ew];
+        EECR |= (1<<EEMWE);
+        EECR |= (1<<EEWE);
+        ew++;
+        eAddressWrite++;
+        if (eMassiveWrite[ew - 1] == 0) {
+            eWrite=0; 
+            ew=0;
+        }
+    }
+    
+    //чтение из EEPROM
+    if (((EECR & (1 << EEWE)) == 0) && (eRead == 1)) {
+        EEAR = eAddressRead;
+        EECR |= (1<<EERE);
+        eMassiveRead[er] = EEDR;
+        if (eMassiveRead[er] == 0xFF) { 
+            eMassiveRead[er] = 0x00;
+        }
+        eAddressRead++;
+        er++;
+        if (eMassiveRead[er - 1] == 0) {
+            eRead=0; 
+            er=0;
+        }
+    }
+    
+     // опрос клавиатуры, каждую 1 мс
+    if ((PressKey == 0xF0) && (PCready==0)) {
+        NewPressKey = InquiryKeyboard();
+        if ((NewPressKey == TempPressKey) || (NewPressKey == 0xF0)) {
+            TimerPressKey++;
+            if (TimerPressKey > 400) {
+                TimerPressKey = 400; 
+                TempPressKey=0xF0;
+            }
+        }
+        else { 
+            TimerPressKey=0;
+        }
+        
+        if ((NewPressKey != TempPressKey) && (NewPressKey != 0xF0)) {
+            PressKey = NewPressKey; 
+            TempPressKey=NewPressKey;
+        }
+    }
+}
+
 
 

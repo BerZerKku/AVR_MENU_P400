@@ -2019,6 +2019,9 @@
         <name>$PROJ_DIR$\inc\debug.h</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\inc\delay.h</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\inc\driverLCD.h</name>
       </file>
       <file>
@@ -2026,9 +2029,6 @@
       </file>
       <file>
         <name>$PROJ_DIR$\inc\Menu.h</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\inc\ModBus.h</name>
       </file>
       <file>
         <name>$PROJ_DIR$\inc\MyDef.h</name>
@@ -2058,7 +2058,7 @@
         <name>$PROJ_DIR$\src\drvKeyboard.cpp</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\src\ModBus.cpp</name>
+        <name>$PROJ_DIR$\src\Menu.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\src\peripheral.cpp</name>

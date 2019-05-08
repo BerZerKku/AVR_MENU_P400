@@ -1,5 +1,8 @@
 #ifndef MY_DEF_H_
 #define MY_DEF_H_
+
+#include <stdint.h>
+
 // версия прошивки, если первый ноль - то убираем
 #define Insertion 0x0766
 // вариант прошивки 'f' - полная, ' ' - урезанная
@@ -15,6 +18,8 @@
 	#warning "DEBUG MODE ON!!!"
 	#include "debug.h"
 #endif
+
+#define SIZE_OF(mas) (sizeof(mas) / sizeof(mas[0]))
 
 //Взять старший байт int
 #define Hi(a) (unsigned char) (a>>8)
@@ -55,11 +60,6 @@
 //*100мс , время ожидания запроса с ПК
 #define PC_wait 15
 
-#define uchar unsigned char
-#define schar signed char
-#define uint  unsigned int
-#define sint signed int
-
 struct strArchive{
   unsigned char NumDev; 	//кол-во устройств
   unsigned char CurrDev;  	//выбранное устройство
@@ -76,10 +76,10 @@ struct strCorrParam {
 };
 
 struct strMenuGlbParam {
-	uchar dev;			// тип удаленного аппарата
-	uchar num;			// кол-во пунктов
-	uchar punkt[20];	// номера пунктов, по номерам совпадают с порядком массива во flash
-	uchar name[20];		// номер названия , из списка во флэш
+	uint8_t dev;			// тип удаленного аппарата
+	uint8_t num;			// кол-во пунктов
+	uint8_t punkt[20];	    // номера пунктов, по номерам совпадают с порядком массива во flash
+	uint8_t name[20];		// номер названия , из списка во флэш
 };
 
 /** Список поддерживаемых протоколов работы по локальной сети.
@@ -94,57 +94,57 @@ typedef enum {
 
 //struct strTest
 //{
-//	uchar type;					//тип
-//	uchar val;					//значение
-//	uchar __flash* __flash* sp;	//перечень
-//	uchar __flash* name;		//имя пункта
-//	uchar num;					//кол-во записей в группе
-//	uchar punkt[3];				//номера пунктов
+//	uint8_t type;					//тип
+//	uint8_t val;					//значение
+//	uint8_t __flash* __flash* sp;	//перечень
+//	uint8_t __flash* name;		//имя пункта
+//	uint8_t num;					//кол-во записей в группе
+//	uint8_t punkt[3];				//номера пунктов
 //};
 //
 //struct strMenuTest
 //{
 //	strTest sT[2];		//структуры групп
-//	uchar num;			//кол-во групп на прием
-//	uchar numTr;		//кол-во групп на передачу
+//	uint8_t num;			//кол-во групп на прием
+//	uint8_t numTr;		//кол-во групп на передачу
 //};
 
 struct strNameToVal
 {
-	uchar __flash *name;
-	uchar val;
+	uint8_t __flash *name;
+	uint8_t val;
 };
 
 struct strMenuTest
 {
-	uchar gr_items[2];			// имеющиеся группы сигналов
-	uchar gr_items_max;			// кол-во групп сишналов
+	uint8_t gr_items[2];			// имеющиеся группы сигналов
+	uint8_t gr_items_max;			// кол-во групп сишналов
 			
 	
-	uchar def_items[2];			// массив имя сигнала защиты <-> значение 
-	uchar def_items_max;		// максимальное кол-во эл-ов защиты
-	uchar def_val;				// текущее значение сигнала защиты		
+	uint8_t def_items[2];			// массив имя сигнала защиты <-> значение 
+	uint8_t def_items_max;		// максимальное кол-во эл-ов защиты
+	uint8_t def_val;				// текущее значение сигнала защиты		
 	
-	uchar cf_items[40];			// массив имя сигнала кч <-> значение 
-	uchar cf_items_max;			// максимальное кол-во эл-ов кч
-	uchar cf_val;				// текущее значение сигнала КЧ
+	uint8_t cf_items[40];			// массив имя сигнала кч <-> значение 
+	uint8_t cf_items_max;			// максимальное кол-во эл-ов кч
+	uint8_t cf_val;				// текущее значение сигнала КЧ
 };
 
 struct strParamPVZUE
 {
-	uchar protocol;		// протокол обмена
-	uchar parity;		// признак четности
-	uchar proval[10];	// допустимые провалы
-	uchar porog[10];	// порог по помехе
-	uchar noise[10];	// допустимая помеха
-	uchar autocontrol;	// тип автоконтроля
-	uchar periodAC[10];	// период беглого режима АК
-	uchar periodACre[10];// период повтора беглого режима АК
-	uchar timeCorrAC[10];// время коррекции АК
+	uint8_t protocol;		// протокол обмена
+	uint8_t parity;		// признак четности
+	uint8_t proval[10];	// допустимые провалы
+	uint8_t porog[10];	// порог по помехе
+	uint8_t noise[10];	// допустимая помеха
+	uint8_t autocontrol;	// тип автоконтроля
+	uint8_t periodAC[10];	// период беглого режима АК
+	uint8_t periodACre[10];// период повтора беглого режима АК
+	uint8_t timeCorrAC[10];// время коррекции АК
 };
 
 struct strParamOpt
 {
-	uchar reserv;		// резервирование (вкл = 1/выкл = 0)
+	uint8_t reserv;		// резервирование (вкл = 1/выкл = 0)
 };
 #endif
