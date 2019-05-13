@@ -2,29 +2,38 @@
 #include <ina90.h>
 #include <stdint.h>
 
+#include "MyDef.h"
 #include "board.h"
 #include "peripheral.h"
 #include "UartBsp.h"
-#include "MyDef.h"
 #include "DataCenter.h"
 #include "DataCenter1.h"
 #include "driverLCD.h"
 #include "Flash.h"
 #include "Menu.h"
 #include "UartLs.h"
+#include "fifo.h"
 
+/// Структура дополнительных команд.
+typedef struct {
+    uint8_t com;    ///< Команда.
+    uint8_t num;    ///< Количество байт данных (0 - нет, 1 - один).
+    uint8_t byte;   ///< Байт данных.
+} dopCom_t;
 
-static char itoa					(uint8_t start, uint16_t val, uint8_t buf[]);
-static void FuncViewValue			(uint8_t numparam);
-static void PressSharp				(void);
-static void FuncInpCorrParam		(void);
-static void FuncSelectValue			(void);
-static void FuncInputDataTime		(void);
-static void FuncInputData			(void);
-static void FuncPressKey			(void);
-static void FuncTr					(void);
-static void LCDMenu1				(uint8_t NumString, uint8_t Device);
-static void LCDwork					(void);
+static char itoa(uint8_t start, uint16_t val, uint8_t buf[]);
+static void FuncViewValue(uint8_t numparam);
+static void FuncInpCorrParam(void);
+static void FuncSelectValue(void);
+static void FuncInputDataTime(void);
+static void FuncInputData(void);
+static void FuncPressKey(void);
+static void FuncTr(void);
+static void LCDMenu1(uint8_t NumString, uint8_t Device);
+static void LCDwork(void);
+static void pressSharp(void);
+static void pressC(void);
+static void pressENT(void);
 
 
 //определяет цикл работы программы
@@ -32,6 +41,9 @@ static void LCDwork					(void);
 
 //массив "дата/время" передаваемый в USP
 extern unsigned char TrDataTimeMass[];
+
+/// Дополнительная команда.
+static TFifo<4, dopCom_t> dopCom;
 
 //переменные общения с EEPROM
 unsigned char ew,er;
@@ -155,6 +167,9 @@ unsigned char GlobalCurrentState[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x00
 unsigned char CurrentState[]={0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x4E,0x00};
 unsigned char Dop_byte[]={0x3F, 0x3F, 0x3F, 0x3F};
 
+
+
+
 // Текущий протокол работы (Стандарт, Modbus)
 protocol_t Protocol;
 //Тесты
@@ -254,15 +269,14 @@ unsigned char MenuAllLowCF[] 	= "?? дБ";
 unsigned char MenuAllLowCFa[]	= "?? дБ";
 unsigned char MenuAllControlUout= 0x02; //для него используется массив MenuAllSynchrTimerNum
 
-uint8_t TypeUdDev = 0;	//тип удаленного аппарата, по умолчанию АВАНТ
+/// Тип удаленного аппарата, по умолчанию АВАНТ.
+typeUdDev_t TypeUdDev = TYPE_UD_DEV_AVANT;	
+
 strMenuGlbParam sMenuGlbParam;
 strParamPVZUE sParamPVZE;
 strParamOpt	sParamOpt;
 
 strCorrParam sCorrParam[3]; //хранение выводимых на экран коррекций
-
-//
-unsigned char DopComTrans;
 
 //параметры поста
 unsigned char MenuTypeDefend = MaxNumTypeDefend + 1;
@@ -440,7 +454,7 @@ static void FuncViewValue(uint8_t numparam)
 						}
 					}
 					
-					if ((TypeUdDev == 3) && (num == 1)) {
+					if ((TypeUdDev == TYPE_UD_DEV_PVZUE) && (num == 1)) {
 						max = 8;
 					}
 				}
@@ -504,14 +518,16 @@ static void FuncViewValue(uint8_t numparam)
 					max = RangGlb[num] [1] * RangGlb[num] [2];
 					
 					// в ПВЗЛ только 2-х концевая версия, т.е. 3-его аппарата нет
-					if (TypeUdDev == 4)
+					if (TypeUdDev == TYPE_UD_DEV_PVZL)
 					{
 						if (num == 7)
 							max = 2;
 					}
 					
-					if ((TypeUdDev == 3) && (num == 7)) {
-						max = cNumLine;	// В ПВЗУ-Е зависит от Типа линии, может быть от 2 до 8
+                    // В ПВЗУ-Е зависит от Типа линии, может быть от 2 до 8
+					if ((TypeUdDev == TYPE_UD_DEV_PVZUE) && (num == 7)) {
+                        
+						max = cNumLine;	
 					}
 				}
 				break;
@@ -561,30 +577,430 @@ static void FuncViewValue(uint8_t numparam)
 }//end void FuncViewValue(char numparam)
 
 //реакция на нажатие '#'
-static void PressSharp(void)
-{
-  	if (MenuLevel == LVL_START)
-	{
-		DopComTrans = 2;
+void pressSharp(void) {
+  	if (MenuLevel == LVL_START) {
+        dopCom_t dcom;
+        
+        if (cNumComR != 0) {
+            dcom.com = COM_PRM_RES_IND;
+            dcom.num = 0;
+            dcom.byte = 0;
+            dopCom.push(dcom);
+        }
+        
+        if (cNumComT != 0) {
+            dcom.com = COM_PRD_RES_IND;
+            dcom.num = 0;
+            dcom.byte = 0;
+            dopCom.push(dcom);
+        }        
 	}
-	else if (MenuLevel == LVL_DEF_SETUP)
-	{
+	else if (MenuLevel == LVL_DEF_SETUP) {
 		ValueVsRange = (ValueVsRange > 0) ? 0 : 1;
 		FuncViewValue(cNumParam + sMenuDefParam.punkt[ShiftMenu]);
 		LCD2new = 1;
 	}
-	else if (MenuLevel < LVL_GLB_SETUP) 
-	{
+	else if (MenuLevel < LVL_GLB_SETUP) {
     	ValueVsRange = (ValueVsRange > 0) ? 0 : 1;
     	FuncViewValue(cNumParam + ShiftMenu);
     	LCD2new = 1;
   	}
- 	else if (MenuLevel == LVL_GLB_SETUP)
-	{
+ 	else if (MenuLevel == LVL_GLB_SETUP) {
 		ValueVsRange = (ValueVsRange > 0) ? 0 : 1;
 		FuncViewValue(cNumParam + sMenuGlbParam.punkt[ShiftMenu]);
 		LCD2new = 1;
 	}
+}
+
+/// Обработка нажатия кнопки СЕ/С
+void pressC(void) {
+    switch (MenuLevel) {	
+        case LVL_START: {	
+            dopCom_t dcom;
+            
+            if (bDef) {
+                switch(TypeUdDev) {
+                    case TYPE_UD_DEV_PVZL:  // DOWN
+                    case TYPE_UD_DEV_PVZ90: // DOWN
+                    case TYPE_UD_DEV_AVANT: {
+                        dcom.com = COM_SET_CONTROL;
+                        dcom.num = 1;
+                        dcom.byte = CONTROL_RESET_UD_1;
+                        dopCom.push(dcom);
+                    } break;
+                    case TYPE_UD_DEV_PVZ: {
+                        dcom.com = COM_SET_CONTROL;
+                        dcom.num = 1;
+                        dcom.byte = CONTROL_RESET_AC;
+                        dopCom.push(dcom);
+                    }
+                }
+            }
+            
+        }break;
+        
+        case LVL_MENU: {
+            //возврат в начальное меню
+			Menu_Start(); 	
+        } break;					
+        
+        case LVL_DATA_TIME:
+        case LVL_JOURNAL:
+        case LVL_SETUP:
+        case LVL_PARAM_VIEW:
+        case LVL_PROTOCOL:
+        case LVL_INFO:
+        case LVL_UPR: 			
+        case LVL_AC: {
+            //возврат в меню 2-ого уровня
+			Menu_Second(); 	
+        } break;  				
+        
+        case LVL_DEF_VIEW:
+        case LVL_PRM_VIEW:
+        case LVL_PRD_VIEW:
+        case LVL_GLB_VIEW: { 
+            //возврат в Просмотр параметров
+            Menu_ParamSetup(LVL_PARAM_VIEW); 	
+        } break; 	
+        
+        case LVL_TEST:
+        case LVL_REGIME:
+        case LVL_PARAM_SETUP: { 
+            //возврат в Мменю/утсановить
+            Menu_Setup(); 	
+        } break; 					
+        
+        case LVL_DEF_SETUP:
+        case LVL_PRM_SETUP:
+        case LVL_PRD_SETUP:
+        case LVL_GLB_SETUP: {	
+            //Возврат в Устанновить\Параметры
+            Menu_ParamSetup(LVL_PARAM_SETUP); 	
+        } break; 	
+        
+        case LVL_JRN_VIEW: {
+            //возврат в меню Журнал
+            Menu_Journal(); 
+        } break;		 			
+    }
+}
+
+/// Обработка нажатия кнопки ENT
+void pressENT(void) {
+    switch(MenuLevel) {
+        case LVL_START: {	
+            dopCom_t dcom;
+            
+            if (bDef) {
+                switch(TypeUdDev) {
+                    case TYPE_UD_DEV_PVZ90:
+                    case TYPE_UD_DEV_AVZK80: {
+                        dcom.com = COM_DEF_SET_TYPE_AC;
+                        dcom.num = 1;
+                        dcom.byte = AC_PUSK;
+                        dopCom.push(dcom);
+                    } break;
+                    
+                    case TYPE_UD_DEV_PVZ:   // DOWN
+                    case TYPE_UD_DEV_PVZU:  // DOWN
+                    case TYPE_UD_DEV_PVZL:  // DOWN
+                    case TYPE_UD_DEV_PVZUE:
+                    {
+                        dcom.com = COM_DEF_SET_TYPE_AC;
+                        dcom.num = 1;
+                        dcom.byte = AC_TEST;
+                        dopCom.push(dcom);
+                    } break;
+                }
+            } else {
+                if (cNumComR != 0) {
+                    dcom.com = COM_PRM_ENTER;
+                    dcom.num = 0;
+                    dcom.byte = 0;
+                }
+            }
+        } break; 							
+        
+        case LVL_REGIME: {  
+            //ввод режимов работы
+            if ((PressPassword==2)&&(EntPass==0))
+            {
+                WorkRate=0x01;MaxNumberInputChar=4;ChangeMass=ePassword;
+                ByteShift=0;MaxValue=0;MinValue=0;Discret=1;EntPass=1;
+            }
+            else
+            {
+                if (PressPassword==1)
+                {
+                    bInpVal=false;
+                    if ((bDef)&&((CurrentState[0]==2)||(CurrentState[0]==0x4E))) bInpVal=true;
+                    if ((cNumComR>0)&&((CurrentState[2]==2)||(CurrentState[2]==1)||(CurrentState[2]==0x4E))) bInpVal=true;
+                    if ((cNumComT>0)&&((CurrentState[4]==2)||(CurrentState[4]==0x4E))) bInpVal=true;
+                    if (bInpVal){
+                        WorkRate=2;SelectValue=1;InputSelectValue=0;MaxValue=1;MinValue=0;/*MaxSelectValue=1;MinSelectValue=0;*/MassSelectValue=Menu1regimeInp;PressPassword=2;
+                    }else{
+                        WorkRate=2;SelectValue=1;InputSelectValue=0;MinValue=0;/*MinSelectValue=0;*/MassSelectValue=Menu1regimeInp2; PressPassword=2;
+                        if ((cNumComT>0)||(bDef)) MaxValue=3;//MaxSelectValue=3;
+                        else MaxValue=2;//MaxSelectValue=2;  //а вот тут надо предусмотреть, что в отсутствии ПРД и Пост, можно войти в ТЕст2 и нельзя в Тест1.
+                    }
+                    EntPass=0;
+                }
+                else
+                {
+                    bInpVal=false;
+                    if ((bDef)&&((CurrentState[0]!=2)&&(CurrentState[0]!=0x4E))) bInpVal=true;
+                    if ((cNumComR>0)&&((CurrentState[2]!=2)&&(CurrentState[2]!=1)&&(CurrentState[2]!=0x4E))) bInpVal=true;
+                    if ((cNumComT>0)&&((CurrentState[4]!=2)&&(CurrentState[4]!=0x4E))) bInpVal=true;
+                    
+                    if (bInpVal){
+                        WorkRate=2;SelectValue=2;InputSelectValue=0;MinValue=0;/*MinSelectValue=0;*/MassSelectValue=Menu1regimeInp1;PressPassword=2;
+                        if ((cNumComT>0)||(bDef)) MaxValue=2;//MaxSelectValue=2;
+                        else MaxValue=1; //MaxSelectValue=1; //а вот тут надо предусмотреть, что в отсутствии ПРД и Пост, можно войти в ТЕст2 и нельзя в Тест1.
+                    }
+                    EntPass=0;
+                }
+            }
+        } break;
+        
+        case LVL_DEF_SETUP: {  
+            //ввод параметров в меню Установить\Параметры\Пост
+            if (CurrentState[0]==0x00)
+            {
+                switch(sMenuDefParam.punkt[ShiftMenu])
+                {
+                    case 0: {WorkRate=2;SelectValue=1;InputSelectValue=0;MassSelectValue=MenuTypeDefendNum;} break;
+                    case 1: {WorkRate=0x01;MaxNumberInputChar=1;ByteShift=0;InputParameter=7;Discret=1;} break;
+                    case 2: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=8;Discret=1;} break;
+                    case 3: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=9;Discret=2;NumberTransCom=NumberCom;} break;
+                    case 4: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=10;Discret=2;NumberTransCom=NumberCom;} break;
+                    case 5: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=27;Discret=1;NumberTransCom=NumberCom;} break;  //порог
+                    case 6: {WorkRate=2;SelectValue=7;InputSelectValue=0;MassSelectValue=MenuAllSynchrTimerNum;} break;
+                    case 7: {WorkRate=2;SelectValue=8;InputSelectValue=0;MassSelectValue=fmMenuAllFreq;}break;
+                    case 8: {WorkRate=2;SelectValue=9;InputSelectValue=0;MassSelectValue=fmMenuAllFreq;}break;
+                    case 9: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=1;} break;  //
+                    case 10:{WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=2;} break;  //
+                    case 11:{WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=3;} break;  //
+                    case 12:{WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=4;} break;  //
+                }
+                
+                if (sMenuDefParam.punkt[ShiftMenu] < NumParamDef)
+                {
+                    MinValue=RangPost[sMenuDefParam.punkt[ShiftMenu]] [0] * RangPost[sMenuDefParam.punkt[ShiftMenu]] [2];
+                    MaxValue=RangPost[sMenuDefParam.punkt[ShiftMenu]] [1] * RangPost[sMenuDefParam.punkt[ShiftMenu]] [2];
+                    
+                    if (TypeUdDev == TYPE_UD_DEV_PVZUE) {
+                        // в ПВЗУ-Е кол-во концов может быть 8
+                        if (sMenuDefParam.punkt[ShiftMenu] == 1) {
+                            MaxValue = 8;	
+                        }
+                    }
+                    
+                    if (cTypeLine == 2)
+                    {
+                        if ((sMenuDefParam.punkt[ShiftMenu] == 3) || (sMenuDefParam.punkt[ShiftMenu] == 4))	{
+                            MinValue = 0;
+                            MaxValue = 54;
+                            Discret = 1;
+                        }
+                    }
+                }
+            }
+        }
+        break;
+        
+        case LVL_PRM_SETUP:
+        {  //ввод параметров в меню Установить\Параметры\Приемник
+            if (CurrentState[2]==0x00){
+                switch(ShiftMenu){
+                    case 0: {WorkRate=0x01; MaxNumberInputChar=2; ByteShift=0; /*MaxValue=10;MinValue=0;*/ InputParameter=11; Discret=1;} break;
+                    case 1: {WorkRate=0x01; MaxNumberInputChar=3; ByteShift=0; /*MaxValue=500;MinValue=10;*/ InputParameter=12; Discret=10;} break;
+                    case 2: {WorkRate=0x01; MaxNumberInputChar=4; ByteShift=0; /*MaxValue=1000;MinValue=0;*/ InputParameter=13; Discret=10; NumberTransCom=NumberCom;} break;
+                    case 3: {
+                        WorkRate=0x01;  ByteShift=0; /*MaxValue=9999;MinValue=0;*/ InputParameter=14; Discret=1; NumberTransCom=NumberCom;
+                        if (cNumLine==2)
+                            if (cNumComR>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
+                        else
+                            if (cNumPrm==1)
+                                if (cNumComR1>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
+                            else
+                                if (cNumComR2>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
+                    } break;
+                    case 4: {
+                        WorkRate=0x01; ByteShift=0; /*MaxValue=9999;MinValue=0;*/ InputParameter=15; Discret=1; NumberTransCom=NumberCom;
+                        if (cNumLine==2)
+                            if (cNumComR>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
+                        else
+                            if (cNumPrm==1)
+                                if (cNumComR1>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
+                            else
+                                if (cNumComR2>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
+                    } break;
+                }
+                if (ShiftMenu < NumParamPrm) {
+                    MinValue=RangPrm[ShiftMenu] [0] * RangPrm[ShiftMenu] [2];
+                    MaxValue=RangPrm[ShiftMenu] [1] * RangPrm[ShiftMenu] [2];
+                }
+            }
+            
+        }break;
+        case LVL_PRD_SETUP:
+        {  //ввод параметроа Установить\Параметры\Передатчик
+            if (CurrentState[4]==0x00)
+            {
+                switch(ShiftMenu)
+                {
+                    case 0: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;/*MaxValue=10;MinValue=0;*/InputParameter=17;Discret=1;} break;
+                    case 1: {WorkRate=0x01;MaxNumberInputChar=3;ByteShift=0;/*MaxValue=500;MinValue=10;*/InputParameter=18;Discret=10;} break;
+                    case 2: {WorkRate=0x01;MaxNumberInputChar=3;ByteShift=0;/*MaxValue=50;MinValue=10;*/InputParameter=19;Discret=10;} break;
+                    case 3: {WorkRate=0x01; if (cNumComT!=4) MaxNumberInputChar=8; else MaxNumberInputChar=4;ByteShift=0;/*MaxValue=9999;MinValue=0;*/InputParameter=20;Discret=1; NumberTransCom=NumberCom;} break;
+                    case 4: {WorkRate=0x01; if (cNumComT!=4) MaxNumberInputChar=8; else MaxNumberInputChar=4;ByteShift=0;/*MaxValue=9999;MinValue=0;*/InputParameter=21;Discret=1; NumberTransCom=NumberCom;} break;
+                }
+                if (ShiftMenu<NumParamPrd) {
+                    MinValue=RangPrd[ShiftMenu] [0] * RangPrd[ShiftMenu] [2];
+                    MaxValue=RangPrd[ShiftMenu] [1] * RangPrd[ShiftMenu] [2];
+                }
+            }
+        }break;
+        
+        case LVL_GLB_SETUP:
+        { //меню/установить/параметры/общие
+            bInpVal=true; //разрешим изменение параметра
+            if ((bDef)&&(CurrentState[0]!=0x00)) bInpVal=false;
+            if ((cNumComR>0)&&(CurrentState[2]!=0x00)) bInpVal=false;
+            if ((cNumComT>0)&&(CurrentState[4]!=0x00)) bInpVal=false;
+            // если это параметры коррекции, то разрешим ввод параметра
+            if ( (sMenuGlbParam.punkt[ShiftMenu] == 11) || (sMenuGlbParam.punkt[ShiftMenu] == 12) )
+                bInpVal = true;
+            if (bInpVal){
+                switch(sMenuGlbParam.punkt[ShiftMenu])
+                {
+                    // Совместимость (тип уд.аппарата)	
+                    case 0:  {WorkRate = 2; SelectValue = 3;		InputSelectValue = 0;	MassSelectValue=fmTypeUdDev;}	break;		
+                    // синхронизация часов
+                    case 1:  {WorkRate = 2; SelectValue = 1;		InputSelectValue = 0;	MassSelectValue=MenuAllSynchrTimerNum;} break;
+                    // Uвых номинальное 
+                    case 2:  {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 0xB6;	ByteShift=0;	Discret = 1;} break;
+                    // удержание реле ПРД
+                    case 3:  {WorkRate = 2; SelectValue = 3;		InputSelectValue = 0;	MassSelectValue=MenuAllSynchrTimerNum;} break;
+                    // сетевой адрес
+                    case 4:  {WorkRate = 1; MaxNumberInputChar = 3;	InputParameter = 25;	ByteShift=0;	Discret = 1;} break;
+                    // время перезапуска
+                    case 5:  {WorkRate = 1; MaxNumberInputChar = 1;	InputParameter = 26;	ByteShift=0;	Discret = 1;} break;
+                    // частота 
+                    case 6:  {WorkRate = 1; MaxNumberInputChar = 4;	InputParameter = 28;	ByteShift=0;	Discret = 1;} break;
+                    // номер аппарата 
+                    case 7:  {WorkRate = 1; MaxNumberInputChar = 1;	InputParameter = 29;	ByteShift=0;	Discret = 1;} break;
+                    // контроль выходного сигнала 
+                    case 8:  {WorkRate = 2; SelectValue = 9;		InputSelectValue = 0;	MassSelectValue=MenuAllSynchrTimerNum;} break;
+                    // порог предупреждения по КЧ 
+                    case 9:  {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 30;	ByteShift=0;	Discret = 1;	NumberTransCom = 1;} break; 
+                    // загрубление чувствительности по КЧ
+                    case 10: {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 30;	ByteShift=0;	Discret = 1;	NumberTransCom = NumberCom + 1;} break;
+                    // коррекция напряжения 
+                    case 11: {WorkRate = 4; MaxNumberInputChar = 4;	InputParameter = 1; 	InputValue[0]='0';InputValue[1]='0';InputValue[2]='.';InputValue[3]='0';} break; 
+                    // коррекция тока 
+                    case 12: {WorkRate = 4; MaxNumberInputChar = 3;	InputParameter = 1 + NumberCom;} break;
+                    // протокол обмена
+                    case 13: {WorkRate = 2; SelectValue = 0x39;		InputSelectValue = 1; 	MassSelectValue = MenuAllProtocolNum;	NumberTransCom = 1;} break;
+                    // признак четности	
+                    case 14: {WorkRate = 2; SelectValue = 0x39;		InputSelectValue = 1;	MassSelectValue = MenuAllParityNum;		NumberTransCom = 2;} break;
+                    // допустимые провалы
+                    case 15: {WorkRate = 1;	MaxNumberInputChar = 2;	InputParameter = 0x39;	ByteShift = 0; 	Discret = 2;	NumberTransCom = 3;} break;
+                    // порог по помехе
+                    case 16: {WorkRate = 1;	MaxNumberInputChar = 3;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 4;} break;
+                    // допустимая помеха
+                    case 17: {WorkRate = 1;	MaxNumberInputChar = 2;	InputParameter = 0x39;	ByteShift = 0;	Discret = 20;	NumberTransCom = 5;} break;
+                    // тип автоконтроля	
+                    case 18: {WorkRate = 2;	SelectValue = 0x39;		InputSelectValue = 1;	MassSelectValue = MenuAllControlNum;	NumberTransCom = 6;} break;
+                    // Резервирование (оптика)
+                    case 19: {WorkRate = 2;	SelectValue = 0x33;		InputSelectValue = 0;	MassSelectValue = MenuAllSynchrTimerNum;	NumberTransCom = 1;} break;	
+                    // снижение ответа АК (пвзл)
+                    case 20: {WorkRate = 1;	MaxNumberInputChar = 2;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 1;} break;
+                    // период беглого режима АК (пвзу-е)
+                    case 21: {WorkRate = 1;	MaxNumberInputChar = 3;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 7;} break;
+                    // период повтора беглого режима АК (пвзу-е)
+                    case 22: {WorkRate = 1;	MaxNumberInputChar = 3;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 8;} break;
+                    // Коррекция времени АК (пвзу)
+                    case 23: {WorkRate = 1; MaxNumberInputChar = 2; InputParameter = 0x39;	ByteShift = 0;	Discret = 1; 	NumberTransCom = 9;} break;
+                    // Порог аварии по КЧ
+                    case 24: {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 30;	ByteShift=0;	Discret = 1;	NumberTransCom = 4;} break;
+                }
+                bInpVal=false;
+            }
+            
+            if (ShiftMenu < NumParamGlb)
+            {
+                MinValue = 	RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [0] * 
+                    RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
+                MaxValue = 	RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [1] * 
+                    RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
+                
+                if ((TypeUdDev == TYPE_UD_DEV_PVZUE) && (sMenuGlbParam.punkt[ShiftMenu] == 7)) {
+                    MaxValue = cNumLine;	// В ПВЗУ-Е зависит от Типа линии, может быть от 2 до 8
+                }
+                
+                if ( (TypeUdDev == TYPE_UD_DEV_PVZL) && (sMenuGlbParam.punkt[ShiftMenu] == 7) )
+                {
+                    // ПВЗЛ только двух концевая, поэтому макс. номер аппарата 2
+                    MaxValue = 2;
+                }
+                
+            }
+            
+        }
+        break;
+        
+        case LVL_PROTOCOL: 
+        {
+            WorkRate=2;SelectValue=2;InputSelectValue=0;MaxValue=1;MinValue=0; MassSelectValue=Menu18Param;
+        }
+        break;
+        
+        case LVL_INFO: 
+        {
+            if (ShiftMenu == 4)
+            {
+                WorkRate=2; SelectValue=1; InputSelectValue=0; MinValue=0; MaxValue=1; MassSelectValue=fDopParamView;
+            }
+            else if (ShiftMenu == 5)
+            {
+                WorkRate=2; SelectValue=2; InputSelectValue=0; MinValue=0; MaxValue=1; MassSelectValue=fDopParamValue;
+            }
+        }
+        break;
+        
+        case LVL_TEST: 
+        {
+            //в тесте можно подавать сигналы только если Пост и Передатчик (или если присутствует только 1 из них) в режиме Тест
+            if (((cNumComT>0)&&(CurrentState[4]<0x04))) break;
+            if (((bDef)&&(CurrentState[0]<0x04))) break;
+            //в Тест2 нельзя ничего подавать
+            if (((cNumComT>0)&&(CurrentState[4]==0x05))) break;
+            if (((bDef)&&(CurrentState[0]==0x05))) break;
+            
+            WorkRate = 5;
+            InputSelectValue = 0;
+            MinValue = 0;
+            
+            uint8_t group = sMenuTest.gr_items[ShiftMenu];
+            
+            SelectValue = Menu20grName[group - 1].val;
+            MassSelectValueRam = Menu20gr;
+            if (group == 1)
+            {
+                MaxValue = sMenuTest.cf_items_max;
+                MassItems = sMenuTest.cf_items;
+                
+            }
+            else if (group == 2)
+            {
+                MaxValue = sMenuTest.def_items_max;
+                MassItems = sMenuTest.def_items;
+            }
+        }
+        break;
+    }
 }
 
 //функция ввода значений коррецкий тока/напряжения, с учетом знака
@@ -702,7 +1118,9 @@ static void FuncSelectValue(void)
 				if (VARIANT == ' ') {
 					// TODO Из выбора Совместимости убраны ПВЗУ-Е и Линия-Р
 					if (MassSelectValue == fmTypeUdDev) {	
-						if ((InputSelectValue == 3) || (InputSelectValue == 5)) {
+						if (InputSelectValue == TYPE_UD_DEV_PVZUE) 
+                            InputSelectValue--;
+                        else if (InputSelectValue == TYPE_UD_DEV_LINER) {
 							InputSelectValue--;	
 						}
 					}
@@ -723,8 +1141,10 @@ static void FuncSelectValue(void)
 			} else if (MenuLevel == LVL_GLB_SETUP) {
 				if (VARIANT == ' ') {
 					// TODO Из выбора Совместимости убраны ПВЗУ-Е и Линия-Р
-					if (MassSelectValue == fmTypeUdDev) {
-						if ((InputSelectValue == 3) || (InputSelectValue == 5)) {
+					if (MassSelectValue == fmTypeUdDev) {	
+						if (InputSelectValue == TYPE_UD_DEV_PVZUE) 
+                            InputSelectValue++;
+                        else if (InputSelectValue == TYPE_UD_DEV_LINER) {
 							InputSelectValue++;	
 						}
 					}
@@ -738,7 +1158,7 @@ static void FuncSelectValue(void)
 		} break;
 		
 		case '#': {
-			PressSharp(); 
+			pressSharp(); 
 		} break;
 		
 		case 'E': {
@@ -979,7 +1399,7 @@ static void FuncInputData(void)
 			}
 	
 	if (PressKey == '#')
-		PressSharp();
+		pressSharp();
 		
 		
 	//вывод мигающего курсора, пока не введено макс. кол-во символов
@@ -1726,46 +2146,9 @@ static void FuncPressKey(void)
         }
 		break;
 		
-        case 'C':
-		{
-			switch (MenuLevel)
-			{	
-				case LVL_START:
-				{	
-					if (bDef) {
-						DopComTrans=5;	
-					}
-				}break;
-				
-				case LVL_MENU: 			Menu_Start(); 	break;					//возврат в начальное меню
-				
-				case LVL_DATA_TIME:
-				case LVL_JOURNAL:
-				case LVL_SETUP:
-				case LVL_PARAM_VIEW:
-				case LVL_PROTOCOL:
-				case LVL_INFO:
-				case LVL_UPR: 			
-				case LVL_AC: 			Menu_Second(); 	break;  				//возврат в меню 2-ого уровня
-				
-				case LVL_DEF_VIEW:
-				case LVL_PRM_VIEW:
-				case LVL_PRD_VIEW:
-				case LVL_GLB_VIEW: 		Menu_ParamSetup(LVL_PARAM_VIEW); 	break; 	//возврат в Просмотр параметров
-				
-				case LVL_TEST:
-				case LVL_REGIME:
-				case LVL_PARAM_SETUP: 	Menu_Setup(); 	break; 					//возврат в Мменю/утсановить
-				
-				case LVL_DEF_SETUP:
-				case LVL_PRM_SETUP:
-				case LVL_PRD_SETUP:
-				case LVL_GLB_SETUP: 	Menu_ParamSetup(LVL_PARAM_SETUP); 	break; 	//Возврат в Устанновить\Параметры
-
-				case LVL_JRN_VIEW: 		Menu_Journal(); break;		 			//возврат в меню Журнал
-			}
-        }
-		break;
+        case 'C': {
+            pressC();
+        } break;
 		
         case 'U':
 		{
@@ -1893,305 +2276,14 @@ static void FuncPressKey(void)
 			}
         }break;
 		
-        case '#':
-		{
-			PressSharp();
-        }break;
+        case '#': {
+			pressSharp();
+        } break;
 		
-        case 'E':
-		{
-			switch(MenuLevel)
-			{
-				case LVL_START:
-				{	
-					if (bDef) {
-						DopComTrans=4;
-					} else {
-						//"Пуск" приемника
-						DopComTrans=1;
-					}
-				}break; 							
-				
-				case LVL_REGIME:
-				{  //ввод режимов работы
-					if ((PressPassword==2)&&(EntPass==0))
-					{
-						WorkRate=0x01;MaxNumberInputChar=4;ChangeMass=ePassword;
-						ByteShift=0;MaxValue=0;MinValue=0;Discret=1;EntPass=1;
-					}
-					else
-					{
-						if (PressPassword==1)
-						{
-							bInpVal=false;
-							if ((bDef)&&((CurrentState[0]==2)||(CurrentState[0]==0x4E))) bInpVal=true;
-							if ((cNumComR>0)&&((CurrentState[2]==2)||(CurrentState[2]==1)||(CurrentState[2]==0x4E))) bInpVal=true;
-							if ((cNumComT>0)&&((CurrentState[4]==2)||(CurrentState[4]==0x4E))) bInpVal=true;
-							if (bInpVal){
-								WorkRate=2;SelectValue=1;InputSelectValue=0;MaxValue=1;MinValue=0;/*MaxSelectValue=1;MinSelectValue=0;*/MassSelectValue=Menu1regimeInp;PressPassword=2;
-							}else{
-								WorkRate=2;SelectValue=1;InputSelectValue=0;MinValue=0;/*MinSelectValue=0;*/MassSelectValue=Menu1regimeInp2; PressPassword=2;
-								if ((cNumComT>0)||(bDef)) MaxValue=3;//MaxSelectValue=3;
-								else MaxValue=2;//MaxSelectValue=2;  //а вот тут надо предусмотреть, что в отсутствии ПРД и Пост, можно войти в ТЕст2 и нельзя в Тест1.
-							}
-							EntPass=0;
-						}
-						else
-						{
-							bInpVal=false;
-							if ((bDef)&&((CurrentState[0]!=2)&&(CurrentState[0]!=0x4E))) bInpVal=true;
-							if ((cNumComR>0)&&((CurrentState[2]!=2)&&(CurrentState[2]!=1)&&(CurrentState[2]!=0x4E))) bInpVal=true;
-							if ((cNumComT>0)&&((CurrentState[4]!=2)&&(CurrentState[4]!=0x4E))) bInpVal=true;
-							
-							if (bInpVal){
-								WorkRate=2;SelectValue=2;InputSelectValue=0;MinValue=0;/*MinSelectValue=0;*/MassSelectValue=Menu1regimeInp1;PressPassword=2;
-								if ((cNumComT>0)||(bDef)) MaxValue=2;//MaxSelectValue=2;
-								else MaxValue=1; //MaxSelectValue=1; //а вот тут надо предусмотреть, что в отсутствии ПРД и Пост, можно войти в ТЕст2 и нельзя в Тест1.
-							}
-							EntPass=0;
-						}
-					}
-				}break;
-				
-				case LVL_DEF_SETUP:
-				{  //ввод параметров в меню Установить\Параметры\Пост
-					if (CurrentState[0]==0x00)
-					{
-						switch(sMenuDefParam.punkt[ShiftMenu])
-						{
-							case 0: {WorkRate=2;SelectValue=1;InputSelectValue=0;MassSelectValue=MenuTypeDefendNum;} break;
-							case 1: {WorkRate=0x01;MaxNumberInputChar=1;ByteShift=0;InputParameter=7;Discret=1;} break;
-							case 2: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=8;Discret=1;} break;
-							case 3: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=9;Discret=2;NumberTransCom=NumberCom;} break;
-							case 4: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=10;Discret=2;NumberTransCom=NumberCom;} break;
-							case 5: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=27;Discret=1;NumberTransCom=NumberCom;} break;  //порог
-							case 6: {WorkRate=2;SelectValue=7;InputSelectValue=0;MassSelectValue=MenuAllSynchrTimerNum;} break;
-							case 7: {WorkRate=2;SelectValue=8;InputSelectValue=0;MassSelectValue=fmMenuAllFreq;}break;
-							case 8: {WorkRate=2;SelectValue=9;InputSelectValue=0;MassSelectValue=fmMenuAllFreq;}break;
-							case 9: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=1;} break;  //
-							case 10:{WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=2;} break;  //
-							case 11:{WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=3;} break;  //
-							case 12:{WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;InputParameter=35;Discret=1;NumberTransCom=4;} break;  //
-						}
-						
-						if (sMenuDefParam.punkt[ShiftMenu] < NumParamDef)
-						{
-							MinValue=RangPost[sMenuDefParam.punkt[ShiftMenu]] [0] * RangPost[sMenuDefParam.punkt[ShiftMenu]] [2];
-							MaxValue=RangPost[sMenuDefParam.punkt[ShiftMenu]] [1] * RangPost[sMenuDefParam.punkt[ShiftMenu]] [2];
-							
-							if (TypeUdDev == 3) {
-								if (sMenuDefParam.punkt[ShiftMenu] == 1) {
-									MaxValue = 8;	// в ПВЗУ-Е кол-во концов может быть 8
-								}
-							}
-							
-							if (cTypeLine == 2)
-							{
-								if ((sMenuDefParam.punkt[ShiftMenu] == 3) || (sMenuDefParam.punkt[ShiftMenu] == 4))	{
-									MinValue = 0;
-									MaxValue = 54;
-									Discret = 1;
-								}
-							}
-						}
-					}
-				}
-				break;
-				
-				case LVL_PRM_SETUP:
-				{  //ввод параметров в меню Установить\Параметры\Приемник
-					if (CurrentState[2]==0x00){
-						switch(ShiftMenu){
-							case 0: {WorkRate=0x01; MaxNumberInputChar=2; ByteShift=0; /*MaxValue=10;MinValue=0;*/ InputParameter=11; Discret=1;} break;
-							case 1: {WorkRate=0x01; MaxNumberInputChar=3; ByteShift=0; /*MaxValue=500;MinValue=10;*/ InputParameter=12; Discret=10;} break;
-							case 2: {WorkRate=0x01; MaxNumberInputChar=4; ByteShift=0; /*MaxValue=1000;MinValue=0;*/ InputParameter=13; Discret=10; NumberTransCom=NumberCom;} break;
-							case 3: {
-								WorkRate=0x01;  ByteShift=0; /*MaxValue=9999;MinValue=0;*/ InputParameter=14; Discret=1; NumberTransCom=NumberCom;
-								if (cNumLine==2)
-									if (cNumComR>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
-								else
-									if (cNumPrm==1)
-										if (cNumComR1>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
-									else
-										if (cNumComR2>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
-							} break;
-							case 4: {
-								WorkRate=0x01; ByteShift=0; /*MaxValue=9999;MinValue=0;*/ InputParameter=15; Discret=1; NumberTransCom=NumberCom;
-								if (cNumLine==2)
-									if (cNumComR>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
-								else
-									if (cNumPrm==1)
-										if (cNumComR1>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
-									else
-										if (cNumComR2>4) MaxNumberInputChar=8; else MaxNumberInputChar=4;
-							} break;
-						}
-						if (ShiftMenu < NumParamPrm) {
-							MinValue=RangPrm[ShiftMenu] [0] * RangPrm[ShiftMenu] [2];
-							MaxValue=RangPrm[ShiftMenu] [1] * RangPrm[ShiftMenu] [2];
-						}
-					}
-					
-				}break;
-				case LVL_PRD_SETUP:
-				{  //ввод параметроа Установить\Параметры\Передатчик
-					if (CurrentState[4]==0x00)
-					{
-						switch(ShiftMenu)
-						{
-							case 0: {WorkRate=0x01;MaxNumberInputChar=2;ByteShift=0;/*MaxValue=10;MinValue=0;*/InputParameter=17;Discret=1;} break;
-							case 1: {WorkRate=0x01;MaxNumberInputChar=3;ByteShift=0;/*MaxValue=500;MinValue=10;*/InputParameter=18;Discret=10;} break;
-							case 2: {WorkRate=0x01;MaxNumberInputChar=3;ByteShift=0;/*MaxValue=50;MinValue=10;*/InputParameter=19;Discret=10;} break;
-							case 3: {WorkRate=0x01; if (cNumComT!=4) MaxNumberInputChar=8; else MaxNumberInputChar=4;ByteShift=0;/*MaxValue=9999;MinValue=0;*/InputParameter=20;Discret=1; NumberTransCom=NumberCom;} break;
-							case 4: {WorkRate=0x01; if (cNumComT!=4) MaxNumberInputChar=8; else MaxNumberInputChar=4;ByteShift=0;/*MaxValue=9999;MinValue=0;*/InputParameter=21;Discret=1; NumberTransCom=NumberCom;} break;
-						}
-						if (ShiftMenu<NumParamPrd) {
-							MinValue=RangPrd[ShiftMenu] [0] * RangPrd[ShiftMenu] [2];
-							MaxValue=RangPrd[ShiftMenu] [1] * RangPrd[ShiftMenu] [2];
-						}
-					}
-				}break;
-				
-				case LVL_GLB_SETUP:
-				{ //меню/установить/параметры/общие
-					bInpVal=true; //разрешим изменение параметра
-					if ((bDef)&&(CurrentState[0]!=0x00)) bInpVal=false;
-					if ((cNumComR>0)&&(CurrentState[2]!=0x00)) bInpVal=false;
-					if ((cNumComT>0)&&(CurrentState[4]!=0x00)) bInpVal=false;
-					// если это параметры коррекции, то разрешим ввод параметра
-					if ( (sMenuGlbParam.punkt[ShiftMenu] == 11) || (sMenuGlbParam.punkt[ShiftMenu] == 12) )
-						bInpVal = true;
-					if (bInpVal){
-						switch(sMenuGlbParam.punkt[ShiftMenu])
-						{
-							// Совместимость (тип уд.аппарата)	
-							case 0:  {WorkRate = 2; SelectValue = 3;		InputSelectValue = 0;	MassSelectValue=fmTypeUdDev;}	break;		
-							// синхронизация часов
-							case 1:  {WorkRate = 2; SelectValue = 1;		InputSelectValue = 0;	MassSelectValue=MenuAllSynchrTimerNum;} break;
-							// Uвых номинальное 
-							case 2:  {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 0xB6;	ByteShift=0;	Discret = 1;} break;
-							// удержание реле ПРД
-							case 3:  {WorkRate = 2; SelectValue = 3;		InputSelectValue = 0;	MassSelectValue=MenuAllSynchrTimerNum;} break;
-							// сетевой адрес
-							case 4:  {WorkRate = 1; MaxNumberInputChar = 3;	InputParameter = 25;	ByteShift=0;	Discret = 1;} break;
-							// время перезапуска
-							case 5:  {WorkRate = 1; MaxNumberInputChar = 1;	InputParameter = 26;	ByteShift=0;	Discret = 1;} break;
-							// частота 
-							case 6:  {WorkRate = 1; MaxNumberInputChar = 4;	InputParameter = 28;	ByteShift=0;	Discret = 1;} break;
-							// номер аппарата 
-							case 7:  {WorkRate = 1; MaxNumberInputChar = 1;	InputParameter = 29;	ByteShift=0;	Discret = 1;} break;
-							// контроль выходного сигнала 
-							case 8:  {WorkRate = 2; SelectValue = 9;		InputSelectValue = 0;	MassSelectValue=MenuAllSynchrTimerNum;} break;
-							// порог предупреждения по КЧ 
-							case 9:  {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 30;	ByteShift=0;	Discret = 1;	NumberTransCom = 1;} break; 
-							// загрубление чувствительности по КЧ
-							case 10: {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 30;	ByteShift=0;	Discret = 1;	NumberTransCom = NumberCom + 1;} break;
-							// коррекция напряжения 
-							case 11: {WorkRate = 4; MaxNumberInputChar = 4;	InputParameter = 1; 	InputValue[0]='0';InputValue[1]='0';InputValue[2]='.';InputValue[3]='0';} break; 
-							// коррекция тока 
-							case 12: {WorkRate = 4; MaxNumberInputChar = 3;	InputParameter = 1 + NumberCom;} break;
-							// протокол обмена
-							case 13: {WorkRate = 2; SelectValue = 0x39;		InputSelectValue = 1; 	MassSelectValue = MenuAllProtocolNum;	NumberTransCom = 1;} break;
-							// признак четности	
-							case 14: {WorkRate = 2; SelectValue = 0x39;		InputSelectValue = 1;	MassSelectValue = MenuAllParityNum;		NumberTransCom = 2;} break;
-							// допустимые провалы
-							case 15: {WorkRate = 1;	MaxNumberInputChar = 2;	InputParameter = 0x39;	ByteShift = 0; 	Discret = 2;	NumberTransCom = 3;} break;
-							// порог по помехе
-							case 16: {WorkRate = 1;	MaxNumberInputChar = 3;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 4;} break;
-							// допустимая помеха
-							case 17: {WorkRate = 1;	MaxNumberInputChar = 2;	InputParameter = 0x39;	ByteShift = 0;	Discret = 20;	NumberTransCom = 5;} break;
-							// тип автоконтроля	
-							case 18: {WorkRate = 2;	SelectValue = 0x39;		InputSelectValue = 1;	MassSelectValue = MenuAllControlNum;	NumberTransCom = 6;} break;
-							// Резервирование (оптика)
-							case 19: {WorkRate = 2;	SelectValue = 0x33;		InputSelectValue = 0;	MassSelectValue = MenuAllSynchrTimerNum;	NumberTransCom = 1;} break;	
-							// снижение ответа АК (пвзл)
-							case 20: {WorkRate = 1;	MaxNumberInputChar = 2;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 1;} break;
-							// период беглого режима АК (пвзу-е)
-							case 21: {WorkRate = 1;	MaxNumberInputChar = 3;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 7;} break;
-							// период повтора беглого режима АК (пвзу-е)
-							case 22: {WorkRate = 1;	MaxNumberInputChar = 3;	InputParameter = 0x39;	ByteShift = 0;	Discret = 1;	NumberTransCom = 8;} break;
-							// Коррекция времени АК (пвзу)
-							case 23: {WorkRate = 1; MaxNumberInputChar = 2; InputParameter = 0x39;	ByteShift = 0;	Discret = 1; 	NumberTransCom = 9;} break;
-							// Порог аварии по КЧ
-							case 24: {WorkRate = 1; MaxNumberInputChar = 2;	InputParameter = 30;	ByteShift=0;	Discret = 1;	NumberTransCom = 4;} break;
-						}
-						bInpVal=false;
-					}
-					
-					if (ShiftMenu < NumParamGlb)
-					{
-						MinValue = 	RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [0] * 
-									RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
-						MaxValue = 	RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [1] * 
-									RangGlb[sMenuGlbParam.punkt[ShiftMenu]] [2];
-						
-						if ((TypeUdDev == 3) && (sMenuGlbParam.punkt[ShiftMenu] == 7)) {
-							MaxValue = cNumLine;	// В ПВЗУ-Е зависит от Типа линии, может быть от 2 до 8
-						}
-						
-						if ( (TypeUdDev == 4) && (sMenuGlbParam.punkt[ShiftMenu] == 7) )
-						{
-							// ПВЗЛ только двух концевая, поэтому макс. номер аппарата 2
-							MaxValue = 2;
-						}
-							
-					}
-					
-				}
-				break;
-				
-				case LVL_PROTOCOL: 
-				{
-					WorkRate=2;SelectValue=2;InputSelectValue=0;MaxValue=1;MinValue=0; MassSelectValue=Menu18Param;
-				}
-				break;
-				
-				case LVL_INFO: 
-				{
-					if (ShiftMenu == 4)
-					{
-						WorkRate=2; SelectValue=1; InputSelectValue=0; MinValue=0; MaxValue=1; MassSelectValue=fDopParamView;
-					}
-					else if (ShiftMenu == 5)
-					{
-						WorkRate=2; SelectValue=2; InputSelectValue=0; MinValue=0; MaxValue=1; MassSelectValue=fDopParamValue;
-					}
-				}
-				break;
-				
-				case LVL_TEST: 
-				{
-					//в тесте можно подавать сигналы только если Пост и Передатчик (или если присутствует только 1 из них) в режиме Тест
-					if (((cNumComT>0)&&(CurrentState[4]<0x04))) break;
-					if (((bDef)&&(CurrentState[0]<0x04))) break;
-					//в Тест2 нельзя ничего подавать
-					if (((cNumComT>0)&&(CurrentState[4]==0x05))) break;
-					if (((bDef)&&(CurrentState[0]==0x05))) break;
-					
-					WorkRate = 5;
-					InputSelectValue = 0;
-					MinValue = 0;
-					
-					uint8_t group = sMenuTest.gr_items[ShiftMenu];
-					
-					SelectValue = Menu20grName[group - 1].val;
-					MassSelectValueRam = Menu20gr;
-					if (group == 1)
-					{
-						MaxValue = sMenuTest.cf_items_max;
-						MassItems = sMenuTest.cf_items;
-						
-					}
-					else if (group == 2)
-					{
-						MaxValue = sMenuTest.def_items_max;
-						MassItems = sMenuTest.def_items;
-					}
-				}
-				break;
-			}
-        }
-		break;
+        case 'E': {
+            pressENT();           
+        } break;
+        
         default: { _NOP();};
 	}
 	PressKey=0xF0;
@@ -2252,24 +2344,19 @@ void FuncTr(void) {
 					TransDataInf(0x30, 0x00); 
 				} 
 			}
-			else if ( (LoopUART == 3) || (LoopUART == 7) )  //опрашиваем примерно раз в 0.5 сек
-            {
-				//сделаем запрос параметра, выводимого на экран
-				if (cNumComR==0){ //исключаем ненужные нам команды, в виду отсутствия приемника
-					if (DopComTrans==1) DopComTrans=0;
-					if (DopComTrans==2) DopComTrans=3;
-				}
-				if (cNumComT==0){ //исключаем ненужные нам команды, в виду отсутствия передатчика
-					if (DopComTrans==3) DopComTrans=0;
-				}
-				switch (DopComTrans){
-					case 1: {TransDataInf(0x51,0x00);DopComTrans=0;} break; 	//если нажали на кнопку ПУСК Приемника
-					case 2: {TransDataInf(0x9A,0x00);DopComTrans=3;} break; 	//сброс индикации ПРМ
-					case 3: {TransDataInf(0xAA,0x00);DopComTrans=0;} break; 	//сброс индикации ПРД
-					case 4:	{TransDataByte(0x8A,0x06); DopComTrans=0;} break;	// АК запрос 
-					case 5:	{TransDataByte(0x72,0x0F); DopComTrans=0;} break;	// АК сброс
-					default:  TransDataByte(0x34, 0x00); //всегда опрашиваем все измеряемые параметры
-				}
+			else if ( (LoopUART == 3) || (LoopUART == 7) ) {
+                 //опрашиваем примерно два раза в секунду
+                dopCom_t dcom;
+                
+                if (dopCom.pop(dcom)){
+                    if (dcom.num == 0) {
+                        TransDataInf(dcom.com, 0);
+                    } else {
+                        TransDataByte(dcom.com, dcom.byte);
+                    }
+                } else {
+                    TransDataByte(COM_GET_MEAS, 0x00);
+                }                              
             }
 			else if (LoopUART==4)  //опрашиваем примерно раз в 0.5 сек
             {
@@ -2589,7 +2676,7 @@ void FuncTr(void) {
                 cnt++;
                 
                 // опрос значений для Modbus
-				switch(cnt % 6) {
+				switch(cnt % 4) {
                     case 0: {
                         // текущее состояние
                         TransDataInf(0x30, 0x00);
@@ -2598,25 +2685,15 @@ void FuncTr(void) {
                     case 1: {
                         // общее текущее состояние
                         TransDataInf(0x31, 0x00);
-                    } break;
+                    } break;                  
                     
                     case 2: {
-                        // дата/время
-                        TransDataInf(0x32, 0x00);
-                    } break;
-                    
-                    case 3: {
-                         // измеряемые параметры
-                        TransDataByte(0x34, 0x00);
-                    } break;
-                    
-                    case 4: {
                         // опрос типа удаленного аппарата 
                         // это не для Modbus, но было удобно вставить сюда
                         TransDataInf(0x37, 0x00);
                     } break;
                     
-                    case 5: {
+                    case 3: {
                         // адреса аппарата в локальной сети
                         TransDataInf(0x38, 0x00);
                     } break;
@@ -2704,9 +2781,9 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 				{	
 					// Для поста (при его наличии) выводится другая расшифровка для кода 0х0020
 					if ((temp == 0x0020) && (Device == 1) && (sArchive.NumDev == 1)) {
-						if (TypeUdDev == 0) {
+						if (TypeUdDev == TYPE_UD_DEV_AVANT) {
 							// Р400 добавляется номер для АК-Нет ответа
-								LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
+							LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
 						} else {
 							LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
 						}
@@ -2748,14 +2825,14 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 					// а для неисправностей в совместимости ПВЗУ-Е/ПВЗУ добавляется номер
 					if ((Device == 1) && (sArchive.NumDev == 1)) {
 						
-						if (TypeUdDev == 7) { // добавляем номер уд.аппарата с ошибкой (если не надо - затрется)
+						if (TypeUdDev == TYPE_UD_DEV_PVZU) { // добавляем номер уд.аппарата с ошибкой (если не надо - затрется)
 							if (temp == 0x8000) {
 								LCDprint(NumString, 17, NumDfzError, 1);
 							} else {
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
 							}
 						} 
-						else if (TypeUdDev == 3) {
+						else if (TypeUdDev == TYPE_UD_DEV_PVZUE) {
 							if (cNumLine <= 3) {
 								if (temp == 0x8000) {
 									LCDprint(NumString, 17, NumDfzError, 1);
@@ -2858,9 +2935,9 @@ static void LCDMenu1(uint8_t NumString, uint8_t Device)
 							case 0x01:
 							if ((Device == 1) && (sArchive.NumDev == 1)) {
 								LCDprintf(NumString, 18, Menu1PostErrorDopT[0], 1);
-								if (TypeUdDev == 7) {
+								if (TypeUdDev == TYPE_UD_DEV_PVZU) {
 									LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
-								} else if ((TypeUdDev == 3) || (TypeUdDev == 0)) {
+								} else if ((TypeUdDev == TYPE_UD_DEV_PVZUE) || (TypeUdDev == TYPE_UD_DEV_AVANT)) {
 									if (cNumLine <= 3) {
 										LCDprintf(NumString, 18, Menu1PostErrorDopT[NumDevError], 1);
 									} else {
@@ -3008,7 +3085,7 @@ static void LCDwork(void)
 					{
 						if (bDef) {
 							// в АВАНТ Р400 в совместимости с ПВЗУ-Е 4-х и более концевом варианте используется последняя строка
-							if ((TypeUdDev == 3) && (cNumLine >= 4)) {
+							if ((TypeUdDev == TYPE_UD_DEV_PVZUE) && (cNumLine >= 4)) {
 								FuncClearCharLCD(4, 1, 20);
 							}
 							
@@ -3040,7 +3117,10 @@ static void LCDwork(void)
 								if ((FreqNum[7] <= '8') && (FreqNum[7] >= '1') && (cAutoControl) && (CurrentState[0] == 2))
 								{
 									// Только в ПВЗУ-Е/ПВЗУ/ПВЗ при аварии/неисправности выводится время до АК
-									if (((!bDefAvar) && (!bGlobalAvar) && (CurrentState[1] == 1)) || ((TypeUdDev == 3) || (TypeUdDev == 7) || (TypeUdDev == 8))) {
+									if (((!bDefAvar) && (!bGlobalAvar) && (CurrentState[1] == 1)) || 
+                                        ((TypeUdDev == TYPE_UD_DEV_PVZUE) || 
+                                         (TypeUdDev == TYPE_UD_DEV_PVZU) || 
+                                         (TypeUdDev == TYPE_UD_DEV_PVZ))) {
 										if (TimeError) {
 											LCDprintf(3 , 15 , Menu11Err , 1);
 											FuncClearCharLCD(3 , 19 , 2);
@@ -3570,7 +3650,8 @@ static void LCDwork(void)
 									if ((sArchive.Data[1] > 0) && (sArchive.Data[1] <= dNumSob) )
 									{
 										
-										if ((bDef) && (TypeUdDev == 8)) {	// В совместимости ПВЗ подменяются 2 события
+										if ((bDef) && (TypeUdDev == TYPE_UD_DEV_PVZ)) {
+                                            // В совместимости ПВЗ подменяются 2 события
 											if (sArchive.Data[1] == 4) {
 												LCDprintf(3,1,ArchSob[dNumSob + 1],1);
 											} else if (sArchive.Data[1] == 28) {

@@ -41,7 +41,7 @@ typedef enum {
     COM_01H_READ_COILS 				= 0x01,	///< Чтение флагов.
     COM_03H_READ_HOLDING_REGISTERS 	= 0x03,	///< Чтение внутренних регистров.
 //    COM_06H_WRITE_SINGLE_REGISTER 	= 0x06	///< Запись одного внутреннего регистра.
-} com_t;
+} comModbus_t;
 
 /// Коды исключения
 typedef enum {
@@ -49,7 +49,7 @@ typedef enum {
     EXCEPTION_02H_ILLEGAL_DATA_ADR 	= 0x02,	///< Неверный адрес регистра
     EXCEPTION_03H_ILLEGAL_DATA_VAL 	= 0x03,	///< Неверное значение поля данных
     EXCEPTION_04H_DEVICE_FAILURE 	= 0x04	///< В устройстве произошла ошибка
-} exception_t;
+} exceptionModbus_t;
 
 /// Адреса регистров.
 typedef enum {
@@ -279,7 +279,7 @@ uint16_t MODBUS_getNumOfAddress() {
  *
  *  @param[in] code Код ошибки.
  */
-void MODBUS_txError(exception_t exception) {
+void MODBUS_txError(exceptionModbus_t exception) {
     uint16_t crc = 0;
     
     UARTLS_txBuf[0] = UARTLS_rxBuf[0];
@@ -625,25 +625,16 @@ void MODBUS_rxProc(uint8_t adr, uint8_t num) {
     // Проверка адреса устройства.
     err |= (UARTLS_rxBuf[0] != adr);
     
-    if (err) {
-        MODBUS_txError((exception_t) adr);
-        return;
-    }
-    
     // Проверка контрольной суммы.
     uint16_t crcCalc = MODBUS_calcCRC(UARTLS_rxBuf, num - 2);
     uint16_t crcRead = (UARTLS_rxBuf[num - 1] << 8) + (UARTLS_rxBuf[num - 2]);
     err |= (crcCalc != crcRead);
     
-    if (crcCalc != crcRead) {
-        MODBUS_txError((exception_t) 0xF2);
-        return;
-    }
-    
-    if (err) {       
+    if (err) {      
+        // В случае ошибки ждем следующее сообщение.
         UARTLS_rxStart();         
     } else {
-        switch((com_t) UARTLS_rxBuf[1]){
+        switch((comModbus_t) UARTLS_rxBuf[1]){
             case COM_01H_READ_COILS: {
                 MODBUS_readCoils();
             } break;

@@ -25,6 +25,8 @@ extern strMenuTest sMenuTest;
 
 extern strParamPVZUE sParamPVZE;
 
+extern typeUdDev_t TypeUdDev;
+
 extern uint8_t *ChangeMass;
 extern uint8_t cNumComR;
 extern uint8_t cNumComT;
@@ -52,7 +54,6 @@ extern uint8_t SelectValue;
 extern uint8_t ShiftMenu;
 extern uint8_t TimeLCD[];
 extern uint8_t TrValue;
-extern uint8_t TypeUdDev;
 extern uint8_t ValueVsRange;
 extern uint8_t WorkRate;
 
@@ -605,32 +606,25 @@ void MenuAKCreate(void)
 	
 	param4[i++] = 0;
 	
-	if (TypeUdDev > 0)			// ÏÂÇ-90, ÀÂÇÊ-80, ÏÂÇÅ-Ó, ÏÂÇË 
-	{	
-		param4[i++] = 8;	// íîðì.ÀÊ
-		param4[i++] = 8;	// íîðì.ÀÊ
-	}
-	else						// ÀÂÀÍÒ
-	{
-		param4[i++] = 1;	// àâòî.ÀÊ
+	if (TypeUdDev == TYPE_UD_DEV_AVANT) {	
+        param4[i++] = 1;	// àâòî.ÀÊ
 		param4[i++] = 2;	// àâòî.ÀÊ
+		
+	} else {			
+		param4[i++] = 8;	// íîðì.ÀÊ
+		param4[i++] = 8;	// íîðì.ÀÊ
 	}
 	
 	param4[i++] = 3;		// óñê.ÀÊ
 	param4[i++] = 4;		// âûêë.ÀÊ
 	
-	if ((TypeUdDev == 3) || (TypeUdDev == 7))	// ÏÂÇÓ-Å
-	{
+	if ((TypeUdDev == TYPE_UD_DEV_PVZUE) || (TypeUdDev == TYPE_UD_DEV_PVZU)) {
 		param4[i++] = 9;	// áåãë.ÀÊ
 		param4[i++] = 5;	// ïðîâ.ÀÊ
-	}
-	else if (TypeUdDev == 4)	// ÏÂÇË
-	{
+	} else if (TypeUdDev == TYPE_UD_DEV_PVZL) {	
 		param4[i++] = 10;	// îäíîñ.ÀÊ
 		param4[i++] = 5;	// ïðîâ.ÀÊ
-	}
-	else						// ÀÂÀÍÒ, ÏÂÇ-90, ÀÂÇÊ
-	{
+	} else {
 		param4[i++] = 5;	// ïðîâ.ÀÊ
 		param4[i++] = 6;	// èñïûò.ÀÊ
 	}
@@ -658,7 +652,7 @@ void MenuTestCreate(void)
 	
 	sMenuTest.cf_val = SIGN_ERROR;
 	num = 0;
-	if ( (cNumComR != 0) || (cNumComT != 0) || (TypeUdDev == 0) )
+	if ((cNumComR != 0) || (cNumComT != 0) || (TypeUdDev == TYPE_UD_DEV_AVANT))
 	{		
 		uint8_t num_com = (cNumComR > cNumComR) ? cNumComR : cNumComT;
 		

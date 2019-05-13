@@ -95,7 +95,7 @@ extern unsigned char MenuAllLowCF[];
 extern unsigned char MenuAllLowCFa[];
 extern unsigned int MyInsertion[];
 extern __flash uint16_t RangGlb[] [3];
-extern uint8_t TypeUdDev;
+extern typeUdDev_t TypeUdDev;
 ///// ПВЗУ-Е
 extern strParamPVZUE sParamPVZE;	
 /////
@@ -243,7 +243,7 @@ void FParamDef(unsigned char command)
 			uint8_t min = RangPost[1] [0];
 			uint8_t max = RangPost[1] [1];
 			
-			if (TypeUdDev == 3)
+			if (TypeUdDev == TYPE_UD_DEV_PVZUE)
 				max = 8;
 			
 			if ((tmp < min) || (tmp > max)) 
@@ -256,7 +256,7 @@ void FParamDef(unsigned char command)
 					cNumLine = tmp;
 					
 					// включим нужные Uk и отключим лишние
-					if ((TypeUdDev == 3) && (cNumLine > 3)) {
+					if ((TypeUdDev == TYPE_UD_DEV_PVZUE) && (cNumLine > 3)) {
 						// в ПВЗУ-Е с кол-вом концов более 3, показывается
 						// столько Uк сколько концов.
 						for(uint8_t i = 1; i <= 8; i++) {
@@ -1000,7 +1000,7 @@ void FMeasureParam(void)
 		if (cNumLine == 3) {
             ucf2 = Rec_buf_data_uart[14];
 			fDopCodeToChar(Uinkch2, 3, 1, 2, ucf2);
-		} else if ((cNumLine > 3) && (TypeUdDev == 3)) {
+		} else if ((cNumLine > 3) && (TypeUdDev == TYPE_UD_DEV_PVZUE)) {
 			// в ПВЗУ-Е может быть до 8 Uk
 			fDopCodeToChar(Uinkch2,3,1,2,Rec_buf_data_uart[14]);
 			fDopCodeToChar(Uinkch3,3,1,2,Rec_buf_data_uart[19]);
@@ -1051,12 +1051,12 @@ void FParamGlobal(unsigned char command)
 		{ //тип удаленного аппарата
 			if (Rec_buf_data_uart[4] > RangGlb[0] [1])
 			{
-				TypeUdDev = RangGlb[0] [1] + 1;
+				TypeUdDev = TYPE_UD_DEV_MAX;
 				sMenuGlbParam.dev = 0xFF;
 			}
 			else
 			{
-				TypeUdDev = Rec_buf_data_uart[4];
+				TypeUdDev = (typeUdDev_t) Rec_buf_data_uart[4];
 				if (TypeUdDev != sMenuGlbParam.dev)
 				{			
 					sMenuGlbParam.dev = TypeUdDev;
@@ -1107,7 +1107,7 @@ void FParamGlobal(unsigned char command)
 			
 			// В ПВЗЛ используется первый параметр
 			// остальные в ПВЗУ-Е
-			if (TypeUdDev == 4)
+			if (TypeUdDev == TYPE_UD_DEV_PVZL)
 			{
 				//снижение уровня АК
 				tmp = Rec_buf_data_uart[4];
@@ -1262,7 +1262,7 @@ void FParamGlobal(unsigned char command)
 			uint8_t min = RangGlb[7] [0];
 			uint8_t max = RangGlb[7] [1];
 			
-			if (TypeUdDev == 3) {
+			if (TypeUdDev == TYPE_UD_DEV_PVZUE) {
 				max = cNumLine;
 			}
 				
@@ -1553,13 +1553,13 @@ bool VersDevice(void)
 	
 	
 	// проверим совместимость и если не корректная включим АВАНТ
-	if (Rec_buf_data_uart[14] <= 8)	{ // 8 == NumTypeUdDev
-		TypeUdDev = Rec_buf_data_uart[14];
+	if (Rec_buf_data_uart[14] < TYPE_UD_DEV_MAX)	{ 
+		TypeUdDev = (typeUdDev_t) Rec_buf_data_uart[14];
 	}
 	else
 	{
 		CorrectVers = false;
-		TypeUdDev = 0;
+		TypeUdDev = TYPE_UD_DEV_AVANT;
 	}
 	
 	// отключим сначала все Uk кроме Uk1
@@ -1591,7 +1591,7 @@ bool VersDevice(void)
 		// архив для второго приемника. при необходимости
 		if (cNumComR2 != 0)
 			sArchive.Dev[++sArchive.NumDev] = 4;  // второй приемник
-	} else if ((TypeUdDev == 3) && (Rec_buf_data_uart[8] <= 8)) {
+	} else if ((TypeUdDev == TYPE_UD_DEV_PVZUE) && (Rec_buf_data_uart[8] <= 8)) {
 			cNumLine = Rec_buf_data_uart[8];
 			
 			// в ПВЗУ-Е может быть до 8 Uk
@@ -1747,8 +1747,8 @@ void DataModBus(unsigned char NumberByte) {
 					crc -= UARTLS_txBuf[21];
 					crc -= UARTLS_txBuf[22];
 				}
-				crc += (UARTLS_txBuf[21] = Hi(Insertion));
-				crc += (UARTLS_txBuf[22] = Lo(Insertion));
+				crc += (UARTLS_txBuf[21] = (uint8_t) (Insertion >> 8));
+				crc += (UARTLS_txBuf[22] = (uint8_t) Insertion);
 				UARTLS_txBuf[num + 4] = crc;
 				
 			}

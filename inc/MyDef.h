@@ -21,41 +21,23 @@
 
 #define SIZE_OF(mas) (sizeof(mas) / sizeof(mas[0]))
 
-//Взять старший байт int
-#define Hi(a) (unsigned char) (a>>8)
-//Взять младший байт Int
-#define Lo(a) (unsigned char) (a)
-
 #define SetBit(Port,Bit) Port|=(1<<Bit)
 #define ClrBit(Port,Bit) Port&=~(1<<Bit)
 #define TestBit(Port,Bit) Port&(1<<Bit)
 
-//макрос записи в старший байт инта байта
-#define LoadHiByte(ints,chars) (((ints)&0x00ff)|((chars)<<8))
-#define LoadLoByte(ints,chars) (((ints)&0xff00)|((chars)))
-//флаг показывает разрешение приема UART
-#define EnRead 0x02
-// флаг показывает разрешение передачи UART
-#define EnWrite 0x04
 //флаг показывает что идет прием или передача сообщения
 #define CurSost 0x10
-//флаг показывает, что сообщение принято
-#define DataRead  0x08
 
 //размер буфера передаваемых по UART данных
 #define MaxLenghtRecBuf 128
 #define MaxLenghtTrBuf 128
 
-//наличие аппаратных ошибок приема
-#define HardError 0x01
-  //запретить прерывание приема
-  #define DisableReceive ClrBit(UCSR0B,RXEN0); ClrBit(UCSR0B,RXCIE0)
-  //разрешить прерывание приема
-  #define EnableReceive SetBit(UCSR0B,RXEN0); SetBit(UCSR0B,RXCIE0)
-  //запретить прерывание по освобождению буфера передачи, остановка передачи
-  #define StopTrans ClrBit(UCSR0B,TXEN0); ClrBit(UCSR0B,UDRIE0)
-//остановка таймера 0
-#define StopT0 TCCR0=0
+//запретить прерывание приема
+#define DisableReceive ClrBit(UCSR0B,RXEN0); ClrBit(UCSR0B,RXCIE0)
+//разрешить прерывание приема
+#define EnableReceive SetBit(UCSR0B,RXEN0); SetBit(UCSR0B,RXCIE0)
+//запретить прерывание по освобождению буфера передачи, остановка передачи
+#define StopTrans ClrBit(UCSR0B,TXEN0); ClrBit(UCSR0B,UDRIE0)
 
 //*100мс , время ожидания запроса с ПК
 #define PC_wait 15
@@ -91,6 +73,69 @@ typedef enum {
     PROTOCOL_MODBUS,    // ModBus
     PROTOCOL_MAX        // Количество элементов перечисления. 
 } protocol_t;
+
+/** Список удаленных аппаратов.
+ *
+ *  Список должен соответствовать fmTypeUdDev.
+ */
+typedef enum {
+    TYPE_UD_DEV_AVANT   = 0,
+    TYPE_UD_DEV_PVZ90   = 1,
+    TYPE_UD_DEV_AVZK80  = 2,
+    TYPE_UD_DEV_PVZUE   = 3,
+    TYPE_UD_DEV_PVZL    = 4,
+    TYPE_UD_DEV_LINER   = 5,
+    TYPE_UD_DEV_PVZK    = 6,
+    TYPE_UD_DEV_PVZU    = 7,
+    TYPE_UD_DEV_PVZ     = 8,
+    TYPE_UD_DEV_MAX
+} typeUdDev_t;
+
+/// Список используемых команд.
+typedef enum {
+    COM_GET_MEAS 			= 0x34,
+    COM_PRM_ENTER 			= 0x51,	
+    COM_SET_CONTROL 		= 0x72,
+    COM_SET_PASSWORD 		= 0x73,	// только с ПК
+	COM_GET_PASSWORD 		= 0x74,	// только с ПК
+    COM_DEF_SET_TYPE_AC 	= 0x8A,	
+    COM_PRM_RES_IND			= 0x9A,
+    COM_PRD_RES_IND 		= 0xAA
+} com_t;
+
+/// Значения команды управления (COM_SET_CONTROL).
+typedef enum {
+	CONTROL_RESET_SELF 	= 1,	///< сброс своего
+    CONTROL_RESET_UD_1	= 2,	///< сброс удаленного 1
+	CONTROL_RESET_UD_2	= 3,	///< сброс удаленного 2
+    CONTROL_PUSK_UD_1 	= 4,	///< пуск удаленного (1)
+	CONTROL_PUSK_UD_2 	= 5,	///< пуск удаленного 2
+    CONTROL_PUSK_UD_ALL = 6,	///< пуск удаленных
+    CONTROL_CALL 		= 7,	///< вызов
+    CONTROL_PUSK_ON 	= 8,	///< пуск наладочный вкл.
+	CONTROL_PUSK_OFF 	= 9,	///< пуск наладочный выкл.
+    CONTROL_MAN_1 		= 10,	///< пуск МАН удаленного (1)
+	CONTROL_MAN_2 		= 11,	///< пуск МАН удаленного 2
+    CONTROL_MAN_ALL 	= 12,	///< пуск МАН удаленных
+    CONTROL_PUSK_UD_3 	= 13,	///< пуск удаленного 3
+    CONTROL_MAN_3 		= 14,	///< пуск МАН удаленного 3
+    CONTROL_RESET_AC	= 15,	///< сброс АК
+    //
+	CONTROL_MAX					///<
+} control_t;
+
+/// Значения команды автоконтроля (COM_DEF_SET_TYPE_AC)
+typedef enum {
+    AC_NORM_FAST    = 1,    ///< Авто-ускоренный.    
+    AC_NORM         = 2,    ///< Авто-нормальный.
+    AC_FAST         = 3,    ///< Ускоренный.
+    AC_OFF          = 4,    ///< Выключен.
+    AC_CHECK        = 5,    ///< Контрольная проверка (в ПВЗУ-Е быстрая проверка).
+    AC_TEST         = 6,    ///< Испытание (контрольная проверка в ПВЗУ-Е).
+    AC_PUSK         = 7,    ///< Пуск.
+    //
+    AC_MAX                  ///<
+} ac_t;
 
 //struct strTest
 //{
