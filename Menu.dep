@@ -166,6 +166,10 @@
       </outputs>
       <inputs>
         <tool>
+          <name>BICOMP</name>
+          <file> 48 56 11 14 54 22 46 12 30 63 4 9 15 50 2 3 18 39 36 42</file>
+        </tool>
+        <tool>
           <name>ICCAVR</name>
           <file> 48 56 11 14 54 22 46 12 30 63 4 9 15 50 2 3 18 39 36 42</file>
         </tool>
@@ -207,10 +211,6 @@
         </tool>
       </outputs>
       <inputs>
-        <tool>
-          <name>BICOMP</name>
-          <file> 48 56 11 14 54 22 46 12 63 4 9 15 50 2 3 18 30 25 42 43 35 33</file>
-        </tool>
         <tool>
           <name>ICCAVR</name>
           <file> 48 56 11 14 54 22 46 12 63 4 9 15 50 2 3 18 30 25 42 43 35 33</file>

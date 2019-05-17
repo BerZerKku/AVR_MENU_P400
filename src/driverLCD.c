@@ -24,7 +24,7 @@ unsigned char CommandLCD;
 unsigned char LCDstat;
 
 // последовательность инициализации инициализация LCD для HD44780
-__flash unsigned char InitLCD[]={0x38, 0x0C, 0x01, 0x02};  
+__flash unsigned char InitLCD[]={0x38, 0x0C, 0x02};  
 //__flash unsigned char InitLCD[5]={0x3A, 0x0F, 0x01,0x06, 0x00};  //инициализация LCD для S6A0069
 
 //                                             A    Б   В     Г   Д     Е   Ж     З   И     й   К     Л   М     Н   О     П
