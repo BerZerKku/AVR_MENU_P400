@@ -1171,11 +1171,6 @@ static void FuncSelectValue(void)
                     eWrite = 1;
                     eAddressWrite = 7;
                     eMassiveWrite = eProtocol;
-                    
-					if (Protocol == PROTOCOL_S) {
-                        Tr_buf_data_uart[0] = 0x55; 
-                        Tr_buf_data_uart[1] = 0xAA;
-                    }
 				} break;
 				
 				case LVL_INFO: {
@@ -1582,8 +1577,8 @@ static void FuncInputData(void)
 			if (PressPassword==1){
 				ePassword[0]=InputValue[0];ePassword[1]=InputValue[1];ePassword[2]=InputValue[2];ePassword[3]=InputValue[3];
 				//а теперь запишем пароль в EEPROM
-				eWrite=1;eAddressWrite=0;eMassiveWrite=ePassword;
-				PressPassword=2;
+				eWrite=1; eAddressWrite=0; eMassiveWrite=ePassword;
+				PressPassword = 2;
 			}
 		}
 		// очищаем буферный массив
