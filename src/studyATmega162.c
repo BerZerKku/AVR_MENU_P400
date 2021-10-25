@@ -1877,7 +1877,15 @@ static void FuncPressKey(void)
 				case LVL_START:
 				{	
 					if (bDef) {
-						DopComTrans=4;
+                        if ((TypeUdDev == 1) || (TypeUdDev == 2))
+                        {
+                            DopComTrans=6; // АК - пуск
+                        }
+                        else if ((TypeUdDev == 3) || (TypeUdDev == 4) ||
+                                 (TypeUdDev == 7) || (TypeUdDev == 8))
+                        {
+                            DopComTrans=4; // АК - испытание
+                        }
 					} else {
 						//"Пуск" приемника
 						DopComTrans=1;
@@ -2336,6 +2344,7 @@ void FuncTr(void)
 					case 3: {TransDataInf(0xAA,0x00);DopComTrans=0;} break; 	//сброс индикации ПРД
 					case 4:	{TransDataByte(0x8A,0x06); DopComTrans=0;} break;	// АК запрос 
 					case 5:	{TransDataByte(0x72,0x0F); DopComTrans=0;} break;	// АК сброс
+                    case 6: {TransDataByte(0x8A,0x07); DopComTrans=0;} break;   // АК пуск
 					default:  TransDataByte(0x34, 0x00); //всегда опрашиваем все измеряемые параметры
 				}
             }
