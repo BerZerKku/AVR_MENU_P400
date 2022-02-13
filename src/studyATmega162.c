@@ -4034,18 +4034,7 @@ static void LCDwork(void)
                         switch (sArchive.Dev[sArchive.CurrDev]) {
                         case 0: { //журнал событий
                             if ((sArchive.Data[1] > 0) && (sArchive.Data[1] <= dNumSob)) {
-
-                                if ((bDef) && (TypeUdDev == 8)) { // В совместимости ПВЗ подменяются 2 события
-                                    if (sArchive.Data[1] == 4) {
-                                        LCDprintf(3, 1, ArchSob[dNumSob + 1], 1);
-                                    } else if (sArchive.Data[1] == 28) {
-                                        LCDprintf(3, 1, ArchSob[dNumSob + 2], 1);
-                                    } else {
-                                        LCDprintf(3, 1, ArchSob[sArchive.Data[1]], 1);
-                                    }
-                                } else {
-                                    LCDprintf(3, 1, ArchSob[sArchive.Data[1]], 1);
-                                }
+                                LCDprintf(3, 1, ArchSob[sArchive.Data[1]], 1);
                             } else {
                                 //если неизвестный код записи
                                 FuncClearCharLCD(3, 1, 10);
