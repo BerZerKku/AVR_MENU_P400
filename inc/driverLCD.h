@@ -12,14 +12,13 @@
 
 //используется таймер 2
 #define LCDclear FuncCommandLCD(0x01) //очистка экрана LCD
-#define LCDinit  FuncInitLCD  //начальная
-
+#define LCDinit FuncInitLCD //начальная
 
 extern unsigned char LCDstat;
 
 //
-extern void LCDprint (unsigned char Line, unsigned char AddressInLine, unsigned char *bufer, unsigned char convers);
-extern void LCDprintf (unsigned char Line, unsigned char AddressInLine, unsigned char __flash *buferf, unsigned char convers);
+extern void LCDprint(unsigned char Line, unsigned char AddressInLine, unsigned char* bufer, unsigned char convers);
+extern void LCDprintf(unsigned char Line, unsigned char AddressInLine, unsigned char __flash* buferf, unsigned char convers);
 extern void FuncCommandLCD(unsigned char com);
 extern void FuncInitLCD(void);
 extern void LCDbufClear(void);
@@ -32,7 +31,7 @@ extern void LCDprintDEC2(unsigned char Line, unsigned char AddressInLine, unsign
 extern void LCDprintBits(unsigned char Line, unsigned char AddressLine, unsigned char CodePrint);
 extern void LCDprintInsertion(unsigned char Line, unsigned char AddressInLine, unsigned int CodePrint);
 extern void LCDprintTetr(unsigned char Line, unsigned char AddressInLine, unsigned char CodePrint);
-extern void LCDprintChar (unsigned char Line, unsigned char AddressInLine, unsigned int CodePrint); //вывод на экран 1 символа
+extern void LCDprintChar(unsigned char Line, unsigned char AddressInLine, unsigned int CodePrint); //вывод на экран 1 символа
 extern void LCDptinrArchCount(unsigned char AddressInLine, unsigned int Count, unsigned char Shift);
 extern void LCDprintData(unsigned char Adr, unsigned char* Mass);
 extern void LCDprintTime(unsigned char Adr, unsigned char* Mass);

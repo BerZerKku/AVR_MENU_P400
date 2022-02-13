@@ -1,7 +1,7 @@
-class Standart{
-  unsigned char i_std;
+class Standart {
+    unsigned char i_std;
+
 private:
-  
 public:
-  Standart(void) {};
+    Standart(void) {};
 };

@@ -1,6 +1,6 @@
 //библиотека работы с UART
 #ifndef __MY_DEF
- #include "MyDef.h"
+#include "MyDef.h"
 #endif
 //сброс регистра ошибок
 void ClearPortError(void);
@@ -14,11 +14,10 @@ void StartTrans(char SizeMessage);
 //старт UART
 void StartUART(void);
 
-extern unsigned char Rec_buf_data_uart [MaxLenghtRecBuf] ; //буфер принимаемых данных
-extern unsigned char Tr_buf_data_uart [MaxLenghtTrBuf] ; //буфер передаваемых данных
+extern unsigned char Rec_buf_data_uart[MaxLenghtRecBuf]; //буфер принимаемых данных
+extern unsigned char Tr_buf_data_uart[MaxLenghtTrBuf]; //буфер передаваемых данных
 extern char Sost;
 //extern unsigned char DataRec; //=1, когда получено сообщение
-
 
 //сброс регистра ошибок
 void ClearPortError1(void);
@@ -32,8 +31,8 @@ void StartTrans1(char SizeMessage);
 //старт UART
 void StartUART1(void);
 
-extern unsigned char Rec_buf_data_uart1 [MaxLenghtRecBuf] ; //буфер принимаемых данных
-extern unsigned char Tr_buf_data_uart1 [MaxLenghtTrBuf1] ; //буфер передаваемых данных
+extern unsigned char Rec_buf_data_uart1[MaxLenghtRecBuf]; //буфер принимаемых данных
+extern unsigned char Tr_buf_data_uart1[MaxLenghtTrBuf1]; //буфер передаваемых данных
 extern char Sost1;
 //extern unsigned char DataRec; //=1, когда получено сообщение
 
@@ -42,5 +41,4 @@ extern unsigned char PCbyte;
 extern unsigned char PCtime;
 
 extern bool bUartRcReady1; //true - принята посылка, надо обработать
-extern unsigned char cNumRecByte;  //кол-во принятых байт
-
+extern unsigned char cNumRecByte; //кол-во принятых байт
